@@ -162,6 +162,17 @@ const escapeXml = (s) =>
 const textParagraph = (text) =>
   `<w:p><w:r><w:t xml:space="preserve">${escapeXml(text)}</w:t></w:r></w:p>`
 
+/**
+ * A paragraph whose text is split across several runs — which is what Word
+ * actually does. In the real sample the metadata line arrives as two runs
+ * ("A. Author" + " | 10 steps | 1 minute"). Any parser reading only the first
+ * run truncates silently, so fixtures must reproduce this.
+ */
+const multiRunParagraph = (parts) =>
+  `<w:p>${parts
+    .map((part) => `<w:r><w:t xml:space="preserve">${escapeXml(part)}</w:t></w:r>`)
+    .join('')}</w:p>`
+
 const imageParagraph = (relId) =>
   `<w:p><w:r><w:drawing><wp:inline>` +
   `<wp:extent cx="5943600" cy="3409950"/>` +
@@ -183,6 +194,8 @@ const imageParagraph = (relId) =>
  * @param {number} [options.height]     screenshot height
  * @param {boolean} [options.orphanImage]  append an image with no step text
  * @param {boolean} [options.orphanText]   append step text with no image
+ * @param {boolean} [options.splitStepRuns] split each step across three runs
+ * @param {number} [options.declaredStepCount] override the count in the meta line
  * @param {string} [options.duration]
  */
 export function makeCapture(options) {
@@ -195,47 +208,61 @@ export function makeCapture(options) {
     height = 120,
     orphanImage = false,
     orphanText = false,
+    leadingImage = false,
+    splitStepRuns = false,
+    declaredStepCount = null,
     duration = '1 minute',
   } = options
 
   const body = [
     textParagraph(title),
-    textParagraph(`${author} | ${steps.length} steps | ${duration}`),
+    // Split across two runs, exactly as the real export does.
+    multiRunParagraph([author, ` | ${declaredStepCount ?? steps.length} steps | ${duration}`]),
     textParagraph(date),
   ]
 
   const media = []
   const rels = []
 
-  steps.forEach((step, i) => {
-    const relId = i + 1
-    body.push(textParagraph(`${relId}. ${step}`))
-    body.push(imageParagraph(relId))
-    media.push({
-      name: `word/media/image${relId}.png`,
-      data: makePng(width, height, [40 + i * 12, 90, 130]),
-    })
+  const addImage = (relId, rgb) => {
+    media.push({ name: `word/media/image${relId}.png`, data: makePng(width, height, rgb) })
     rels.push(
       `<Relationship Id="rId${relId}" ` +
         `Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" ` +
         `Target="media/image${relId}.png"/>`
     )
+  }
+
+  // An image before any numbered step — exercises the ORPHAN_IMAGE path.
+  if (leadingImage) {
+    const relId = steps.length + 2
+    body.push(imageParagraph(relId))
+    addImage(relId, [120, 200, 90])
+  }
+
+  steps.forEach((step, i) => {
+    const relId = i + 1
+    const line = `${relId}. ${step}`
+    if (splitStepRuns) {
+      // Break at arbitrary points, as Word does on formatting boundaries.
+      const third = Math.ceil(line.length / 3)
+      body.push(
+        multiRunParagraph([line.slice(0, third), line.slice(third, third * 2), line.slice(third * 2)])
+      )
+    } else {
+      body.push(textParagraph(line))
+    }
+    body.push(imageParagraph(relId))
+    addImage(relId, [40 + i * 12, 90, 130])
   })
 
   if (orphanText) body.push(textParagraph(`${steps.length + 1}. A step with no screenshot`))
 
+  // A trailing image after the last step — attaches to that step.
   if (orphanImage) {
     const relId = steps.length + 1
     body.push(imageParagraph(relId))
-    media.push({
-      name: `word/media/image${relId}.png`,
-      data: makePng(width, height, [200, 60, 60]),
-    })
-    rels.push(
-      `<Relationship Id="rId${relId}" ` +
-        `Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" ` +
-        `Target="media/image${relId}.png"/>`
-    )
+    addImage(relId, [200, 60, 60])
   }
 
   const documentXml =

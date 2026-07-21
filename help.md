@@ -19,12 +19,20 @@ the obvious choice if publishing is permitted.
 **Blocks:** `stage-1-foundation/feature-pages-deploy` — specifically making the repo public. You can
 build and deploy privately in the meantime; this only gates the visibility flip.
 
-### [ ] 2. Confirm the GitHub repo can be created and pushed
-**What:** Confirm `gh auth status` shows you logged in to the right GitHub account, and that you want
-the repo under that account rather than an organisation.
-**Why it's needed:** `gh` 2.96.0 is installed but its auth state has not been checked. Creating the
-repo under the wrong account is annoying to unwind.
-**Blocks:** `stage-1-foundation/feature-pages-deploy`.
+### [x] 2. ~~Confirm the GitHub repo can be created and pushed~~ — done 2026-07-21
+Authenticated as **<your-account>**. Repo created at `<your-account>/step-capture-studio`, **private**, both commits
+pushed. Pages not enabled — see item 2b.
+
+### [ ] 2b. Decide how Pages should be exposed when the repo goes public
+**What:** Two things to know before Pages is switched on.
+1. **Pages on a *private* repo requires a paid GitHub plan.** Your token lacks the `user` scope so
+   the plan could not be read. If you are on Free, Pages will only work once the repo is public.
+2. **A Pages site on a private repo can still be publicly reachable.** That is why Pages was left
+   off rather than enabled quietly — it would have contradicted your "private until licensing
+   clears" decision.
+**Why it's needed:** Determines whether the live URL arrives before or after item 1 is resolved.
+**Blocks:** the full `feature-pages-deploy` definition of done. Browser verification of the app
+itself is *not* blocked — that runs against a local static server in the meantime.
 
 ---
 

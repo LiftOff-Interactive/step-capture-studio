@@ -1,5 +1,5 @@
 # Feature: snagit-parser
-_Stage: stage-1-foundation · Status: not started_
+_Stage: stage-1-foundation · Status: awaiting verification_
 
 ## Goal
 Turn the raw package entries from `docx-reader` into the normalised **capture model** that every
@@ -32,18 +32,18 @@ Verified against the real sample on 2026-07-21. `word/document.xml` held 23 para
 ```
 
 ## Success Criteria
-- [ ] The real sample yields exactly **10 steps**, each with exactly **1 image**.
-- [ ] Step *n*'s text is paired with the screenshot that follows it in document order.
-- [ ] The `N.` numbering prefix is stripped from step text; `index` comes from document order instead.
-- [ ] `title`, `author`, and `createdAt` are populated from the header paragraphs and/or
+- [x] The real sample yields exactly **10 steps**, each with exactly **1 image**.
+- [x] Step *n*'s text is paired with the screenshot that follows it in document order.
+- [x] The `N.` numbering prefix is stripped from step text; `index` comes from document order instead.
+- [x] `title`, `author`, and `createdAt` are populated from the header paragraphs and/or
       `docProps/core.xml`.
-- [ ] Image `width`/`height` are read from the PNG header (native resolution), not from the Word
+- [x] Image `width`/`height` are read from the PNG header (native resolution), not from the Word
       display extent.
-- [ ] **No logic keys off English words.** A capture whose steps read `Cliquez sur …` parses
+- [x] **No logic keys off English words.** A capture whose steps read `Cliquez sur …` parses
       identically. Only the `N.` numbering pattern is matched.
-- [ ] A step paragraph with no following image, or an image with no preceding text, is preserved
+- [x] A step paragraph with no following image, or an image with no preceding text, is preserved
       rather than silently dropped — the model tolerates the mismatch and flags it.
-- [ ] Duplicate consecutive step text is **preserved** here and flagged for the authoring layer.
+- [x] Duplicate consecutive step text is **preserved** here and flagged for the authoring layer.
       The parser reports; it does not edit.
 
 ## How We'll Verify
@@ -58,7 +58,33 @@ Verified against the real sample on 2026-07-21. `word/document.xml` held 23 para
 3. Record both results below.
 
 ## Verification Log
-_Empty. This feature cannot be marked `verified done` until dated evidence appears here._
+
+### 2026-07-21 — Step 1 (automated) PASS
+`npm test` on Node v24.16.0 — **29 passed, 0 failed**, 142 ms (13 reader + 16 parser). Parser tests
+cover: step/image pairing, prefix stripping with index from document order, **text split across three
+runs**, the two-run metadata line, a French capture (`Cliquez sur …`) parsing identically, a
+three-language model proving no hardcoded language pair, native image dimensions, empty alt slots,
+duplicate preservation + flagging, step-without-image, trailing image, leading orphan image,
+declared/actual count mismatch, no false positives on a clean capture, accented characters, and XML
+entity unescaping.
+
+### 2026-07-21 — Step 2 (real file, Node) PASS
+Parsed the real `snagit Test.docx` in **25.5 ms**:
+- **10 steps, 10 images**, every step paired with the correct screenshot, all 1040×596
+- `title` "Microsoft Edge" · `author` "A. Author" · `duration` "1 minute" · `date` "July 21, 2026" ·
+  `createdAt` 2026-07-21T20:14:00Z · declared count 10 = parsed count 10
+- Step text matches the source exactly, numbering stripped, including the long step 9
+- **Warnings: exactly 2** — `DUPLICATE_STEP_TEXT` at steps 4 and 8. These are the known real
+  duplicates (`Click "My courses"`, `Click "Open in Word"`) predicted from the raw XML
+  before the parser existed. **Zero false positives.**
+- `fr` and all `alt` slots empty, as designed — Stage 2 fills them.
+
+### 2026-07-21 — Step 2 (browser) NOT YET RUN
+Blocked on `feature-app-shell`; there is no page to load a file through yet. Same situation as
+`feature-docx-reader`.
+
+**Status stays `awaiting verification`.** All success criteria are met, but the stated procedure is
+not fully executed. Do not mark `verified done` until a browser run is recorded here.
 
 ## Open Questions
 - Does Snagit ever emit more than one image per step (e.g. a zoomed inset)? The model allows an array

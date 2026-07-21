@@ -30,14 +30,30 @@ against a proven pipeline instead of a big-bang release at the deadline.
 ## Verification Log
 _Empty. This feature cannot be marked `verified done` until dated evidence appears here._
 
+## Progress — 2026-07-21
+Repo created and pushed: **`<your-account>/step-capture-studio`, PRIVATE**.
+`git log origin/main` confirms both commits are on the remote.
+
+**Pages has deliberately NOT been enabled.** A Pages site attached to a private repo can be publicly
+reachable, which would contradict the explicit decision to stay private until licensing clears.
+Enabling it is therefore deferred to the public flip rather than done now and hoped about.
+
+**Consequence:** the "deploy proven in Stage 1" goal is *partially* deferred. Verification will use a
+local static server (`npx serve` or equivalent) to prove the app works in a real browser — that
+settles the `DecompressionStream` risk, which is the part that actually matters for the
+architecture. The Pages pipeline itself gets proven the moment the repo goes public.
+
 ## Open Questions
 - **Licensing is unresolved and blocks the public push.** The author is a federal employee; the work
   may be subject to Crown copyright or departmental IP policy. No `LICENSE` file has been added
   because guessing at this would be worse than leaving it open. See `help.md` — this is the single
   human to-do gating this feature.
+- **Does the account's plan even allow Pages on a private repo?** GitHub Pages for private
+  repositories requires a paid plan. The token lacks `user` scope so the plan could not be read.
+  Unresolved, and moot if the repo goes public.
 - Serve from the repo root or `/docs`? Root is simpler with no build step; decide when creating the
   repo. Root is the current assumption.
-- Is a custom domain wanted, or is `<user>.github.io/step-capture-studio` fine? Assumed fine.
+- Is a custom domain wanted, or is `<your-account>.github.io/step-capture-studio` fine? Assumed fine.
 
 ## Notes & Decisions
 Pages serves the repo directly — no Action, no build. That is the entire point of the
