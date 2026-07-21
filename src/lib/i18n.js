@@ -45,6 +45,15 @@ const STRINGS = {
     'capture.stepCount': 'Steps',
     'capture.untitled': 'Untitled capture',
 
+    'alt.seedFromStep': 'Screenshot showing: {text}',
+    'alt.unconfirmed': 'Alt text not confirmed',
+    'alt.decorative': 'Decorative — no alt text needed',
+
+    'export.blocked': '{count} items still need attention before export.',
+    'export.ready': 'Ready to export.',
+    'blocker.ALT_UNCONFIRMED': 'Step {index}: alt text not confirmed ({lang}).',
+    'blocker.STEP_TEXT_MISSING': 'Step {index}: no text in {lang}.',
+
     'steps.heading': 'Steps',
     'step.label': 'Step {index} of {total}',
     'step.noText': 'This step has no text.',
@@ -101,6 +110,16 @@ const STRINGS = {
     'capture.date': 'Enregistrée le',
     'capture.stepCount': 'Étapes',
     'capture.untitled': 'Capture sans titre',
+
+    'alt.seedFromStep': 'Capture d’écran montrant : {text}',
+    'alt.unconfirmed': 'Texte de remplacement non confirmé',
+    'alt.decorative': 'Décorative — aucun texte de remplacement requis',
+
+    'export.blocked': '{count} éléments nécessitent votre attention avant l’exportation.',
+    'export.ready': 'Prêt à exporter.',
+    'blocker.ALT_UNCONFIRMED':
+      'Étape {index} : texte de remplacement non confirmé ({lang}).',
+    'blocker.STEP_TEXT_MISSING': 'Étape {index} : aucun texte en {lang}.',
 
     'steps.heading': 'Étapes',
     'step.label': 'Étape {index} sur {total}',

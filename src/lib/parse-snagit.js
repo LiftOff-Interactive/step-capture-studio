@@ -124,6 +124,10 @@ function emptyLangMap(languages) {
   return Object.fromEntries(languages.map((code) => [code, null]))
 }
 
+function falseLangMap(languages) {
+  return Object.fromEntries(languages.map((code) => [code, false]))
+}
+
 /**
  * Parse a Snagit step-capture .docx into the capture model.
  *
@@ -226,7 +230,12 @@ export async function parseSnagitDocx(bytes, options = {}) {
         bytes: imageBytes,
         width,
         height,
+        // Alt text is the authoring layer's job (Stage 2). The parser leaves it
+        // empty and unconfirmed — a seeded draft that nobody accepted must
+        // never look like a confirmed one.
         alt: emptyLangMap(langs),
+        altConfirmed: falseLangMap(langs),
+        decorative: false,
       }
 
       if (current) {

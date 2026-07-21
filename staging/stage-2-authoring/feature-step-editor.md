@@ -1,5 +1,5 @@
 # Feature: step-editor
-_Stage: stage-2-authoring · Status: not started_
+_Stage: stage-2-authoring · Status: in progress_
 
 ## Goal
 Let the author fix Snagit's machine-written step text before it reaches learners — editing wording,

@@ -1,5 +1,5 @@
 # Feature: alt-text
-_Stage: stage-2-authoring · Status: not started_
+_Stage: stage-2-authoring · Status: in progress_
 
 ## Goal
 Ensure every screenshot in every generated artifact carries meaningful alt text in both official
