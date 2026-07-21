@@ -39,6 +39,15 @@ Every feature needs BOTH:
 Accessibility is verified, not assumed: axe clean + keyboard-only pass + visible focus at every step.
 `.docx` output is verified against **Word's own Accessibility Checker**, not by inspection.
 
+**Using axe correctly (learned the hard way — see feature-app-shell.md):**
+- Assert on `incomplete` as well as `violations`. "Needs review" is where dangling ARIA references
+  land; ignoring that bucket hides real defects. New `incomplete` ids must be fixed or allowlisted.
+- axe cannot judge alt-text *quality* (`alt=""` is valid), and axe 4.x no longer checks duplicate
+  `id`s. Both need bespoke assertions.
+- jsdom cannot run `color-contrast` — it has no layout. Run axe in a real browser for that rule.
+- **Mutation-test any new a11y assertion:** break the thing on purpose and confirm the suite fails.
+  A green accessibility suite that catches nothing is worse than none.
+
 ## Non-negotiable rules
 - **Never commit a real capture.** No `.docx`, `.mht`, `.snagx`, `.pdf`, or screenshot of an internal
   system, ever. The repo is public and the source captures are internal government systems. A pre-commit

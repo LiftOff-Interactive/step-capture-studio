@@ -124,3 +124,30 @@ that a future session might not read. ·
 `git add -f`). ·
 **Revisit if:** a real capture ever does land in history — that requires history rewriting and an
 immediate visibility flip, not a follow-up commit.
+
+## 2026-07-21 — Accessibility testing: axe-core in jsdom AND in a real browser
+**Chose:** axe-core 4.12.1 as a dev dependency, run automatically under jsdom in `npm test` across
+four page states in both languages, plus manual in-browser runs for the rules jsdom cannot execute.
+Assertions cover axe's `incomplete` bucket, not only `violations`, and are backed by bespoke tests
+for what axe cannot check at all. ·
+**Because:** the first version of this suite passed while failing to detect three of six deliberately
+injected defects. A green accessibility suite that catches nothing is worse than no suite, because it
+manufactures false confidence. Mutation testing is now the standard for any new a11y assertion. ·
+**Rejected:** violations-only assertions (silently drop dangling ARIA references, which axe files
+under "needs review"); jsdom alone (cannot run `color-contrast` — no layout engine); a real browser
+alone (not automatable in `npm test`, so it cannot guard against regressions). ·
+**Known gaps, deliberately accepted:** axe cannot judge alt-text *quality* (`alt=""` is valid for
+decorative images) and axe 4.x removed the `duplicate-id` rule — both are covered by bespoke
+assertions instead. ·
+**Revisit if:** a headless-browser test runner is added, which would let `color-contrast` run in CI
+and remove the manual step.
+
+## 2026-07-21 — Split DOM building out of app.js into src/ui/render.js
+**Chose:** Pure builder functions that take an explicit `document` and return detached nodes;
+`app.js` keeps events, state and side effects. ·
+**Because:** accessibility tests need to construct the *rendered* state without a file picker or a
+real browser — testing only the empty shell would have missed every defect that appears once a
+capture is loaded. Stage 2's editor also has to re-render these regions after every edit. ·
+**Rejected:** testing only the static HTML (misses the states that matter); driving a headless
+browser for every assertion (slow, and not needed for structural rules). ·
+**Revisit if:** the render layer grows enough state that pure functions stop fitting.

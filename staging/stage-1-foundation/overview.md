@@ -22,8 +22,9 @@ works — before any feature depth is built on top of them.
       `blob:` URLs only.
 - [ ] The whole flow is operable by keyboard alone, with a visible focus indicator at every stop.
       *Focus order and target sizes verified; focus-ring contrast not yet measured.*
-- [ ] axe-core reports **zero violations** on the rendered page. *Manual equivalents measured and
-      passing (contrast, headings, alt, lang, live regions); axe-core itself not yet wired in.*
+- [x] axe-core reports **zero violations** on the rendered page. — automated in `npm test` across
+      four states in both languages, plus in-browser runs (EN, FR, dark/mobile) all at 0 violations
+      and 0 needs-review, with `color-contrast` passing on 43 nodes.
 - [x] All UI strings resolve through `src/lib/i18n.js` — zero hardcoded user-facing text.
 - [ ] The site is reachable at its public Pages URL and the sample parses **there**, not just locally.
       *Blocked by the licensing decision — see `help.md` item 1.*

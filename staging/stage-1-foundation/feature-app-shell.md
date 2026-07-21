@@ -71,14 +71,43 @@ later UI inherits these patterns, so getting them right here is worth more than 
 2. `role="status"` was paired with `aria-live="assertive"`, a contradiction handled inconsistently
    across screen readers. Split into polite status + a dedicated `role="alert"` for errors.
 
+### 2026-07-21 — axe-core wired in, both automated and in-browser
+
+**Automated (`npm test`, 41/41 passing):** `test/a11y.test.js` runs axe-core 4.12.1 under jsdom over
+the WCAG 2.1 A/AA + best-practice rule set (99 rules) in four states — empty, loaded EN, loaded FR,
+error. Zero violations in all four.
+
+**The suite was mutation-tested, and the first version failed that test.** Six deliberate defects
+were injected; **three went undetected**:
+| Defect | Why it escaped | Resolution |
+|---|---|---|
+| `alt=""` on a screenshot | Valid to axe — decorative images are legitimate, so it cannot judge alt *quality* | Bespoke non-empty-alt assertion |
+| Duplicate element `id` | axe 4.x removed `duplicate-id`; only `duplicate-id-aria` survives | Bespoke uniqueness assertion |
+| Dangling `aria-labelledby` | Lands in axe's **`incomplete`** bucket, not `violations` | **Test design was wrong** — it discarded "needs review" entirely |
+
+The third was the real defect: asserting only on `violations` silently drops everything axe flags for
+human review. `assertAxeClean()` now fails on any `incomplete` result not on an explicit, documented
+allowlist (`landmark-one-main`, `page-has-heading-one` — both jsdom-no-layout artefacts, each
+asserted directly elsewhere). A meta-test proves the helper rejects a dangling ARIA reference.
+
+Re-run after hardening: **7/7 defects detected, control case clean.**
+
+**In-browser axe (Chromium 148, real capture loaded through the file input):**
+- English: **0 violations, 0 incomplete**, 41 rules passed
+- French: **0 violations, 0 incomplete**, 42 rules passed
+- Dark scheme at 375×812: **0 violations, 0 incomplete**, no horizontal scroll
+- **`color-contrast` PASSED on 43 nodes** in every run — this is the rule jsdom cannot execute, so
+  the gap the automated suite leaves is closed by the browser run rather than left open.
+
 **NOT yet verified — why this stays `awaiting verification`:**
 - **Screen-reader smoke test (criterion 5)** — blocked; needs NVDA or Narrator on the user's machine.
   See `help.md` item 6.
 - **Rendered visual demo** — the browser tooling's screenshot action timed out repeatedly, on the
   loaded page *and* on the empty page, so it is a tool fault rather than a page fault. **Nobody has
   actually looked at this page.** Every check above is programmatic; layout could still be ugly or
-  subtly wrong in ways measurement does not catch. The project's convention requires a rendered demo,
-  and it has not happened.
+  subtly wrong in ways measurement does not catch — axe confirms contrast is sufficient, not that the
+  design is any good. The project's convention requires a rendered demo, and it has not happened.
+  *(Run `npm start` and open http://localhost:8080.)*
 - **Drag-and-drop** — handlers are wired but no real drop was simulated. The file input path, which
   is the accessible one and the one that must suffice alone, is fully exercised.
 - **Focus-ring contrast** — the ring uses `--focus`, but its ratio against adjacent backgrounds was
