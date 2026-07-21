@@ -1,19 +1,32 @@
 /**
- * App shell: load a capture, render it, announce what happened.
+ * App shell: load a capture, let the author fix it, announce what happened.
  *
- * This module owns events, state and side effects only. The DOM building lives
- * in render.js so accessibility tests can construct the rendered state without
- * a browser, and so Stage 2's editor can re-render after every edit.
+ * This module owns events, state and side effects only. DOM building lives in
+ * render.js (read-only display, reused by Stage 3's artifact emitters) and
+ * editor.js (the editable form), so both are testable under jsdom.
  *
- * Stage 1 only renders. Editing, alt text and translation are Stage 2 — but the
- * i18n and aria-live plumbing is built now, because bolting either on later
- * means re-testing every state.
+ * Two behaviours here are load-bearing and easy to break:
+ *   - Structural changes re-render the list, which would normally throw a
+ *     keyboard user back to the top of the page. Focus is restored explicitly.
+ *   - Undo works by keeping previous capture objects. Every authoring
+ *     operation is immutable, so this costs nothing.
  */
 
 import { parseSnagitDocx } from '../lib/parse-snagit.js'
 import { DocxError } from '../lib/docx.js'
 import { t, LANGUAGES } from '../lib/i18n.js'
-import { applyStaticStrings, buildMeta, buildWarnings, buildSteps } from './render.js'
+import {
+  setStepText,
+  setAltText,
+  confirmAltText,
+  setDecorative,
+  mergeStepIntoPrevious,
+  deleteStep,
+  seedAltText,
+  exportReadiness,
+} from '../lib/authoring.js'
+import { applyStaticStrings, buildMeta, buildWarnings } from './render.js'
+import { buildEditableSteps, buildReadiness, fieldId } from './editor.js'
 
 const els = {
   unsupported: document.getElementById('unsupported'),
@@ -26,23 +39,25 @@ const els = {
   captureMeta: document.getElementById('capture-meta'),
   warnings: document.getElementById('warnings'),
   warningsList: document.getElementById('warnings-list'),
+  readiness: document.getElementById('readiness'),
+  readinessBody: document.getElementById('readiness-body'),
   steps: document.getElementById('steps'),
   stepsList: document.getElementById('steps-list'),
+  seedAlt: document.getElementById('seed-alt'),
+  undo: document.getElementById('undo'),
   langToggle: document.getElementById('lang-toggle'),
 }
 
 const state = {
   lang: LANGUAGES[0],
   capture: null,
+  /** Previous captures, newest last. Undo pops from here. */
+  history: [],
   /** Object URLs we created, so they can be revoked on reload. */
   objectUrls: [],
 }
 
 // --------------------------------------------------------------- helpers ---
-
-function setStatus(key, vars) {
-  els.status.textContent = t(key, state.lang, vars)
-}
 
 const show = (el) => {
   el.hidden = false
@@ -51,12 +66,21 @@ const hide = (el) => {
   el.hidden = true
 }
 
+function setStatus(key, vars) {
+  els.status.textContent = t(key, state.lang, vars)
+}
+
+function announce(key, vars) {
+  // Re-assigning identical text does not re-announce, so clear first.
+  els.status.textContent = ''
+  els.status.textContent = t(key, state.lang, vars)
+}
+
 function releaseObjectUrls() {
   for (const url of state.objectUrls) URL.revokeObjectURL(url)
   state.objectUrls = []
 }
 
-/** Track every URL we mint so reloading a capture cannot leak them. */
 function trackedImageUrl(bytes) {
   const url = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))
   state.objectUrls.push(url)
@@ -65,7 +89,20 @@ function trackedImageUrl(bytes) {
 
 // ---------------------------------------------------------------- render ---
 
-function render() {
+function renderReadiness() {
+  if (!state.capture) return hide(els.readiness)
+  const readiness = exportReadiness(state.capture, state.capture.languages)
+  els.readinessBody.replaceChildren(...buildReadiness(document, readiness, state.lang))
+  show(els.readiness)
+}
+
+function renderSteps() {
+  els.stepsList.replaceChildren(
+    ...buildEditableSteps(document, state.capture, state.lang, handlers, trackedImageUrl)
+  )
+}
+
+function renderAll() {
   applyStaticStrings(document, state.lang)
 
   if (!state.capture) {
@@ -74,9 +111,6 @@ function render() {
   }
 
   els.captureMeta.replaceChildren(...buildMeta(document, state.capture, state.lang))
-  els.stepsList.replaceChildren(
-    ...buildSteps(document, state.capture, state.lang, trackedImageUrl)
-  )
 
   if (state.capture.warnings.length) {
     els.warningsList.replaceChildren(...buildWarnings(document, state.capture, state.lang))
@@ -85,23 +119,128 @@ function render() {
     hide(els.warnings)
   }
 
+  renderSteps()
+  renderReadiness()
+
+  els.undo.hidden = state.history.length === 0
   show(els.capture)
   show(els.steps)
+}
 
-  setStatus('status.parsed', {
-    count: state.capture.steps.length,
-    title: state.capture.title || t('capture.untitled', state.lang),
-  })
+/**
+ * Re-render the step list without stranding the keyboard.
+ *
+ * Replacing the list destroys the focused element, which would silently send a
+ * keyboard or screen-reader user back to the top of the document.
+ *
+ * `preserveFocus` must be an explicit flag, not a nullable id: an earlier
+ * version passed `focusId: null` to mean "ignore current focus", but `??`
+ * treats null as nullish and fell through to `document.activeElement` anyway,
+ * so focus stuck to whatever button had been pressed before.
+ */
+function rerenderSteps({ preserveFocus = true, fallbackPosition } = {}) {
+  const activeId = preserveFocus ? document.activeElement?.id : null
+  renderSteps()
+  renderReadiness()
+  els.undo.hidden = state.history.length === 0
+
+  const restored = activeId && document.getElementById(activeId)
+  if (restored) return restored.focus()
+
+  if (fallbackPosition != null) {
+    const items = els.stepsList.querySelectorAll('.step')
+    const target = items[Math.min(fallbackPosition, items.length - 1)]
+    const control = target?.querySelector('textarea, input, button')
+    if (control) return control.focus()
+  }
+  els.seedAlt.focus()
 }
 
 function showError(code) {
   const key = `error.${code}`
   const message = t(key, state.lang)
   show(els.error)
-  // Announced by the role="alert" region. Clear the polite status first so the
-  // two regions cannot announce contradictory things in sequence.
   els.status.textContent = ''
   els.errorDetail.textContent = message === key ? t('error.UNKNOWN', state.lang) : message
+}
+
+// -------------------------------------------------------------- mutations ---
+
+/** Apply an authoring operation, recording the previous capture for undo. */
+function commit(next) {
+  state.history.push(state.capture)
+  state.capture = next
+}
+
+/** Field edits: update the model, refresh readiness, do NOT re-render. */
+function editInPlace(next) {
+  state.capture = next
+  renderReadiness()
+}
+
+const handlers = {
+  onStepText(stepIndex, lang, value) {
+    editInPlace(setStepText(state.capture, stepIndex, lang, value))
+  },
+
+  onAlt(stepIndex, imageId, lang, value) {
+    editInPlace(setAltText(state.capture, stepIndex, imageId, lang, value))
+
+    // setAltText resets confirmation in the model. Sync the checkbox directly
+    // rather than re-rendering, which would yank focus out of the field being
+    // typed in. Without this the box stays ticked while the model says
+    // unconfirmed — the UI claiming a confirmation the author never gave.
+    const box = document.getElementById(fieldId('altok', stepIndex, imageId, lang))
+    if (box?.checked) box.checked = false
+  },
+
+  onConfirmAlt(stepIndex, imageId, lang, confirmed) {
+    if (!confirmed) {
+      editInPlace(
+        setAltText(
+          state.capture,
+          stepIndex,
+          imageId,
+          lang,
+          currentAlt(stepIndex, imageId, lang) ?? ''
+        )
+      )
+      return
+    }
+    try {
+      editInPlace(confirmAltText(state.capture, stepIndex, imageId, lang))
+    } catch {
+      // Confirming empty alt text is refused by the model. Re-render so the
+      // checkbox returns to its real state rather than lying about it.
+      rerenderSteps()
+    }
+  },
+
+  onDecorative(stepIndex, imageId, decorative) {
+    // Changes which fields exist, so the list must be rebuilt.
+    commit(setDecorative(state.capture, stepIndex, imageId, decorative))
+    rerenderSteps({ focusId: document.activeElement?.id })
+  },
+
+  onMerge(stepIndex) {
+    const previous = stepIndex - 1
+    commit(mergeStepIntoPrevious(state.capture, stepIndex))
+    // The button that was pressed no longer exists; land on the merged step.
+    rerenderSteps({ preserveFocus: false, fallbackPosition: previous - 1 })
+    announce('editor.merged', { previous })
+  },
+
+  onDelete(stepIndex) {
+    commit(deleteStep(state.capture, stepIndex))
+    // Land on whichever step took the deleted one's place.
+    rerenderSteps({ preserveFocus: false, fallbackPosition: stepIndex - 1 })
+    announce('editor.deleted', { index: stepIndex })
+  },
+}
+
+function currentAlt(stepIndex, imageId, lang) {
+  const step = state.capture.steps[stepIndex - 1]
+  return step?.images.find((image) => image.id === imageId)?.alt?.[lang] ?? null
 }
 
 // ----------------------------------------------------------------- load ----
@@ -114,12 +253,18 @@ async function loadFile(file) {
   hide(els.capture)
   hide(els.warnings)
   hide(els.steps)
+  hide(els.readiness)
   setStatus('status.reading')
 
   try {
     const bytes = new Uint8Array(await file.arrayBuffer())
     state.capture = await parseSnagitDocx(bytes)
-    render()
+    state.history = []
+    renderAll()
+    setStatus('status.parsed', {
+      count: state.capture.steps.length,
+      title: state.capture.title || t('capture.untitled', state.lang),
+    })
   } catch (error) {
     state.capture = null
     if (error instanceof DocxError) {
@@ -150,18 +295,42 @@ for (const type of ['dragleave', 'drop']) {
   })
 }
 
-els.dropzone.addEventListener('drop', (event) => {
-  loadFile(event.dataTransfer?.files?.[0])
+els.dropzone.addEventListener('drop', (event) => loadFile(event.dataTransfer?.files?.[0]))
+
+els.seedAlt.addEventListener('click', () => {
+  const count = countUnseeded()
+  if (count === 0) {
+    announce('editor.seededNone')
+    return
+  }
+  commit(seedAltText(state.capture, state.capture.sourceLang))
+  rerenderSteps()
+  announce('editor.seeded', { count })
+})
+
+els.undo.addEventListener('click', () => {
+  if (!state.history.length) return
+  state.capture = state.history.pop()
+  rerenderSteps()
+  announce('editor.undone')
+  if (els.undo.hidden) els.seedAlt.focus()
 })
 
 els.langToggle.addEventListener('click', () => {
   const index = LANGUAGES.indexOf(state.lang)
   state.lang = LANGUAGES[(index + 1) % LANGUAGES.length]
-  render()
+  renderAll()
   // Announce in the language just switched to, per WCAG 4.1.3.
   els.status.textContent = t('lang.changed', state.lang)
   els.langToggle.focus()
 })
+
+function countUnseeded() {
+  const lang = state.capture.sourceLang
+  return state.capture.steps
+    .flatMap((step) => step.images)
+    .filter((image) => !image.decorative && image.alt?.[lang] == null).length
+}
 
 // ------------------------------------------------------------------ init ---
 

@@ -78,8 +78,27 @@
         <ul id="warnings-list"></ul>
       </section>
 
+      <section id="readiness" class="panel" hidden aria-labelledby="readiness-heading">
+        <h2 id="readiness-heading" data-i18n="export.heading">Before you export</h2>
+        <div id="readiness-body"></div>
+      </section>
+
       <section id="steps" hidden aria-labelledby="steps-heading">
-        <h2 id="steps-heading" data-i18n="steps.heading">Steps</h2>
+        <h2 id="steps-heading" data-i18n="editor.heading">Edit steps</h2>
+        <p data-i18n="editor.intro">
+          Snagit writes step text automatically, so it often repeats itself and never includes alt
+          text. Fix both here before exporting.
+        </p>
+
+        <div class="toolbar">
+          <button type="button" id="seed-alt" class="button" data-i18n="editor.seedAll">
+            Draft alt text from step text
+          </button>
+          <button type="button" id="undo" class="button button--quiet" hidden data-i18n="editor.undo">
+            Undo
+          </button>
+        </div>
+
         <ol id="steps-list" class="steps"></ol>
       </section>
 

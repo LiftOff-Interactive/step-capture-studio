@@ -49,6 +49,29 @@ const STRINGS = {
     'alt.unconfirmed': 'Alt text not confirmed',
     'alt.decorative': 'Decorative — no alt text needed',
 
+    'lang.name.en': 'English',
+    'lang.name.fr': 'French',
+
+    'editor.heading': 'Edit steps',
+    'editor.intro':
+      'Snagit writes step text automatically, so it often repeats itself and never includes alt text. Fix both here before exporting.',
+    'editor.stepText': 'Step text ({lang})',
+    'editor.altText': 'Alt text ({lang})',
+    'editor.altHelp': 'Describe what the screenshot shows, not what to click.',
+    'editor.confirmAlt': 'Alt text is correct',
+    'editor.decorative': 'Decorative image — no alt text needed',
+    'editor.delete': 'Delete step {index}',
+    'editor.merge': 'Merge into step {previous}',
+    'editor.duplicateNotice': 'Repeats step {previous}.',
+    'editor.undo': 'Undo',
+    'editor.deleted': 'Step {index} deleted.',
+    'editor.merged': 'Merged into step {previous}.',
+    'editor.undone': 'Change undone.',
+    'editor.seeded': 'Draft alt text added to {count} screenshots. Review and confirm each one.',
+    'editor.seededNone': 'Every screenshot already has alt text. Nothing was changed.',
+    'editor.seedAll': 'Draft alt text from step text',
+
+    'export.heading': 'Before you export',
     'export.blocked': '{count} items still need attention before export.',
     'export.ready': 'Ready to export.',
     'blocker.ALT_UNCONFIRMED': 'Step {index}: alt text not confirmed ({lang}).',
@@ -115,6 +138,32 @@ const STRINGS = {
     'alt.unconfirmed': 'Texte de remplacement non confirmé',
     'alt.decorative': 'Décorative — aucun texte de remplacement requis',
 
+    'lang.name.en': 'anglais',
+    'lang.name.fr': 'français',
+
+    'editor.heading': 'Modifier les étapes',
+    'editor.intro':
+      'Snagit rédige le texte des étapes automatiquement : il se répète souvent et n’inclut jamais de texte de remplacement. Corrigez les deux ici avant d’exporter.',
+    'editor.stepText': 'Texte de l’étape ({lang})',
+    'editor.altText': 'Texte de remplacement ({lang})',
+    'editor.altHelp':
+      'Décrivez ce que montre la capture d’écran, et non ce sur quoi il faut cliquer.',
+    'editor.confirmAlt': 'Le texte de remplacement est exact',
+    'editor.decorative': 'Image décorative — aucun texte de remplacement requis',
+    'editor.delete': 'Supprimer l’étape {index}',
+    'editor.merge': 'Fusionner avec l’étape {previous}',
+    'editor.duplicateNotice': 'Reprend l’étape {previous}.',
+    'editor.undo': 'Annuler',
+    'editor.deleted': 'Étape {index} supprimée.',
+    'editor.merged': 'Fusionnée avec l’étape {previous}.',
+    'editor.undone': 'Modification annulée.',
+    'editor.seeded':
+      'Ébauche de texte de remplacement ajoutée à {count} captures d’écran. Vérifiez et confirmez chacune.',
+    'editor.seededNone':
+      'Chaque capture d’écran a déjà un texte de remplacement. Rien n’a été modifié.',
+    'editor.seedAll': 'Rédiger une ébauche à partir du texte des étapes',
+
+    'export.heading': 'Avant d’exporter',
     'export.blocked': '{count} éléments nécessitent votre attention avant l’exportation.',
     'export.ready': 'Prêt à exporter.',
     'blocker.ALT_UNCONFIRMED':

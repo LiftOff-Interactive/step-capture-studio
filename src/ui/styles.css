@@ -307,6 +307,116 @@ input[type="file"] {
   color: var(--text-muted);
 }
 
+/* ---------------------------------------------------------------- editor --- */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.step--editing {
+  display: block;
+  padding: 0;
+}
+
+.step__fields {
+  border: none;
+  margin: 0;
+  padding: 1rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.step__fields legend {
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 0 0.35rem;
+}
+
+.step__duplicate {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  background: var(--warn-surface);
+  border: 1px solid var(--warn-border);
+  color: var(--warn-text);
+  border-radius: var(--radius);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.field textarea,
+.field input[type="text"] {
+  font: inherit;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+
+.field .hint {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+}
+
+.checkbox input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+  flex: none;
+}
+
+.checkbox label {
+  margin: 0;
+}
+
+.alt-group {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+}
+
+.step--editing .step__figure img {
+  max-width: min(100%, 30rem);
+}
+
+.readiness {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.readiness__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+}
+
+.readiness__list li + li {
+  margin-top: 0.25rem;
+}
+
 #warnings-list {
   margin: 0;
   padding-left: 1.25rem;
