@@ -1,0 +1,21 @@
+# Normalise text files, but keep LF where CRLF would break execution.
+* text=auto
+
+# The pre-commit hook is a POSIX shell script. With CRLF line endings it fails
+# with "bad interpreter" on some systems — which would silently disable the
+# leak guard. Force LF.
+.githooks/*      text eol=lf
+*.sh             text eol=lf
+
+# Source stays LF for consistent diffs across machines.
+*.js             text eol=lf
+*.mjs            text eol=lf
+*.json           text eol=lf
+*.html           text eol=lf
+*.css            text eol=lf
+*.md             text eol=lf
+
+# Binary — never touch.
+*.png            binary
+*.jpg            binary
+*.docx           binary

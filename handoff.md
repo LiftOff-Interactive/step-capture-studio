@@ -6,34 +6,39 @@ Get a real Snagit `.docx` parsed entirely in the browser and rendered at a live 
 accessible and keyboard-operable from the first commit.
 
 ## 📍 Current State
-- Project scaffolded. Docs, staging tree, slash commands, and leak-guard hook are in place.
-- Git initialised on `main`. No GitHub remote yet — repo not created.
-- Snagit `.docx` structure **confirmed against a real sample**: XML parts are Deflate, PNGs are
-  Stored (uncompressed), layout is title → `author | N steps | duration` → date → alternating
-  text/image pairs. Zero-dependency parsing is viable.
-- **No application code written yet.** Nothing has been verified working.
-- Sample file lives at `<your-downloads-folder>\snagit Test.docx` — outside the repo, deliberately.
+- **`docx-reader` is written and passing** — 13/13 tests, and it parses the real 843 KB sample in
+  26 ms: 31 entries, 10 images at 1040×596, byte lengths matching the source archive exactly.
+  Status is `awaiting verification`, **not done**: the browser half of its procedure needs a page
+  that does not exist yet.
+- Zero runtime dependencies confirmed working — `DecompressionStream` handles Deflate, Stored
+  entries slice directly. **Browser support still unproven** (Node was used).
+- Leak-guard hook tested for real: blocked both a `.docx` and a stray `.png`.
+- No parser, no UI, no repo on GitHub yet.
 
 ## 📂 Files I'm Working On
-- `src/lib/docx.js` — zero-dep `.docx` unzip. Not yet created.
-- `src/lib/parse-snagit.js` — step/image pairing into the normalised model. Not yet created.
-- `test/parse-snagit.test.js` — golden-file tests. Not yet created.
+- `src/lib/docx.js` — done, awaiting browser verification.
+- `test/helpers/synthetic.mjs` — in-memory fixture builder; also proves the ZIP-writing half of the
+  Stage 4 `.docx` writer works.
+- `src/lib/parse-snagit.js` — next to write.
 
 ## ✅ Things I've Changed
+- 2026-07-21 — Wrote `src/lib/docx.js` + 13 tests; verified against the real sample.
+- 2026-07-21 — Added in-memory synthetic fixtures so no capture file ever enters the repo.
+- 2026-07-21 — Added `.gitattributes` forcing LF on the hook (CRLF would silently disable it).
 - 2026-07-21 — Scaffolded the full doc structure and staging tree.
-- 2026-07-21 — Confirmed Snagit `.docx` internals against the real sample (see docs/decisions.md).
 
 ## ❌ Watch Out
-- Only **one** sample capture exists. The parser will overfit unless kept structural, not textual.
-- The repo is public and captures are internal government systems — never commit one, never `--no-verify`.
-- Accessible `.docx` writing with zero deps is unproven; spike it early, not in stage 4.
+- **Word splits paragraph text across multiple `<w:t>` runs** — the sample's metadata line is two
+  runs. Reading only the first truncates silently. See `feature-snagit-parser.md` → Notes.
+- Only **one** sample capture exists; keep parsing structural, never keyed off English verbs.
+- `DecompressionStream` is proven in Node, not in a browser. First thing the app shell settles.
 
 ## ➡️ Next Up
-1. Write `src/lib/docx.js`: read `.docx` bytes → `{ [path]: Uint8Array }` using `DecompressionStream`.
-2. Write `test/fixtures/build-fixture.mjs` to derive a **synthetic** fixture from the real sample so
-   tests run without the private file.
-3. Write `src/lib/parse-snagit.js` and prove it yields 10 steps + 10 images from the sample.
+1. Write `src/lib/parse-snagit.js` — pair step text with images into the capture model, joining all
+   `<w:t>` runs per paragraph and stripping only the `N.` prefix.
+2. Add French and split-run fixtures to `test/helpers/synthetic.mjs`; assert identical structure.
+3. Then `feature-app-shell`, which unblocks the browser verification `docx-reader` is waiting on.
 
 ## 🔗 Pointer
 → Current stage folder: `staging/stage-1-foundation/` · Active feature file:
-`staging/stage-1-foundation/feature-docx-reader.md`
+`staging/stage-1-foundation/feature-snagit-parser.md`

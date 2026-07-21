@@ -1,0 +1,13 @@
+{
+  "name": "step-capture-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Turn one Snagit step-capture .docx into three bilingual, WCAG 2.1 AA training artifacts. No server, no upload, no AI in the tool.",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

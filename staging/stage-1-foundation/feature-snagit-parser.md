@@ -72,3 +72,20 @@ _Empty. This feature cannot be marked `verified done` until dated evidence appea
 The parser's job is **fidelity, not improvement**. Dedup, editing, and alt text all belong to the
 authoring layer in Stage 2. Keeping this module free of "helpful" cleanup is what lets the golden-file
 tests stay meaningful.
+
+### ⚠️ Word splits text across runs — found 2026-07-21
+Running the real sample through `docx.js` showed the metadata line arrives as **two separate `<w:t>`
+runs**, not one:
+
+```
+run 1: "A. Author"
+run 2: " | 10 steps | 1 minute"
+```
+
+Word splits runs at arbitrary points (formatting changes, spellcheck boundaries, revision marks), so
+a paragraph's text is the **concatenation of all its runs**. Any parser that reads the first `<w:t>`
+per paragraph will silently truncate step text — and it will look fine on short steps, which is
+exactly how this ships broken.
+
+**Therefore:** extract per `<w:p>`, join every `<w:t>` inside it, and preserve
+`xml:space="preserve"` whitespace. Add a fixture with a step deliberately split across three runs.

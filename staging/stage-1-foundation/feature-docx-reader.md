@@ -1,5 +1,5 @@
 # Feature: docx-reader
-_Stage: stage-1-foundation · Status: not started_
+_Stage: stage-1-foundation · Status: awaiting verification_
 
 ## Goal
 Read a `.docx` file's bytes in the browser and return every entry in the package as raw bytes, using
@@ -19,15 +19,15 @@ Verified against the real sample on 2026-07-21 by unzipping it and inspecting co
 Because both cases are covered natively, no ZIP library is needed.
 
 ## Success Criteria
-- [ ] Given `.docx` bytes, returns a map of entry path → `Uint8Array` for every entry in the archive.
-- [ ] Correctly inflates Deflate entries — `word/document.xml` parses as well-formed XML.
-- [ ] Correctly extracts Stored entries — each PNG begins with the bytes `89 50 4E 47` and its
+- [x] Given `.docx` bytes, returns a map of entry path → `Uint8Array` for every entry in the archive.
+- [x] Correctly inflates Deflate entries — `word/document.xml` parses as well-formed XML.
+- [x] Correctly extracts Stored entries — each PNG begins with the bytes `89 50 4E 47` and its
       decoded width/height match the values in the source file.
-- [ ] Reads the ZIP **central directory** rather than scanning local file headers, so entries with
+- [x] Reads the ZIP **central directory** rather than scanning local file headers, so entries with
       data descriptors do not corrupt the result.
-- [ ] A file that is not a valid ZIP produces a clear, translatable error, not a stack trace.
-- [ ] A valid ZIP that is not a Word document produces a distinct, translatable error.
-- [ ] No global state; the module exports a pure async function.
+- [x] A file that is not a valid ZIP produces a clear, translatable error, not a stack trace.
+- [x] A valid ZIP that is not a Word document produces a distinct, translatable error.
+- [x] No global state; the module exports a pure async function.
 
 ## How We'll Verify
 1. `npm test` — `test/docx.test.js` runs against `test/fixtures/synthetic-capture.docx`:
@@ -42,7 +42,31 @@ Because both cases are covered natively, no ZIP library is needed.
 3. Record both results below, including the browser and version used.
 
 ## Verification Log
-_Empty. This feature cannot be marked `verified done` until dated evidence appears here._
+
+### 2026-07-21 — Step 1 (automated) PASS
+`npm test` on Node v24.16.0 — **13 passed, 0 failed**, 120 ms. Covers: entry enumeration, Deflate
+inflation to well-formed XML, Stored extraction with PNG signature and dimension checks, native
+resolution (1040×596) rather than Word's display extent, both compression methods on any entry,
+UTF-8 round trip (`« Français »`, `Réal Côté`), directory-entry skipping, and five error paths
+(`NOT_A_ZIP` ×2, `NOT_A_DOCX`, truncation, `NOT_A_PNG`).
+
+### 2026-07-21 — Step 2 (real file, Node) PASS
+Ran `src/lib/docx.js` against the real `snagit Test.docx` (843 KB) outside the test suite:
+- 31 entries parsed in **26.2 ms**
+- `word/document.xml` → 18,519 chars, well-formed, ends `</w:document>`
+- **10 images, all 1040×596**
+- Extracted byte lengths match the original archive **exactly** (18314 / 35718 / 39752 / 45609 /
+  98839 / 80984 / 64708 / 52173 / 52410 / 351724) — extraction is byte-faithful, not approximate.
+
+### 2026-07-21 — Step 2 (browser) NOT YET RUN
+The in-browser half of the procedure cannot run until `feature-app-shell` exists — there is no page
+to load the file through. Node provides the same `DecompressionStream`/`Blob`/`Response` APIs, so the
+code path is genuinely exercised above, but **real-browser support remains unproven** (Open Question
+below, risk #4 in the master plan).
+
+**Status stays `awaiting verification` for this reason.** Every success criterion is met; the
+stated procedure is not yet fully executed. Do not mark `verified done` until a browser run is
+recorded here with its browser and version.
 
 ## Open Questions
 - Is `DecompressionStream('deflate-raw')` available in the browsers this must support? Believed
