@@ -1,0 +1,330 @@
+/*
+ * Neutral and themeable: every colour is a custom property, so a departmental
+ * theme can be dropped in by overriding :root without touching a rule below.
+ *
+ * Contrast targets, verified in-browser rather than eyeballed:
+ *   text vs background      >= 4.5:1  (WCAG 1.4.3)
+ *   UI borders, focus ring  >= 3:1    (WCAG 1.4.11)
+ */
+
+:root {
+  --bg: #ffffff;
+  --surface: #f4f6f8;
+  --text: #1a1d21;
+  --text-muted: #565b62;
+  --accent: #0b5cab;
+  --on-accent: #ffffff;
+  --border: #6b7280;
+  --border-subtle: #d7dce2;
+  --focus: #0b5cab;
+
+  --warn-surface: #fff6e5;
+  --warn-border: #8a5a00;
+  --warn-text: #4a3000;
+
+  --error-surface: #fdecec;
+  --error-border: #a3161d;
+  --error-text: #6d1015;
+
+  --radius: 8px;
+  --gap: 1rem;
+  --measure: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a;
+    --surface: #1e2226;
+    --text: #eceef1;
+    --text-muted: #b3b9c0;
+    --accent: #7fb4ef;
+    --on-accent: #10131a;
+    --border: #8b939c;
+    --border-subtle: #363c43;
+    --focus: #7fb4ef;
+
+    --warn-surface: #2b2211;
+    --warn-border: #d9a441;
+    --warn-text: #f2dcae;
+
+    --error-surface: #2c1517;
+    --error-border: #f08b90;
+    --error-text: #f6c9cb;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0 1rem 4rem;
+  background: var(--bg);
+  color: var(--text);
+  font: 1rem/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Content stays readable when text spacing is overridden (WCAG 1.4.12). */
+p,
+li,
+dd {
+  max-width: var(--measure);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+}
+
+h1 {
+  font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem);
+}
+
+h2 {
+  font-size: 1.2rem;
+}
+
+/* ---------------------------------------------------------------- focus --- */
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 0.75rem 1rem;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* --------------------------------------------------------------- layout --- */
+
+.site-header,
+main {
+  max-width: 62rem;
+  margin-inline: auto;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.5rem 0 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.site-header__text {
+  flex: 1 1 20rem;
+}
+
+.tagline {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.panel--quiet {
+  background: none;
+}
+
+.panel--warn {
+  background: var(--warn-surface);
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}
+
+.panel--error {
+  background: var(--error-surface);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+
+/* --------------------------------------------------------------- inputs --- */
+
+.button {
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  color: var(--on-accent);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.button--quiet {
+  color: var(--accent);
+  background: none;
+}
+
+.button--quiet:hover {
+  background: var(--surface);
+}
+
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  background: var(--bg);
+}
+
+/* Not colour alone — the border weight and label text change too. */
+.dropzone.is-active {
+  border-style: solid;
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.field-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+input[type="file"] {
+  font: inherit;
+  color: var(--text);
+  max-width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.hint,
+.status {
+  color: var(--text-muted);
+  margin: 0.75rem 0 0;
+}
+
+.status:empty {
+  display: none;
+}
+
+/* ----------------------------------------------------------------- data --- */
+
+.meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0;
+}
+
+.meta dt {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.meta dd {
+  margin: 0;
+}
+
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+}
+
+/* Two columns only when there is genuinely room; stacks well below 320px. */
+@media (min-width: 46rem) {
+  .step {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .step__body {
+    order: 2;
+  }
+
+  .step__figure {
+    order: 1;
+  }
+}
+
+.step__label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.step__text {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.step__figure {
+  margin: 0;
+}
+
+.step img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--bg);
+}
+
+.step__missing {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+#warnings-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+#warnings-list li + li {
+  margin-top: 0.35rem;
+}
+
+/* ------------------------------------------------------------- motion ----- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

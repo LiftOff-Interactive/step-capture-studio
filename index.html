@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Step Capture Studio</title>
+    <meta
+      name="description"
+      content="Turn one Snagit step capture into three bilingual, accessible training guides. Nothing is uploaded."
+    />
+    <link rel="stylesheet" href="src/ui/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main" data-i18n="skip.toMain">Skip to main content</a>
+
+    <header class="site-header">
+      <div class="site-header__text">
+        <h1 data-i18n="app.name">Step Capture Studio</h1>
+        <p class="tagline" data-i18n="app.tagline">
+          Turn one Snagit step capture into three training guides. Your file never leaves this
+          browser.
+        </p>
+      </div>
+      <button type="button" id="lang-toggle" class="button button--quiet" data-i18n="lang.switchTo">
+        Français
+      </button>
+    </header>
+
+    <main id="main">
+      <!-- Shown only when the browser cannot do what this tool requires. -->
+      <div id="unsupported" class="panel panel--error" hidden>
+        <h2 data-i18n="error.heading">That file could not be read</h2>
+        <p data-i18n="error.BROWSER_UNSUPPORTED">
+          This browser is too old to read .docx files here. Use a current version of Chrome or Edge.
+        </p>
+      </div>
+
+      <section id="loader" aria-labelledby="loader-heading" class="panel">
+        <h2 id="loader-heading" data-i18n="load.heading">Load a capture</h2>
+
+        <div id="dropzone" class="dropzone">
+          <label class="field-label" for="file-input" data-i18n="load.label">
+            Choose a Snagit .docx file
+          </label>
+          <input
+            type="file"
+            id="file-input"
+            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            aria-describedby="load-hint"
+          />
+          <p class="hint" id="load-hint" data-i18n="load.hint">
+            Or drag a file onto this area. Nothing is uploaded — parsing happens on your device.
+          </p>
+        </div>
+
+        <!--
+          Polite, matching the implicit value of role="status". Success does not
+          need to interrupt. Errors get their own role="alert" region below,
+          which is the pattern screen readers handle most predictably.
+        -->
+        <p id="status" class="status" role="status" aria-live="polite" data-i18n="status.empty">
+          No capture loaded yet.
+        </p>
+      </section>
+
+      <section id="error" class="panel panel--error" hidden aria-labelledby="error-heading">
+        <h2 id="error-heading" data-i18n="error.heading">That file could not be read</h2>
+        <p id="error-detail" role="alert"></p>
+      </section>
+
+      <section id="capture" class="panel" hidden aria-labelledby="capture-heading">
+        <h2 id="capture-heading" data-i18n="capture.heading">Capture</h2>
+        <dl id="capture-meta" class="meta"></dl>
+      </section>
+
+      <section id="warnings" class="panel panel--warn" hidden aria-labelledby="warnings-heading">
+        <h2 id="warnings-heading" data-i18n="warnings.heading">Things to review</h2>
+        <ul id="warnings-list"></ul>
+      </section>
+
+      <section id="steps" hidden aria-labelledby="steps-heading">
+        <h2 id="steps-heading" data-i18n="steps.heading">Steps</h2>
+        <ol id="steps-list" class="steps"></ol>
+      </section>
+
+      <section class="panel panel--quiet" aria-labelledby="privacy-heading">
+        <h2 id="privacy-heading" data-i18n="privacy.heading">Nothing is uploaded</h2>
+        <p data-i18n="privacy.body">
+          This page has no server. Your capture is read in your browser and never sent anywhere. You
+          can disconnect from the network and it still works.
+        </p>
+      </section>
+    </main>
+
+    <script type="module" src="src/ui/app.js"></script>
+  </body>
+</html>

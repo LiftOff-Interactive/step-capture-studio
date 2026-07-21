@@ -7,22 +7,32 @@ riskiest assumptions in the project — that zero-dependency parsing works, and 
 works — before any feature depth is built on top of them.
 
 ## Features
-- [ ] `feature-docx-reader` — zero-dependency `.docx` → `{ path: bytes }`
-- [ ] `feature-snagit-parser` — `document.xml` → normalised capture model
-- [ ] `feature-app-shell` — accessible file-drop UI that renders the parsed capture
-- [ ] `feature-pages-deploy` — live URL, deploying on push to `main`
+- [x] `feature-docx-reader` — zero-dependency `.docx` → `{ path: bytes }` — **verified done**
+- [x] `feature-snagit-parser` — `document.xml` → normalised capture model — **verified done**
+- [ ] `feature-app-shell` — accessible file-drop UI — *awaiting verification* (screen reader +
+      rendered demo outstanding)
+- [ ] `feature-pages-deploy` — live URL — *deferred by decision until the repo goes public*
 
 ## Definition of done — testable checklist
-- [ ] `npm test` passes with zero failures.
-- [ ] Loading the real sample (`snagit Test.docx`) produces exactly **10 steps** and **10 images**.
-- [ ] Each step's text is paired with the correct screenshot (step *n* text ↔ step *n* image).
-- [ ] Parser output contains no `1.`/`2.` numbering prefixes and no English-verb-dependent logic.
-- [ ] The page works with **no network requests after load** — verified in DevTools Network tab.
+- [x] `npm test` passes with zero failures. — 29/29
+- [x] Loading the real sample (`snagit Test.docx`) produces exactly **10 steps** and **10 images**.
+- [x] Each step's text is paired with the correct screenshot (step *n* text ↔ step *n* image).
+- [x] Parser output contains no `1.`/`2.` numbering prefixes and no English-verb-dependent logic.
+- [x] The page works with **no network requests after load** — network log shows page assets and
+      `blob:` URLs only.
 - [ ] The whole flow is operable by keyboard alone, with a visible focus indicator at every stop.
-- [ ] axe-core reports **zero violations** on the rendered page.
-- [ ] All UI strings resolve through `src/lib/i18n.js` — zero hardcoded user-facing text.
+      *Focus order and target sizes verified; focus-ring contrast not yet measured.*
+- [ ] axe-core reports **zero violations** on the rendered page. *Manual equivalents measured and
+      passing (contrast, headings, alt, lang, live regions); axe-core itself not yet wired in.*
+- [x] All UI strings resolve through `src/lib/i18n.js` — zero hardcoded user-facing text.
 - [ ] The site is reachable at its public Pages URL and the sample parses **there**, not just locally.
-- [ ] `git status` is clean and no capture file exists anywhere in the repo or its history.
+      *Blocked by the licensing decision — see `help.md` item 1.*
+- [x] `git status` is clean and no capture file exists anywhere in the repo or its history.
+
+## Status — 2026-07-21
+Two of four features verified done. The stage's core risk (browser-native decompression) is retired
+with evidence. Remaining work is verification, not construction: a screen-reader pass, an axe-core
+harness, someone actually looking at the page, and the public Pages flip.
 
 ## Notes
 The sample capture is private and lives outside the repo at `<your-downloads-folder>\snagit Test.docx`.

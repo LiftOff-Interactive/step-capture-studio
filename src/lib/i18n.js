@@ -1,0 +1,176 @@
+/**
+ * EN-CA / FR-CA strings.
+ *
+ * Every user-facing string in the tool and in every generated artifact comes
+ * from here. Nothing is hardcoded — a hardcoded string is a string that will
+ * still be English when the French artifact ships.
+ *
+ * Language codes are the keys throughout, and nothing assumes exactly two.
+ *
+ * ⚠️ The French below is a working draft written by a non-certified
+ * translator. It needs review by a francophone before anything reaches
+ * learners. See help.md item 7.
+ */
+
+export const LANGUAGES = ['en', 'fr']
+
+/** BCP 47 tags for the `lang` attribute — Canadian variants, not generic. */
+export const LOCALES = { en: 'en-CA', fr: 'fr-CA' }
+
+export const LANGUAGE_NAMES = { en: 'English', fr: 'Français' }
+
+const STRINGS = {
+  en: {
+    'app.name': 'Step Capture Studio',
+    'app.tagline':
+      'Turn one Snagit step capture into three training guides. Your file never leaves this browser.',
+    'skip.toMain': 'Skip to main content',
+
+    'lang.switchTo': 'Français',
+    'lang.changed': 'Language changed to English.',
+
+    'load.heading': 'Load a capture',
+    'load.label': 'Choose a Snagit .docx file',
+    'load.hint': 'Or drag a file onto this area. Nothing is uploaded — parsing happens on your device.',
+    'load.dropActive': 'Release to load this file',
+
+    'status.reading': 'Reading file…',
+    'status.parsed': '{count} steps loaded from {title}.',
+    'status.empty': 'No capture loaded yet.',
+
+    'capture.heading': 'Capture',
+    'capture.author': 'Author',
+    'capture.duration': 'Duration',
+    'capture.date': 'Recorded',
+    'capture.stepCount': 'Steps',
+    'capture.untitled': 'Untitled capture',
+
+    'steps.heading': 'Steps',
+    'step.label': 'Step {index} of {total}',
+    'step.noText': 'This step has no text.',
+    'step.noImage': 'This step has no screenshot.',
+    'step.imagePending': 'Screenshot for step {index}. Alt text has not been written yet.',
+
+    'warnings.heading': 'Things to review',
+    'warnings.none': 'No issues found in this capture.',
+    'warning.DUPLICATE_STEP_TEXT': 'Step {index} repeats the previous step’s wording.',
+    'warning.STEP_WITHOUT_IMAGE': 'Step {index} has no screenshot.',
+    'warning.ORPHAN_IMAGE': 'A screenshot appears before the first step.',
+    'warning.STEP_COUNT_MISMATCH': 'The document’s step count does not match what was found.',
+    'warning.STEP_NUMBER_MISMATCH': 'Step {index} is numbered inconsistently in the document.',
+    'warning.MISSING_IMAGE': 'A screenshot referenced by the document is missing from the file.',
+    'warning.UNKNOWN_IMAGE_FORMAT': 'A screenshot is in a format that could not be measured.',
+
+    'error.heading': 'That file could not be read',
+    'error.NOT_A_ZIP': 'This does not look like a Word file. Choose a .docx exported from Snagit.',
+    'error.NOT_A_DOCX': 'This is a valid archive but not a Word document. Choose a .docx file.',
+    'error.CORRUPT_ENTRY': 'This file appears to be damaged. Try exporting it from Snagit again.',
+    'error.UNSUPPORTED_COMPRESSION': 'This file uses a compression method this tool cannot read.',
+    'error.BROWSER_UNSUPPORTED':
+      'This browser is too old to read .docx files here. Use a current version of Chrome or Edge.',
+    'error.NOT_A_PNG': 'A screenshot inside this file is not a readable image.',
+    'error.UNKNOWN': 'Something went wrong reading this file.',
+
+    'privacy.heading': 'Nothing is uploaded',
+    'privacy.body':
+      'This page has no server. Your capture is read in your browser and never sent anywhere. You can disconnect from the network and it still works.',
+  },
+
+  fr: {
+    'app.name': 'Studio de captures d’étapes',
+    'app.tagline':
+      'Transformez une capture d’étapes Snagit en trois guides de formation. Votre fichier ne quitte jamais ce navigateur.',
+    'skip.toMain': 'Passer au contenu principal',
+
+    'lang.switchTo': 'English',
+    'lang.changed': 'La langue a été changée pour le français.',
+
+    'load.heading': 'Charger une capture',
+    'load.label': 'Choisissez un fichier .docx de Snagit',
+    'load.hint':
+      'Ou glissez un fichier dans cette zone. Rien n’est téléversé — l’analyse se fait sur votre appareil.',
+    'load.dropActive': 'Relâchez pour charger ce fichier',
+
+    'status.reading': 'Lecture du fichier en cours…',
+    'status.parsed': '{count} étapes chargées à partir de {title}.',
+    'status.empty': 'Aucune capture chargée pour l’instant.',
+
+    'capture.heading': 'Capture',
+    'capture.author': 'Auteur',
+    'capture.duration': 'Durée',
+    'capture.date': 'Enregistrée le',
+    'capture.stepCount': 'Étapes',
+    'capture.untitled': 'Capture sans titre',
+
+    'steps.heading': 'Étapes',
+    'step.label': 'Étape {index} sur {total}',
+    'step.noText': 'Cette étape n’a pas de texte.',
+    'step.noImage': 'Cette étape n’a pas de capture d’écran.',
+    'step.imagePending':
+      'Capture d’écran de l’étape {index}. Le texte de remplacement n’a pas encore été rédigé.',
+
+    'warnings.heading': 'Éléments à vérifier',
+    'warnings.none': 'Aucun problème détecté dans cette capture.',
+    'warning.DUPLICATE_STEP_TEXT': 'L’étape {index} reprend le libellé de l’étape précédente.',
+    'warning.STEP_WITHOUT_IMAGE': 'L’étape {index} n’a pas de capture d’écran.',
+    'warning.ORPHAN_IMAGE': 'Une capture d’écran apparaît avant la première étape.',
+    'warning.STEP_COUNT_MISMATCH':
+      'Le nombre d’étapes indiqué dans le document ne correspond pas à ce qui a été trouvé.',
+    'warning.STEP_NUMBER_MISMATCH': 'L’étape {index} est numérotée de façon incohérente.',
+    'warning.MISSING_IMAGE': 'Une capture d’écran citée par le document est absente du fichier.',
+    'warning.UNKNOWN_IMAGE_FORMAT':
+      'Une capture d’écran est dans un format qui n’a pas pu être mesuré.',
+
+    'error.heading': 'Ce fichier n’a pas pu être lu',
+    'error.NOT_A_ZIP':
+      'Ce fichier ne semble pas être un document Word. Choisissez un .docx exporté de Snagit.',
+    'error.NOT_A_DOCX':
+      'Il s’agit d’une archive valide, mais pas d’un document Word. Choisissez un fichier .docx.',
+    'error.CORRUPT_ENTRY': 'Ce fichier semble endommagé. Exportez-le de nouveau à partir de Snagit.',
+    'error.UNSUPPORTED_COMPRESSION':
+      'Ce fichier utilise une méthode de compression que cet outil ne peut pas lire.',
+    'error.BROWSER_UNSUPPORTED':
+      'Ce navigateur est trop ancien pour lire les fichiers .docx ici. Utilisez une version récente de Chrome ou Edge.',
+    'error.NOT_A_PNG': 'Une capture d’écran de ce fichier n’est pas une image lisible.',
+    'error.UNKNOWN': 'Une erreur est survenue lors de la lecture de ce fichier.',
+
+    'privacy.heading': 'Rien n’est téléversé',
+    'privacy.body':
+      'Cette page n’a pas de serveur. Votre capture est lue dans votre navigateur et n’est jamais envoyée ailleurs. Vous pouvez vous déconnecter du réseau et tout continue de fonctionner.',
+  },
+}
+
+/**
+ * Look up a string.
+ *
+ * Falls back to the first language rather than to the key itself, so a missing
+ * translation shows readable text instead of `step.label` — but the missing key
+ * is still reported to the console so it gets fixed.
+ *
+ * @param {string} key
+ * @param {string} lang  language code
+ * @param {Record<string, string|number>} [vars]  {placeholder} substitutions
+ */
+export function t(key, lang, vars) {
+  const table = STRINGS[lang] ?? STRINGS[LANGUAGES[0]]
+  let value = table[key]
+
+  if (value === undefined) {
+    value = STRINGS[LANGUAGES[0]][key]
+    if (value === undefined) {
+      console.warn(`i18n: missing key "${key}"`)
+      return key
+    }
+    console.warn(`i18n: missing "${key}" for "${lang}", using ${LANGUAGES[0]}`)
+  }
+
+  if (!vars) return value
+  return value.replace(/\{(\w+)\}/g, (match, name) =>
+    Object.hasOwn(vars, name) ? String(vars[name]) : match
+  )
+}
+
+/** Every key defined for a language — used by tests to prove parity. */
+export function keysFor(lang) {
+  return Object.keys(STRINGS[lang] ?? {})
+}

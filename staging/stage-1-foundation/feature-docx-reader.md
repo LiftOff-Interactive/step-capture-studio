@@ -1,5 +1,5 @@
 # Feature: docx-reader
-_Stage: stage-1-foundation · Status: awaiting verification_
+_Stage: stage-1-foundation · Status: verified done_
 
 ## Goal
 Read a `.docx` file's bytes in the browser and return every entry in the package as raw bytes, using
@@ -58,21 +58,33 @@ Ran `src/lib/docx.js` against the real `snagit Test.docx` (843 KB) outside the t
 - Extracted byte lengths match the original archive **exactly** (18314 / 35718 / 39752 / 45609 /
   98839 / 80984 / 64708 / 52173 / 52410 / 351724) — extraction is byte-faithful, not approximate.
 
-### 2026-07-21 — Step 2 (browser) NOT YET RUN
-The in-browser half of the procedure cannot run until `feature-app-shell` exists — there is no page
-to load the file through. Node provides the same `DecompressionStream`/`Blob`/`Response` APIs, so the
-code path is genuinely exercised above, but **real-browser support remains unproven** (Open Question
-below, risk #4 in the master plan).
+### 2026-07-21 — Step 2 (browser) PASS — **risk #4 retired**
+Browser: **Chromium 148**, page served from `http://localhost:8080` via `tools/serve.mjs`.
 
-**Status stays `awaiting verification` for this reason.** Every success criterion is met; the
-stated procedure is not yet fully executed. Do not mark `verified done` until a browser run is
-recorded here with its browser and version.
+- `typeof DecompressionStream` → `"function"`; `new DecompressionStream('deflate-raw')` constructs
+  without throwing. **This is the assumption the entire zero-dependency architecture rests on, and
+  it now has evidence.**
+- Loaded the real 843 KB sample through the actual file input (`change` event, not a backdoor):
+  **10 images extracted, all decoding at 1040×596** with `naturalWidth > 0` — i.e. the browser
+  really decoded them, not merely accepted the bytes.
+- **Zero console messages** of any kind.
+- Network log after load: page assets and `blob:` object URLs only. No external host, no server
+  round-trip for file handling. (The single `.docx` fetch in the log is the test harness staging the
+  sample, not the application.)
+- Error path: a non-ZIP file surfaces `NOT_A_ZIP` as translated text in a `role="alert"` region;
+  results stay hidden.
+
+**Note on scope:** verified on a local server, not the Pages URL, because Pages is deliberately
+deferred (see `feature-pages-deploy`). The live-URL check belongs to that feature. What this feature
+needed to prove — that browser-native decompression works on a real capture — is proven.
+
+**All success criteria met and the procedure fully executed → `verified done`.**
 
 ## Open Questions
-- Is `DecompressionStream('deflate-raw')` available in the browsers this must support? Believed
-  broadly available in current Chrome/Edge/Firefox/Safari but **not yet verified** — this is
-  risk #4 in the master plan and this feature is where it gets settled. If a target browser lacks it,
-  the fallback is a hand-written inflate (~200 lines) rather than adding a dependency.
+- ~~Is `DecompressionStream('deflate-raw')` available?~~ **RESOLVED 2026-07-21** — confirmed working
+  in Chromium 148, which is the agreed target (current Chrome/Edge only). No fallback inflate needed.
+  A guard is in place regardless: if the API is absent the file input is disabled and a translated
+  "browser too old" message is shown, so it degrades with an explanation rather than silently.
 - Do Snagit exports ever store XML entries with method 0, or PNGs with method 8? Only one sample
   exists, so the reader must handle both methods for every entry regardless of what the sample shows.
 

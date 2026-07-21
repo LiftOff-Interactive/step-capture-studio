@@ -1,5 +1,5 @@
 # Feature: snagit-parser
-_Stage: stage-1-foundation · Status: awaiting verification_
+_Stage: stage-1-foundation · Status: verified done_
 
 ## Goal
 Turn the raw package entries from `docx-reader` into the normalised **capture model** that every
@@ -79,12 +79,19 @@ Parsed the real `snagit Test.docx` in **25.5 ms**:
   before the parser existed. **Zero false positives.**
 - `fr` and all `alt` slots empty, as designed — Stage 2 fills them.
 
-### 2026-07-21 — Step 2 (browser) NOT YET RUN
-Blocked on `feature-app-shell`; there is no page to load a file through yet. Same situation as
-`feature-docx-reader`.
+### 2026-07-21 — Step 2 (browser) PASS
+Chromium 148, real sample loaded through the actual file input at `http://localhost:8080`:
 
-**Status stays `awaiting verification`.** All success criteria are met, but the stated procedure is
-not fully executed. Do not mark `verified done` until a browser run is recorded here.
+- **10 steps rendered, 10 images**, every one decoded at 1040×596
+- Status announced: `"10 steps loaded from Microsoft Edge."`
+- Metadata rendered: Author `A. Author` · Duration `1 minute` · Recorded `July 21, 2026` · Steps `10`
+- Step 1 text `"Click on Microsoft Edge"`, labelled `"Step 1 of 10"`
+- **Warnings: exactly 2**, both `DUPLICATE_STEP_TEXT` (steps 4 and 8), rendered as translated
+  sentences. Same result as the Node run — no browser-specific divergence.
+- Switched to French: all chrome translated, `Étape 1 sur 10`, warnings in French, images retained.
+
+**All success criteria met and the procedure fully executed → `verified done`.**
+(Live-URL confirmation belongs to `feature-pages-deploy`, which is deliberately deferred.)
 
 ## Open Questions
 - Does Snagit ever emit more than one image per step (e.g. a zoomed inset)? The model allows an array

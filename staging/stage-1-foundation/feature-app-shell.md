@@ -1,5 +1,5 @@
 # Feature: app-shell
-_Stage: stage-1-foundation · Status: not started_
+_Stage: stage-1-foundation · Status: awaiting verification_
 
 ## Goal
 The page a user actually lands on: pick or drop a `.docx`, see the parsed capture rendered, and do
@@ -40,7 +40,49 @@ later UI inherits these patterns, so getting them right here is worth more than 
 7. **Rendered demo:** screenshot the loaded state and show it to the user.
 
 ## Verification Log
-_Empty. This feature cannot be marked `verified done` until dated evidence appears here._
+
+### 2026-07-21 — Partial PASS (Chromium 148, localhost:8080)
+
+**Measured and passing:**
+- **Contrast, light scheme** — 11 text pairs measured against computed styles, all pass:
+  h1 16.91, tagline 6.84, step text 15.61, step label 6.32, hint 6.84, status 6.32, warning 11.42,
+  meta label 6.32, meta value 15.61, language button 6.70, file label 16.91. Non-text: file input
+  border **4.83**, dropzone border **4.83** (both ≥ 3).
+- **Contrast, dark scheme** — same 11 pairs re-measured at `prefers-color-scheme: dark`, zero failures.
+- **Reflow** — at 320×800: `scrollWidth` 320 = `clientWidth` 320, **no horizontal scroll**, zero
+  elements overflowing the viewport, all 10 steps still rendered.
+- **Target size** — language button 44 px tall.
+- **Structure** — exactly one `h1`; heading levels `[1,2,2,2,2,2,2,2]` with **no skipped levels**;
+  skip link targets `#main`, which exists.
+- **Focus order** — skip link → language button → file input. Logical, matches DOM order.
+- **Images** — 10/10 have a non-empty `alt`; zero missing.
+- **Live regions** — `#status` is `role="status"` + `aria-live="polite"`; errors use a separate
+  `role="alert"`. Verified an error clears the status region so the two cannot contradict each other.
+- **Hidden panels are genuinely hidden** — `display:none`, `checkVisibility()` false, absent from the
+  accessibility tree. (`read_page` lists them because it dumps hidden DOM, not because they leak.)
+- **Language toggle** — `<html lang>` flips `en-CA` ↔ `fr-CA`, all chrome strings swap, focus returns
+  to the toggle, images survive the re-render.
+- **No console output** of any kind. **No network requests** beyond page assets and `blob:` URLs.
+
+**Two AA defects found and fixed during this pass:**
+1. **WCAG 3.1.2 Language of Parts** — with the page at `fr-CA`, untranslated step text was still
+   English but unmarked, so a screen reader would pronounce English with French phonetics. Source-
+   language fallback text now carries its own `lang`. Re-verified: page `fr-CA`, step text `en-CA`.
+2. `role="status"` was paired with `aria-live="assertive"`, a contradiction handled inconsistently
+   across screen readers. Split into polite status + a dedicated `role="alert"` for errors.
+
+**NOT yet verified — why this stays `awaiting verification`:**
+- **Screen-reader smoke test (criterion 5)** — blocked; needs NVDA or Narrator on the user's machine.
+  See `help.md` item 6.
+- **Rendered visual demo** — the browser tooling's screenshot action timed out repeatedly, on the
+  loaded page *and* on the empty page, so it is a tool fault rather than a page fault. **Nobody has
+  actually looked at this page.** Every check above is programmatic; layout could still be ugly or
+  subtly wrong in ways measurement does not catch. The project's convention requires a rendered demo,
+  and it has not happened.
+- **Drag-and-drop** — handlers are wired but no real drop was simulated. The file input path, which
+  is the accessible one and the one that must suffice alone, is fully exercised.
+- **Focus-ring contrast** — the ring uses `--focus`, but its ratio against adjacent backgrounds was
+  not measured directly.
 
 ## Open Questions
 - Which browsers must this support? Assumed current Chrome/Edge as the primary target given a
