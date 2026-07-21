@@ -7,17 +7,13 @@ tells you at the time. Tick items as you complete them.
 
 ## 🔴 Blocking now
 
-### [ ] 1. Resolve licensing before the repo goes public
-**What:** Decide what licence this code ships under, or whether it can be published at all.
-**Why it's needed:** You are a federal employee. Work created in the course of employment may be
-subject to **Crown copyright** or your department's IP policy, and neither Claude nor you should
-guess at that. No `LICENSE` file has been created for exactly this reason — an incorrect licence on a
-public repo is materially harder to undo than a missing one.
-**What to check:** your department's policy on publishing code, and whether this counts as work
-product. The Government of Canada commonly uses the MIT licence for open-sourced code, which would be
-the obvious choice if publishing is permitted.
-**Blocks:** `stage-1-foundation/feature-pages-deploy` — specifically making the repo public. You can
-build and deploy privately in the meantime; this only gates the visibility flip.
+_Nothing is blocking as of 2026-07-21._
+
+### [x] 1. ~~Resolve licensing~~ — done 2026-07-21
+**Decided:** MIT, © 2026 Mike Bubyn. `LICENSE` created, README updated.
+**Note:** this was chosen on your instruction. If your department's IP policy later turns out to
+assert Crown copyright over this work, the licence line is the thing to revisit — see
+`docs/decisions.md`.
 
 ### [x] 2. ~~Confirm the GitHub repo can be created and pushed~~ — done 2026-07-21
 Authenticated as **<your-account>**. Repo created at `<your-account>/step-capture-studio`, **private**, both commits

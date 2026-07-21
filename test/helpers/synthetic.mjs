@@ -304,16 +304,16 @@ export function makeCapture(options) {
 
 /** The English sample, shaped like the real capture including its duplicates. */
 export const ENGLISH_STEPS = [
-  'Click on Microsoft Edge',
+  'Click on the web browser',
   'Click "Sign in"',
   'Click "My courses"',
-  'Click "My courses"', // duplicate, as in the real export
+  'Click "My courses"', // duplicate consecutive step, as real exports contain
   'Click "Course catalogue"',
 ]
 
 /** A French capture — proves no logic keys off English verbs. */
 export const FRENCH_STEPS = [
-  'Cliquez sur Microsoft Edge',
-  'Cliquez sur « Français »',
-  'Cliquez sur « Bienvenue à the intranet portal »',
+  'Cliquez sur le navigateur Web',
+  'Cliquez sur « Se connecter »',
+  'Cliquez sur « Mes cours »',
 ]

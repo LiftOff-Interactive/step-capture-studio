@@ -32,7 +32,7 @@ test('inflates Deflate entries to well-formed XML', async () => {
 
   assert.ok(xml.startsWith('<?xml'), 'starts with XML declaration')
   assert.ok(xml.includes('<w:body>'), 'contains a body element')
-  assert.ok(xml.includes('Click &quot;English&quot;') || xml.includes('Click "Sign in"'))
+  assert.ok(xml.includes('Click &quot;Sign in&quot;') || xml.includes('Click "Sign in"'))
   assert.ok(xml.trimEnd().endsWith('</w:document>'), 'not truncated')
 })
 

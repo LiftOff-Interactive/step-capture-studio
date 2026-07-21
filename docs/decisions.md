@@ -151,3 +151,28 @@ capture is loaded. Stage 2's editor also has to re-render these regions after ev
 **Rejected:** testing only the static HTML (misses the states that matter); driving a headless
 browser for every assertion (slow, and not needed for structural rules). ·
 **Revisit if:** the render layer grows enough state that pure functions stop fitting.
+
+## 2026-07-21 — Licence: MIT, © Mike Bubyn
+**Chose:** MIT, with the copyright line naming Mike Bubyn personally. ·
+**Because:** the user instructed MIT for open-sourced code and chose personal attribution over Crown
+copyright. MIT is also the licence the Government of Canada most commonly uses when open-sourcing
+code, so it is unlikely to be the point of friction if this is ever reviewed. ·
+**Rejected:** Crown copyright ("His Majesty the King in Right of Canada"), and dual attribution —
+both were offered and personal attribution was chosen. ·
+**Revisit if:** the department's IP policy turns out to assert ownership over work created in the
+course of employment. That would change the copyright line, not necessarily the licence.
+
+## 2026-07-21 — Sanitised internal references before going public
+**Chose:** Replace every named internal system, the author's work username, and local Windows paths
+with neutral equivalents across code, tests and docs — before the repo's visibility changes. Fixture
+step text became a generic course-portal example while preserving the exact structure the tests
+depend on (five steps with an identical consecutive pair at positions 3 and 4). ·
+**Because:** a public repo is a permanent, indexed record. An audit found no capture file, image or
+large blob had ever been committed, but committed *text* named internal systems and identified the
+author's employer. That is a disclosure decision the author should make deliberately, not discover
+afterwards. ·
+**Rejected:** publishing as-is (the names are not secret, but git history cannot be walked back);
+rewriting history (would have discarded the whole commit history, and was unnecessary since the repo
+had never been public). ·
+**Revisit if:** a real capture is ever committed by accident — that requires history rewriting and an
+immediate visibility flip, not a follow-up commit.

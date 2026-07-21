@@ -24,8 +24,8 @@ This tool does the mechanical 80% deterministically and gives the author a focus
 20% only a human can supply: the *why*, the alt text, and the French.
 
 ## Target users & use cases
-**Primary:** trainers and SMEs in a bilingual, accessibility-regulated environment (the reference
-user works at the department, a Canadian federal department) who already use Snagit to record procedures.
+**Primary:** trainers and SMEs in a bilingual, accessibility-regulated environment — the reference
+user works at a Canadian federal department — who already use Snagit to record procedures.
 
 **Jobs to be done:**
 1. "I recorded this once — give me the three formats my audiences actually need."

@@ -55,4 +55,4 @@ a pre-commit hook enforces this, and it exists for a reason.
 
 ## Licence
 
-Not yet determined — see `help.md`. Until a `LICENSE` file exists, no licence is granted.
+[MIT](LICENSE) © 2026 Mike Bubyn.
