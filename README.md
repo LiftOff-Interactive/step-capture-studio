@@ -1,0 +1,58 @@
+# step-capture-studio
+
+Turn one Snagit step-capture `.docx` into three ready-to-use training artifacts — without uploading
+anything, anywhere.
+
+> **Status: in development.** Stage 1 of 4. Nothing is working yet.
+
+## What it does
+
+Record a procedure once in Snagit, export it to Word, and drop that file here. You get back:
+
+1. **Quick-steps guide** — a one-page cheat sheet for people who know the system and need a reminder.
+2. **HTML walkthrough** — an interactive guide: screenshot pane, instruction box, and every step
+   listed alongside it.
+3. **Case study** — a narrative artifact explaining *why* each step matters, not just what to click.
+
+All three are bilingual (English / French), meet WCAG 2.1 AA, and are single self-contained files you
+can email, print, or open offline.
+
+## Your files never leave your computer
+
+There is no server, no account, no API key, and no upload. The tool is a static page; your `.docx` is
+parsed in your own browser using built-in browser APIs, and the results are generated there too. You
+can disconnect from the network after the page loads and everything still works.
+
+This is a hard design constraint, not a feature — the tool was built for documenting internal systems
+whose screenshots must not be transmitted anywhere.
+
+## No AI runs inside the tool
+
+The tool never calls a model. It converts your recording deterministically, then — for the parts a
+machine genuinely cannot know, like *why* a step matters or how to say it in French — it builds a
+ready-to-paste prompt you can run in whatever assistant you already use, and paste the result back.
+
+You stay in control of what reaches your learners, and nothing is invented behind your back.
+
+## Requirements
+
+- A Snagit step capture exported to `.docx`
+- A current browser (Chrome, Edge, Firefox, or Safari)
+
+Nothing to install.
+
+## Development
+
+No build step and no runtime dependencies — the site is plain ES modules served as-is.
+
+```sh
+npm install    # dev-only test tooling
+npm test       # parser tests + accessibility checks
+```
+
+Contributions welcome once v1 ships. **Never commit a capture file or a screenshot of a real system** —
+a pre-commit hook enforces this, and it exists for a reason.
+
+## Licence
+
+Not yet determined — see `help.md`. Until a `LICENSE` file exists, no licence is granted.

@@ -1,0 +1,44 @@
+# --- Capture files: NEVER commit these ------------------------------------------
+# The source captures show internal government systems and this repo is public.
+# .gitignore alone does not stop `git add -f`, so .githooks/pre-commit enforces it too.
+*.docx
+*.doc
+*.mht
+*.mhtml
+*.snagx
+*.snag
+*.pdf
+*.pptx
+
+# Working folders for real captures — keep them out of the tree entirely
+/captures/
+/samples/
+/private/
+
+# Screenshots are only allowed in assets/demo/ (synthetic) and docs/assets/ (README)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.webp
+!assets/demo/**
+!docs/assets/**
+
+# --- Node (dev-only tooling; nothing ships from here) ----------------------------
+node_modules/
+npm-debug.log*
+.npm/
+
+# --- Editors / OS ----------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# --- Build/test output -----------------------------------------------------------
+/coverage/
+/out/
+*.local

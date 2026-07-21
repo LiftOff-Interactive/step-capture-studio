@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# Leak guard. The repo is public; the source captures show internal government systems.
+# Git history is permanent, so this blocks capture files BEFORE they are committed.
+#
+# Enabled by:  git config core.hooksPath .githooks
+# Never bypass with --no-verify. If this hook is wrong, fix the hook.
+
+fail=0
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+[ -z "$staged" ] && exit 0
+
+# --- 1. Capture and document formats that may embed screenshots -----------------
+blocked=$(printf '%s\n' "$staged" | grep -Ei '\.(docx|doc|mht|mhtml|snagx|snag|pdf|pptx|zip)$')
+if [ -n "$blocked" ]; then
+  echo "BLOCKED: capture/document files must never be committed to this public repo:"
+  printf '  %s\n' $blocked
+  fail=1
+fi
+
+# --- 2. Anything under a captures/ or samples/ directory ------------------------
+inpath=$(printf '%s\n' "$staged" | grep -Ei '(^|/)(captures?|samples?|private)/')
+if [ -n "$inpath" ]; then
+  echo "BLOCKED: files under captures/, samples/, or private/ are never committed:"
+  printf '  %s\n' $inpath
+  fail=1
+fi
+
+# --- 3. Images outside the allow-listed folders ---------------------------------
+# Screenshots of internal systems are the real risk. Only assets/demo/ (synthetic
+# demo capture) and docs/assets/ (README imagery) may contain images.
+images=$(printf '%s\n' "$staged" | grep -Ei '\.(png|jpg|jpeg|gif|bmp|webp|tiff?)$' \
+         | grep -Ev '^(assets/demo/|docs/assets/)')
+if [ -n "$images" ]; then
+  echo "BLOCKED: images are only allowed in assets/demo/ or docs/assets/:"
+  printf '  %s\n' $images
+  echo "  If this is genuinely synthetic, non-sensitive imagery, move it into one of those folders."
+  fail=1
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo ""
+  echo "Nothing was committed. Unstage the files above with: git restore --staged <file>"
+  echo "See CLAUDE.md and docs/decisions.md for why this rule exists."
+  exit 1
+fi
+
+exit 0
