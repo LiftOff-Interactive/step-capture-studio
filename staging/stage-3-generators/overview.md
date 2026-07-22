@@ -8,7 +8,7 @@ Emit the three artifacts from the completed capture model. Every emitter consume
 nothing else, so all three are independent and can be built in any order.
 
 ## Features
-- [ ] `feature-quick-steps` — terse cheat sheet for users who know the system
+- [x] `feature-quick-steps` — terse cheat sheet for users who know the system
 - [ ] `feature-html-walkthrough` — the two-pane interactive guide (the headline artifact)
 - [ ] `feature-case-study` — narrative skeleton plus copy-prompt
 
@@ -41,3 +41,15 @@ more than colour alone.
 Data-URI inlining makes files large — the sample's 843 KB of PNGs become roughly 1.1 MB of base64 per
 artifact. Acceptable for a 10-step capture; revisit if captures routinely run to 50+ steps. Do not
 solve this speculatively.
+
+
+## Status - 2026-07-21
+`feature-quick-steps` is built and `awaiting verification`; the shared emitter foundation
+(`src/lib/emit-common.js`) is in place and the export gate is wired to readiness. 145/145 tests.
+
+The shared machinery now proven by a real artifact: self-contained output with no external requests,
+both languages emitted with per-block `lang`, progressive enhancement so the no-JavaScript state is
+bilingual rather than broken, and axe running over the generated document as a document.
+
+Remaining: `feature-html-walkthrough` (the headline artifact) and `feature-case-study`. Printing is
+untested for any artifact, so the one-page claim for quick-steps is intent, not evidence.

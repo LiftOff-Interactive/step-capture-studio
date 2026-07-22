@@ -32,6 +32,7 @@ import {
   TranslationError,
 } from '../lib/translate.js'
 import { saveDraft, loadDraft, clearDraft, rehydrate, DraftError } from '../lib/draft.js'
+import { emitQuickSteps } from '../lib/emit-quick-steps.js'
 import { applyStaticStrings, buildMeta, buildWarnings } from './render.js'
 import { buildEditableSteps, buildBlockerList, readinessSummaryText, fieldId } from './editor.js'
 
@@ -63,6 +64,8 @@ const els = {
   draftPendingText: document.getElementById('draft-pending-text'),
   discardDraft: document.getElementById('discard-draft'),
   saveState: document.getElementById('save-state'),
+  downloadQuickSteps: document.getElementById('download-quick-steps'),
+  exportHint: document.getElementById('export-hint'),
 }
 
 const state = {
@@ -188,6 +191,13 @@ function renderReadiness({ announce = true } = {}) {
   })
 
   els.readinessBody.replaceChildren(buildBlockerList(document, readiness, state.lang))
+
+  // The gate, enforced at the control itself. `disabled` rather than hidden, so
+  // the export is visibly present and its unavailability is discoverable —
+  // a button that vanishes tells the author nothing about what to fix.
+  els.downloadQuickSteps.disabled = !readiness.ready
+  els.exportHint.hidden = readiness.ready
+
   show(els.readiness)
 }
 
@@ -542,6 +552,45 @@ function checkForPendingDraft() {
 }
 
 els.discardDraft.addEventListener('click', discardPendingDraft)
+
+// ---------------------------------------------------------------- export ---
+
+/** Slug for a filename: safe on every filesystem, still recognisable. */
+function fileSlug(text, fallback) {
+  const slug = String(text ?? '')
+    .normalize('NFD')
+    // Combining diacritics, written as escapes so the source stays ASCII-safe.
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+  return slug || fallback
+}
+
+/** Hand a generated artifact to the browser's download machinery. */
+function downloadHtml(html, name) {
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = name
+  document.body.append(link)
+  link.click()
+  link.remove()
+  // Revoke on the next tick; revoking immediately can cancel the download.
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+els.downloadQuickSteps.addEventListener('click', () => {
+  clearError()
+  const name = `${fileSlug(state.capture.title, 'capture')}-quick-steps.html`
+  try {
+    downloadHtml(emitQuickSteps(state.capture, { languages: state.capture.languages }), name)
+    announce('export.downloaded', { name })
+  } catch (error) {
+    console.error(error)
+    showError('EXPORT_FAILED', { reason: error.message })
+  }
+})
 
 // ------------------------------------------------------------ translation ---
 

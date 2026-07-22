@@ -1,8 +1,9 @@
 # Handoff — step-capture-studio
-_Last updated: 2026-07-21 · Current stage: stage-2-authoring (built, awaiting verification)_
+_Last updated: 2026-07-21 · Current stage: stage-3-generators_
 
 ## 🎯 Goals
-Close out Stage 2's human verification, then start Stage 3: the three artifact emitters.
+Build the remaining two artifacts — the HTML walkthrough (the headline) and the case study — on the
+emitter foundation the quick-steps guide just proved.
 
 ## 📍 Current State
 - **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT, Pages green.
@@ -12,6 +13,8 @@ Close out Stage 2's human verification, then start Stage 3: the three artifact e
 - Verified in-browser end to end: edit → seed → confirm → merge → translate → reload → re-drop →
   draft restored with images reattached. Wrong file refused, draft preserved byte for byte.
 - Drafts are text-only (**3.3 KB** vs 843 KB of screenshots); images return on re-drop.
+- **Stage 3 started:** `feature-quick-steps` built + the shared emitter foundation. **145/145 tests.**
+  Emitted artifact verified in-browser: 7.7 KB, axe clean with contrast, toggle works standalone.
 
 ## 📂 Files I'm Working On
 - `src/lib/draft.js` — persistence + fingerprint · `src/lib/translate.js` — the round trip.
@@ -19,6 +22,7 @@ Close out Stage 2's human verification, then start Stage 3: the three artifact e
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` item 7).
 
 ## ✅ Things I've Changed
+- 2026-07-21 — Quick-steps artifact + shared emitter foundation + the export gate.
 - 2026-07-21 — Autosave: text-only drafts, re-drop to restore screenshots.
 - 2026-07-21 — Bilingual round trip: copy-prompt out, strict paste-back in.
 - 2026-07-21 — Readiness count announced (WCAG 4.1.3) via a persistent live region.
@@ -37,8 +41,8 @@ Close out Stage 2's human verification, then start Stage 3: the three artifact e
 1. Run `npm start`, look at the app, and time authoring one capture end to end — Stage 2's own
    done-criteria include a 15-minute budget nobody has measured.
 2. Screen-reader pass if NVDA/Narrator is available (`help.md` item 6).
-3. Stage 3: `feature-quick-steps`, `feature-html-walkthrough`, `feature-case-study`. Flesh out the
-   sketches first — they were left deliberately rough.
+3. `feature-html-walkthrough` — the headline artifact. Then `feature-case-study`.
+4. Printing is untested for any artifact; the quick-steps one-page claim is intent, not evidence.
 
 ## 🔗 Pointer
 → Current stage folder: `staging/stage-3-generators/` · Active feature file:

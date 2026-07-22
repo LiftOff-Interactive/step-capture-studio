@@ -108,6 +108,10 @@ const STRINGS = {
     'editor.seedAll': 'Draft alt text from step text',
 
     'export.heading': 'Before you export',
+    'export.downloadQuickSteps': 'Download quick-steps guide',
+    'export.blockedHint': 'Exports unlock once everything above is resolved.',
+    'export.downloaded': '{name} downloaded.',
+    'error.EXPORT_FAILED': 'The artifact could not be generated: {reason}',
     'export.blocked': '{count} items still need attention before export.',
     'export.ready': 'Ready to export.',
     'blocker.ALT_UNCONFIRMED': 'Step {index}: alt text not confirmed ({lang}).',
@@ -241,6 +245,10 @@ const STRINGS = {
     'editor.seedAll': 'Rédiger une ébauche à partir du texte des étapes',
 
     'export.heading': 'Avant d’exporter',
+    'export.downloadQuickSteps': 'Télécharger le guide des étapes rapides',
+    'export.blockedHint': 'Les exportations se débloquent une fois tout ce qui précède réglé.',
+    'export.downloaded': '{name} téléchargé.',
+    'error.EXPORT_FAILED': 'L’artefact n’a pas pu être généré : {reason}',
     'export.blocked': '{count} éléments nécessitent votre attention avant l’exportation.',
     'export.ready': 'Prêt à exporter.',
     'blocker.ALT_UNCONFIRMED':
