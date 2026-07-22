@@ -113,3 +113,30 @@ because the call sat before the navigation it took the whole handler with it. Th
 stopped working: clicks did nothing at all. ·
 **Do instead:** guard optional side effects so they cannot take the feature down with them. Keeping
 the URL in sync is a nicety; changing the step is the feature, and it must happen either way.
+
+## 2026-07-22 — `<dc:language>` in docProps/core.xml
+**Why it failed:** including `<dc:language>en-CA</dc:language>` in the core properties part made Word
+**discard the entire part**. A Word re-save came back with an empty `dc:title` AND an empty
+`dc:creator`, so nothing in core.xml was being read — and the document title is an explicit Word
+Accessibility Checker requirement. Nothing about the file looked wrong: it was well-formed XML, the
+content type and relationship type were correct, and the element was in schema order. ·
+**How it was found:** by bisection against Word 16.0 via COM, with a control proving Word *does*
+preserve these fields when re-saving its own files (so the measurement was sound). Two plausible
+fixes — matching Word's exact core.xml shape, and using Word's `rId1/2/3` relationship convention —
+changed nothing. Removing `dc:language` fixed it outright. ·
+**Do instead:** never put `dc:language` in core.xml. The document language belongs in `w:lang` on
+runs and in `docDefaults`, which Word reads correctly (it reports LanguageID 4105 for en-CA, 3084
+for fr-CA). A regression test in `test/emit-docx.test.js` asserts the element is absent. ·
+**Wider lesson:** "well-formed and schema-plausible" is not "accepted". For a format defined by
+someone else's parser, the parser is the specification — and a silent discard looks exactly like
+success until something downstream is missing.
+
+## 2026-07-22 — Driving Word by COM without process hygiene
+**Why it failed:** a PowerShell script that errored mid-way left an invisible WINWORD process holding
+a document open. Every subsequent `Documents.Open` blocked forever, and two 120-second tool timeouts
+were burnt before the cause was obvious. ·
+**Do instead:** run each Word interaction inside `Start-Job` with `Wait-Job -Timeout`, and always
+kill leftover invisible instances afterwards (`MainWindowTitle` empty identifies automation
+instances; never kill one with a title, which would be the user's own session). Check
+`%APPDATA%\Microsoft\Word\*.asd` afterwards so a killed instance does not leave recovery prompts
+behind for the user.

@@ -35,6 +35,7 @@ import { saveDraft, loadDraft, clearDraft, rehydrate, DraftError } from '../lib/
 import { emitQuickSteps } from '../lib/emit-quick-steps.js'
 import { emitWalkthrough } from '../lib/emit-walkthrough.js'
 import { emitCaseStudy } from '../lib/emit-case-study.js'
+import { emitDocx } from '../lib/emit-docx.js'
 import {
   setNarrative,
   confirmNarrative,
@@ -79,6 +80,7 @@ const els = {
   downloadQuickSteps: document.getElementById('download-quick-steps'),
   downloadWalkthrough: document.getElementById('download-walkthrough'),
   downloadCaseStudy: document.getElementById('download-case-study'),
+  downloadDocx: document.getElementById('download-docx'),
   caseStudy: document.getElementById('case-study'),
   casePrompt: document.getElementById('case-prompt'),
   casePromptOutput: document.getElementById('case-prompt-output'),
@@ -219,6 +221,12 @@ function renderReadiness({ announce = true } = {}) {
   // a button that vanishes tells the author nothing about what to fix.
   els.downloadQuickSteps.disabled = !readiness.ready
   els.downloadWalkthrough.disabled = !readiness.ready
+  els.downloadDocx.disabled = !readiness.ready
+  // One .docx per language — a Word document has no toggle, so the button
+  // names which language it will produce.
+  els.downloadDocx.textContent = t('export.downloadDocx', state.lang, {
+    lang: t(`lang.name.${state.lang}`, state.lang),
+  })
   // The case study carries an extra condition: no unreviewed drafted prose,
   // and something to actually say. Its own gate, because an unreviewed
   // explanation must not block the other two artifacts.
@@ -617,7 +625,11 @@ function fileSlug(text, fallback) {
 
 /** Hand a generated artifact to the browser's download machinery. */
 function downloadHtml(html, name) {
-  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }))
+  downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), name)
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
   link.download = name
@@ -643,6 +655,24 @@ function exportArtifact(emit, suffix) {
 
 els.downloadQuickSteps.addEventListener('click', () => exportArtifact(emitQuickSteps, 'quick-steps'))
 els.downloadCaseStudy.addEventListener('click', () => exportArtifact(emitCaseStudy, 'case-study'))
+
+els.downloadDocx.addEventListener('click', async () => {
+  clearError()
+  const name = `${fileSlug(state.capture.title, 'capture')}-${state.lang}.docx`
+  try {
+    const bytes = await emitDocx(state.capture, { lang: state.lang })
+    downloadBlob(
+      new Blob([bytes], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      }),
+      name
+    )
+    announce('export.downloaded', { name })
+  } catch (error) {
+    console.error(error)
+    showError('EXPORT_FAILED', { reason: error.message })
+  }
+})
 
 for (const field of SCENARIO_FIELDS) {
   els.scenario[field].addEventListener('input', () => {

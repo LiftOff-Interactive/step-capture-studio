@@ -29,6 +29,24 @@ objects after a force-push, which stay fetchable by SHA once a repo is public.
 
 ## 🟡 Needed soon
 
+### [ ] 3b. Run Word's Accessibility Checker on an exported .docx
+**What:** Export a Word document from the tool, open it, then Review → Check Accessibility, and
+confirm zero errors.
+**Why it's needed:** it is the one Stage 4 criterion I cannot automate — Word exposes no COM API for
+the checker's results. Everything the checker looks for has been verified individually against Word
+16.0 (document title, alt text on every image, real heading styles, correct language), and Word
+opens the file with no repair prompt. But "every ingredient is present" is not the same as "the
+checker passes", and this project does not treat those as equivalent.
+**Blocks:** the last unticked criterion in `staging/stage-4-ship/feature-docx-writer.md`.
+
+### [ ] 3c. Print each of the three HTML artifacts to PDF
+**What:** Open each generated artifact and print to PDF. Check the quick-steps guide fits one page
+with nothing clipped, and that screenshots actually appear in the walkthrough and case study.
+**Why it's needed:** printing is untested for all three, and it is the *defining* property of the
+quick-steps guide. The walkthrough already had a bug (`loading="lazy"`) whose main symptom would
+have been blank screenshots in print — that class of failure is invisible on screen.
+**Blocks:** an unticked criterion in `staging/stage-3-generators/feature-quick-steps.md`.
+
 ### [ ] 3. Provide a second Snagit capture — ideally a French one
 **What:** Record any short procedure in Snagit and export to `.docx`. A capture made with a
 French-language interface would be worth considerably more than a second English one.

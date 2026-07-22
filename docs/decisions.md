@@ -237,3 +237,18 @@ whatever the model said, the exact opposite of the intent). ·
 the artifact that skips a review. ·
 **Revisit if:** authors routinely confirm without reading — that would mean the gate has become a
 formality and the friction is in the wrong place.
+
+## 2026-07-22 — Hand-written OOXML, verified against Word rather than the schema
+**Chose:** Write the `.docx` package by hand — a ~120-line ZIP writer plus generated OOXML — with no
+dependency, and verify it by driving Word 16.0 through COM. ·
+**Because:** the zero-runtime-dependency rule holds for the whole project, and the reader already
+proved the format is tractable. More importantly, a Word document's correctness is defined by what
+Word does with it, not by what the schema permits: the one real defect found was well-formed,
+schema-plausible XML that Word silently discarded. ·
+**Rejected:** a docx library (would have been the project's first runtime dependency, for one
+emitter); trusting structural tests alone (they all passed while the document title was missing). ·
+**What this bought:** verified in Word — opens with no repair prompt, real heading styles, alt text
+on every image, correct language in both EN and FR — plus the `dc:language` discovery, which no
+structural test could have surfaced. ·
+**Revisit if:** Word ever rejects a package in a way that is not diagnosable this way. The fallback
+remains a single dev-time dependency for this one emitter, documented as an exception.
