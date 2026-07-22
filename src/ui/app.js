@@ -26,7 +26,7 @@ import {
   exportReadiness,
 } from '../lib/authoring.js'
 import { applyStaticStrings, buildMeta, buildWarnings } from './render.js'
-import { buildEditableSteps, buildReadiness, fieldId } from './editor.js'
+import { buildEditableSteps, buildBlockerList, readinessSummaryText, fieldId } from './editor.js'
 
 const els = {
   unsupported: document.getElementById('unsupported'),
@@ -40,6 +40,7 @@ const els = {
   warnings: document.getElementById('warnings'),
   warningsList: document.getElementById('warnings-list'),
   readiness: document.getElementById('readiness'),
+  readinessSummary: document.getElementById('readiness-summary'),
   readinessBody: document.getElementById('readiness-body'),
   steps: document.getElementById('steps'),
   stepsList: document.getElementById('steps-list'),
@@ -55,6 +56,8 @@ const state = {
   history: [],
   /** Object URLs we created, so they can be revoked on reload. */
   objectUrls: [],
+  /** Last announced blocker count, so only real changes are spoken. */
+  lastBlockerCount: null,
 }
 
 // --------------------------------------------------------------- helpers ---
@@ -89,10 +92,51 @@ function trackedImageUrl(bytes) {
 
 // ---------------------------------------------------------------- render ---
 
-function renderReadiness() {
+/**
+ * Update the summary text in the persistent live region.
+ *
+ * `announce: false` still updates the visible text but suppresses the
+ * announcement, by switching the region off across the mutation. That is for
+ * cases where the wording changes but the meaning has not — a language switch
+ * rewrites the sentence while the blocker count is identical, and announcing
+ * it again would be noise on top of the toggle's own announcement.
+ */
+function setReadinessSummary(text, { announce }) {
+  if (els.readinessSummary.textContent === text) return
+
+  if (announce) {
+    els.readinessSummary.textContent = text
+    return
+  }
+
+  els.readinessSummary.setAttribute('aria-live', 'off')
+  els.readinessSummary.textContent = text
+  // Restore after the mutation has been observed, so this change is not queued.
+  setTimeout(() => els.readinessSummary.setAttribute('aria-live', 'polite'), 0)
+}
+
+/**
+ * @param {object} [options]
+ * @param {boolean} [options.announce=true] false when only the wording changed
+ */
+function renderReadiness({ announce = true } = {}) {
   if (!state.capture) return hide(els.readiness)
+
   const readiness = exportReadiness(state.capture, state.capture.languages)
-  els.readinessBody.replaceChildren(...buildReadiness(document, readiness, state.lang))
+  const count = readiness.blockers.length
+
+  // Only a real change in what is outstanding is worth interrupting for.
+  // Typing into a field fires this on every keystroke; the count changes at
+  // most once per edit, which debounces the announcement for free.
+  const countChanged = count !== state.lastBlockerCount
+  state.lastBlockerCount = count
+
+  els.readinessSummary.classList.toggle('readiness--ready', readiness.ready)
+  setReadinessSummary(readinessSummaryText(readiness, state.lang), {
+    announce: announce && countChanged,
+  })
+
+  els.readinessBody.replaceChildren(buildBlockerList(document, readiness, state.lang))
   show(els.readiness)
 }
 
@@ -102,7 +146,7 @@ function renderSteps() {
   )
 }
 
-function renderAll() {
+function renderAll({ announceReadiness = true } = {}) {
   applyStaticStrings(document, state.lang)
 
   if (!state.capture) {
@@ -120,7 +164,7 @@ function renderAll() {
   }
 
   renderSteps()
-  renderReadiness()
+  renderReadiness({ announce: announceReadiness })
 
   els.undo.hidden = state.history.length === 0
   show(els.capture)
@@ -260,6 +304,8 @@ async function loadFile(file) {
     const bytes = new Uint8Array(await file.arrayBuffer())
     state.capture = await parseSnagitDocx(bytes)
     state.history = []
+    // A new capture is a new baseline, so its outstanding count is announced.
+    state.lastBlockerCount = null
     renderAll()
     setStatus('status.parsed', {
       count: state.capture.steps.length,
@@ -319,7 +365,9 @@ els.undo.addEventListener('click', () => {
 els.langToggle.addEventListener('click', () => {
   const index = LANGUAGES.indexOf(state.lang)
   state.lang = LANGUAGES[(index + 1) % LANGUAGES.length]
-  renderAll()
+  // The readiness wording changes but the meaning does not, and the toggle
+  // makes its own announcement — re-reading the count here would be noise.
+  renderAll({ announceReadiness: false })
   // Announce in the language just switched to, per WCAG 4.1.3.
   els.status.textContent = t('lang.changed', state.lang)
   els.langToggle.focus()

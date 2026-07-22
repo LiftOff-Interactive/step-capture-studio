@@ -21,7 +21,7 @@ import axe from 'axe-core'
 import { parseSnagitDocx } from '../src/lib/parse-snagit.js'
 import { seedAltText, exportReadiness } from '../src/lib/authoring.js'
 import { applyStaticStrings } from '../src/ui/render.js'
-import { buildEditableSteps, buildReadiness } from '../src/ui/editor.js'
+import { buildEditableSteps, buildBlockerList, readinessSummaryText } from '../src/ui/editor.js'
 import { makeCapture, ENGLISH_STEPS } from './helpers/synthetic.mjs'
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -60,11 +60,11 @@ async function editorDom(capture, lang = 'en', handlers = noopHandlers) {
   document
     .getElementById('steps-list')
     .replaceChildren(...buildEditableSteps(document, capture, lang, handlers, () => 'data:,'))
-  document
-    .getElementById('readiness-body')
-    .replaceChildren(
-      ...buildReadiness(document, exportReadiness(capture, capture.languages), lang)
-    )
+  const readiness = exportReadiness(capture, capture.languages)
+  // Mirrors app.js: the summary's text is updated in place, and only the list
+  // below it is rebuilt.
+  document.getElementById('readiness-summary').textContent = readinessSummaryText(readiness, lang)
+  document.getElementById('readiness-body').replaceChildren(buildBlockerList(document, readiness, lang))
   document.getElementById('steps').hidden = false
   document.getElementById('readiness').hidden = false
 
@@ -267,11 +267,82 @@ test('the confirm checkbox id is derivable, so it can be synced without a re-ren
 
 test('readiness summary states what is blocking export', async () => {
   const dom = await editorDom(seedAltText(await load()), 'en')
-  const body = dom.window.document.getElementById('readiness-body')
+  const { document } = dom.window
 
-  assert.match(body.textContent, /still need attention before export/)
-  assert.ok(body.querySelectorAll('li').length > 0, 'lists specific blockers')
+  assert.match(
+    document.getElementById('readiness-summary').textContent,
+    /still need attention before export/
+  )
+  assert.ok(
+    document.getElementById('readiness-body').querySelectorAll('li').length > 0,
+    'lists specific blockers'
+  )
   dom.window.close()
+})
+
+test('the readiness summary is a live region so the count is announced', async () => {
+  // WCAG 4.1.3. Without this the count changes silently: a sighted user sees
+  // 30 become 29, a screen-reader user gets nothing.
+  const dom = await editorDom(seedAltText(await load()), 'en')
+  const summary = dom.window.document.getElementById('readiness-summary')
+
+  assert.equal(summary.getAttribute('role'), 'status')
+  assert.equal(summary.getAttribute('aria-live'), 'polite')
+  // Only the digit changes between updates; without aria-atomic a screen reader
+  // may announce "29" with no indication of what 29 refers to.
+  assert.equal(summary.getAttribute('aria-atomic'), 'true')
+  dom.window.close()
+})
+
+test('the live region survives a re-render of the blocker list', async () => {
+  // THE regression this design exists to prevent. A live region created at the
+  // same moment its content changes is not announced, so if the summary were
+  // rebuilt by replaceChildren along with the list, announcements would break
+  // silently — everything would still look correct on screen.
+  const capture = seedAltText(await load())
+  const dom = await editorDom(capture, 'en')
+  const { document } = dom.window
+
+  const before = document.getElementById('readiness-summary')
+  const readiness = exportReadiness(capture, capture.languages)
+
+  // Re-render the list the way app.js does, twice.
+  for (let i = 0; i < 2; i++) {
+    document
+      .getElementById('readiness-body')
+      .replaceChildren(buildBlockerList(document, readiness, 'en'))
+  }
+
+  const after = document.getElementById('readiness-summary')
+  assert.equal(before, after, 'the summary element is the same node, never replaced')
+  assert.ok(
+    !document.getElementById('readiness-body').contains(after),
+    'the summary is outside the container that gets rebuilt'
+  )
+  dom.window.close()
+})
+
+test('buildBlockerList returns only the list, so the summary cannot be swept away', async () => {
+  // Structural guarantee: the builder cannot return the summary, so no caller
+  // can accidentally rebuild it.
+  const capture = seedAltText(await load())
+  const dom = await editorDom(capture, 'en')
+  const list = buildBlockerList(dom.window.document, exportReadiness(capture, ['en']), 'en')
+
+  assert.equal(list.tagName, 'UL')
+  assert.equal(list.querySelector('[role="status"]'), null, 'contains no live region')
+  dom.window.close()
+})
+
+test('summary text reflects readiness in both languages', async () => {
+  const capture = seedAltText(await load())
+  const blocked = exportReadiness(capture, ['en'])
+
+  assert.match(readinessSummaryText(blocked, 'en'), /still need attention/)
+  assert.match(readinessSummaryText(blocked, 'fr'), /nécessitent votre attention/)
+
+  assert.equal(readinessSummaryText({ ready: true, blockers: [] }, 'en'), 'Ready to export.')
+  assert.equal(readinessSummaryText({ ready: true, blockers: [] }, 'fr'), 'Prêt à exporter.')
 })
 
 test('editor screenshots are marked decorative — the alt field describes them', async () => {

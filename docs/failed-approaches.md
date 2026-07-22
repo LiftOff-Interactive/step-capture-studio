@@ -30,3 +30,15 @@ throughout: they checked the model, and the model was right. ·
 **Do instead:** when skipping a re-render for focus reasons, sync the specific affected control by
 id (`fieldId(...)` is exported from `editor.js` for this). And treat "the model is correct" as
 insufficient evidence — check what the user can actually see.
+
+## 2026-07-21 — Putting a live region inside a container that gets rebuilt
+**Why it failed:** the first instinct for announcing the readiness count was to give the summary
+`role="status"` where it already sat — inside `#readiness-body`, which `replaceChildren` rebuilds on
+every edit. A live region that is created at the same moment its content changes is **not
+announced**: assistive tech only reports changes to regions already present in the accessibility
+tree. The page would look completely correct and announce nothing, and no visual check would reveal
+it. ·
+**Do instead:** keep the live region as a persistent element outside anything that gets rebuilt, and
+update only its `textContent`. Make it structural rather than a convention — `readinessSummaryText()`
+returns a *string*, so no caller is able to rebuild the node even by accident. Add `aria-atomic="true"`
+whenever only part of a message changes, or a screen reader may announce the bare digit with no context.

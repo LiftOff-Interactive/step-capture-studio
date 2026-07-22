@@ -80,6 +80,24 @@
 
       <section id="readiness" class="panel" hidden aria-labelledby="readiness-heading">
         <h2 id="readiness-heading" data-i18n="export.heading">Before you export</h2>
+
+        <!--
+          This element is a live region and is NEVER replaced — only its text is
+          updated. A live region created at the same moment its content changes
+          is not announced, so rebuilding this node (as replaceChildren does to
+          the list below) would silently break the announcement.
+
+          aria-atomic re-reads the whole sentence rather than just the digit
+          that changed, so "29" alone is never announced without its context.
+        -->
+        <p
+          id="readiness-summary"
+          class="readiness"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></p>
+
         <div id="readiness-body"></div>
       </section>
 

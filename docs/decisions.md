@@ -189,3 +189,16 @@ stars or forks, and the full history existed locally plus in two backup bundles.
 to one commit (would have discarded the commit narrative, and the author chose to keep all 8). ·
 **Revisit if:** never — this is the correct order of operations any time history is scrubbed before
 a repo becomes public.
+
+## 2026-07-21 — Announce readiness only when the blocker count changes
+**Chose:** The readiness summary is a persistent live region; it announces only when the number of
+outstanding blockers changes, and is suppressed (via `aria-live="off"` across the mutation) when a
+language switch rewrites the sentence without changing its meaning. ·
+**Because:** the handler runs on every keystroke. Announcing each one would make the editor unusable
+with a screen reader — the exact opposite of the criterion's intent. The count changes at most once
+per edit, so keying announcements to it debounces them for free with no timer. ·
+**Rejected:** announcing on every render (unusable); a fixed debounce timer (a heuristic that would
+still fire on meaningless changes, and adds timing that tests cannot pin down); leaving it silent
+(the original state, and an outright WCAG 4.1.3 failure). ·
+**Revisit if:** a future edit path changes the count several times in one action — then the count
+alone stops being a good proxy for "something meaningful happened".

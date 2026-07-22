@@ -11,9 +11,8 @@ document and a conformant deliverable.
 - [x] Fields are **seeded** from the step text as a draft, clearly marked unconfirmed.
 - [x] The author must actively confirm each one; seeded-but-unconfirmed does not count as done.
 - [x] Export is **blocked** while any alt text is unconfirmed, with a count of what remains.
-- [ ] The blocking reason is announced via `aria-live`, not conveyed by colour or position alone
-      (WCAG 1.4.1). — **not met:** the readiness panel is stated in text (so not colour-alone), but it
-      is not a live region, so the count changes silently for a screen-reader user. Needs fixing.
+- [x] The blocking reason is announced via `aria-live`, not conveyed by colour or position alone
+      (WCAG 1.4.1).
 - [ ] A "confirm all seeded values" bulk action exists but is deliberately friction-ful — it states
       how many it will confirm and requires a second action. — **not built.**
 - [ ] Alt text flows through to all three HTML artifacts and to the `.docx` (`wp:docPr/@descr`).
@@ -60,8 +59,38 @@ confirmed text returned it to 30.
    whatever button was last pressed. Replaced with an explicit `preserveFocus` flag. Verified: merge
    lands on the merged step, delete lands on the step that took its place.
 
-**Still outstanding:** French alt text depends on `feature-bilingual-roundtrip`. No screen-reader
-pass yet (`help.md` item 6). Nobody has visually looked at the editor.
+### 2026-07-21 — Readiness count is now announced (WCAG 4.1.3) — PASS
+The count changed silently for screen-reader users. Fixed, with the design chosen so the likeliest
+regression is structurally impossible.
+
+**The trap:** the obvious fix — make the summary a live region — fails silently. `replaceChildren`
+destroys and recreates the node, and a live region created at the same moment its content changes is
+not announced. Everything would still look right on screen.
+
+**Design:** the summary is a persistent element in `index.html` that is never replaced; only its text
+is updated. `buildReadiness` was split into `readinessSummaryText()` (returns a *string*, so no
+caller can rebuild the node) and `buildBlockerList()` (returns only the `<ul>`). `aria-atomic="true"`
+re-reads the whole sentence, since otherwise only the changed digit may be spoken.
+
+**Announcement policy:** fires only when the blocker *count* changes. Typing fires the handler on
+every keystroke but the count moves at most once per edit, which debounces it for free. A language
+switch rewrites the sentence without changing its meaning, so the region is flipped to
+`aria-live="off"` across that mutation and restored after.
+
+**Runtime verification (Chromium 148, real capture), observed with a MutationObserver:**
+- load → `role=status`, `aria-live=polite`, `aria-atomic=true`, "30 items still need attention"
+- confirm one alt → 30 → **29**, announced
+- three more keystrokes in that field → text unchanged, **no further announcements**
+- language toggle → French wording, `aria-live` observed flipping to `off` then back to `polite`
+- summary node identity unchanged throughout; **5 mutations total** across the whole session
+- axe: **0 violations, 0 needs-review** in both languages, contrast passing on 190 nodes
+
+**Mutation-tested:** removing `aria-live`, `aria-atomic` or `role=status`, or moving the summary
+inside the rebuilt container, are each caught. Control case clean.
+
+**Still outstanding:** French alt text depends on `feature-bilingual-roundtrip`. The "confirm all
+seeded values" bulk action is still not built. No screen-reader pass yet (`help.md` item 6). Nobody
+has visually looked at the editor.
 
 ## Open Questions
 - Is step text a good enough alt-text seed? `Click "Open in Word"` describes the *action*, not the

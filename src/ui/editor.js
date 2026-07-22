@@ -212,14 +212,23 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
   })
 }
 
-/** The export-readiness summary: what still stands between here and an artifact. */
-export function buildReadiness(document, readiness, lang) {
-  const summary = document.createElement('p')
-  summary.className = readiness.ready ? 'readiness readiness--ready' : 'readiness'
-  summary.textContent = readiness.ready
+/**
+ * The one-line export-readiness summary, as text.
+ *
+ * Deliberately returns a string rather than an element. The summary lives in a
+ * persistent live region in index.html that is never replaced — if this
+ * returned a node, a caller could rebuild it and silently kill the
+ * announcement, because a live region added at the same moment its content
+ * changes is not announced.
+ */
+export function readinessSummaryText(readiness, lang) {
+  return readiness.ready
     ? t('export.ready', lang)
     : t('export.blocked', lang, { count: readiness.blockers.length })
+}
 
+/** The detailed blocker list. Safe to rebuild — it is not a live region. */
+export function buildBlockerList(document, readiness, lang) {
   const list = document.createElement('ul')
   list.className = 'readiness__list'
   // Cap the list — 10 unconfirmed images across 2 languages is 20 identical
@@ -232,6 +241,5 @@ export function buildReadiness(document, readiness, lang) {
     })
     list.append(li)
   }
-
-  return [summary, list]
+  return list
 }
