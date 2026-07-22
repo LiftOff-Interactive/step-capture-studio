@@ -37,7 +37,11 @@ Every feature needs BOTH:
 "It compiles" and "the tests I wrote pass" do not count on their own.
 
 Accessibility is verified, not assumed: axe clean + keyboard-only pass + visible focus at every step.
-`.docx` output is verified against **Word's own Accessibility Checker**, not by inspection.
+`.docx` output is verified against **Word itself** (COM automation), not by inspecting the markup.
+
+**Verify against the real consumer, not the specification.** Valid, schema-plausible output can still
+be silently rejected — `dc:language` in core.xml made Word discard the whole part while every
+structural test passed. Where another program consumes our output, that program is the spec.
 
 **Using axe correctly (learned the hard way — see feature-app-shell.md):**
 - Assert on `incomplete` as well as `violations`. "Needs review" is where dangling ARIA references

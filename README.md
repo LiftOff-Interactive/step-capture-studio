@@ -3,7 +3,10 @@
 Turn one Snagit step-capture `.docx` into three ready-to-use training artifacts — without uploading
 anything, anywhere.
 
-> **Status: in development.** Stage 1 of 4. Nothing is working yet.
+**→ [Try it](https://mbubyn.github.io/step-capture-studio/)** — nothing to install, nothing uploaded.
+
+> **Status: pre-release.** All four outputs work. Still to come: a demo capture so you can try it
+> without Snagit, and a few checks that need a human (see `help.md`).
 
 ## What it does
 
@@ -13,9 +16,12 @@ Record a procedure once in Snagit, export it to Word, and drop that file here. Y
 2. **HTML walkthrough** — an interactive guide: screenshot pane, instruction box, and every step
    listed alongside it.
 3. **Case study** — a narrative artifact explaining *why* each step matters, not just what to click.
+4. **Word document** — an accessible `.docx`, one per language, for people who live in Word.
 
-All three are bilingual (English / French), meet WCAG 2.1 AA, and are single self-contained files you
-can email, print, or open offline.
+The HTML artifacts are bilingual (English / French) in a single self-contained file you can email or
+open offline — and they stay readable with JavaScript turned off. Everything targets WCAG 2.1 AA:
+alt text is required before you can export, and the Word file carries real heading styles and alt
+text on every image.
 
 ## Your files never leave your computer
 
@@ -43,11 +49,13 @@ Nothing to install.
 
 ## Development
 
-No build step and no runtime dependencies — the site is plain ES modules served as-is.
+No build step and no runtime dependencies: the site is plain ES modules served as-is. The `.docx`
+reader and writer are hand-written against `DecompressionStream`/`CompressionStream` rather than a
+ZIP library.
 
 ```sh
 npm install    # dev-only test tooling
-npm test       # parser tests + accessibility checks
+npm test       # parser, authoring, artifact and accessibility tests
 ```
 
 Contributions welcome once v1 ships. **Never commit a capture file or a screenshot of a real system** —

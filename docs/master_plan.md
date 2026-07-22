@@ -130,19 +130,34 @@ New input formats add a parser; new artifacts add an emitter; neither touches th
 
 ## Open questions & risks
 
-1. **Sample size of one.** The parser is built against a single Snagit capture from one version, one
-   theme, one locale. Mitigation: key off document *structure* (paragraph order, image relationships)
-   and never off English text. Unknown until a second capture appears.
-2. **Accessible `.docx` writing with zero dependencies is unproven.** Reading is confirmed. Writing
-   requires hand-building an OOXML package with correct heading styles, `descr` alt text, and
-   `w:lang`. Highest-risk item in the project — spike early.
-3. **French guides will show English screenshots.** Accepted trade-off, documented in
-   `docs/decisions.md`. Revisit if a francophone pilot flags it.
-4. **`DecompressionStream('deflate-raw')` browser support** is believed broadly available but is not
-   yet verified in this project's target browsers. First thing Stage 1 proves.
+_Reviewed 2026-07-22. Resolved risks are kept, struck through, so the record shows what was feared
+and what actually happened._
+
+**Live:**
+
+1. **Sample size of one.** The parser is still built against a single Snagit capture — one version,
+   one theme, one locale. Mitigated by keying off document *structure* and never off English text,
+   and by a French fixture in the tests. Unknown until a second real capture appears (`help.md` 3).
+2. **French guides show English screenshots.** Accepted trade-off. The content model is per-language
+   so two-capture pairing stays a small change. Revisit if a francophone pilot flags it.
+3. **The bundled French is an unreviewed machine draft.** It must not reach learners unreviewed
+   (`help.md` 7).
+4. **Printing is untested for all three HTML artifacts.** It is the defining property of the
+   quick-steps guide, and one bug has already been found whose symptom was blank printed
+   screenshots. Human-only check (`help.md` 3c).
 5. **Public repo, sensitive source material.** Enforced by `.githooks/pre-commit`, not by memory.
-6. **Licensing is unresolved** — the author is a federal employee and the work may be subject to
-   Crown copyright or employer IP policy. Blocking the public push. See `help.md`.
+   History was scrubbed and audited before the repo went public.
+
+**Resolved:**
+
+6. ~~Accessible `.docx` writing with zero dependencies is unproven.~~ **Resolved 2026-07-22** —
+   built and verified against Word 16.0: opens with no repair prompt, real heading styles, alt text
+   on every image, correct language in EN and FR. The one defect found (`dc:language` making Word
+   discard core.xml) is in `docs/failed-approaches.md`. Word's Accessibility Checker itself still
+   needs a human (`help.md` 3b).
+7. ~~`DecompressionStream('deflate-raw')` browser support is unverified.~~ **Resolved 2026-07-21** —
+   confirmed in Chromium 148, the agreed target. No fallback inflate needed.
+8. ~~Licensing is unresolved.~~ **Resolved 2026-07-21** — MIT, © Mike Bubyn. Repo is public.
 
 ## Glossary
 - **Snagit step capture** — TechSmith Snagit's mode that records each click as a numbered step with a

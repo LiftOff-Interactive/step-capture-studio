@@ -58,20 +58,19 @@ captures inside the project folder**; the pre-commit hook will block them, but k
 entirely is safer.
 **Blocks:** nothing outright, but it de-risks `feature-snagit-parser` substantially.
 
-### [ ] 4. Record a synthetic demo capture
+### [ ] 4. Record a synthetic demo capture — **now the top blocker**
 **What:** A Snagit step capture of something **public and non-sensitive** — a Wikipedia search, a
 weather site, anything with no internal system on screen. Five or six steps is plenty.
 **Why it's needed:** The live site needs a demo file a stranger can try. Your real capture shows
 internal departmental systems and can never ship publicly.
-**Blocks:** `stage-4-ship/feature-demo-capture`, and the "a stranger can use it" definition of done.
+**Blocks:** `stage-4-ship/feature-demo-capture`, and the "a stranger completes the flow from the
+live URL" definition of done — which is the last substantive item left in the whole project.
 
-### [ ] 5. Confirm which browsers must be supported
-**What:** Tell Claude the browsers and versions this needs to work in — particularly whatever is
-standard on managed departmental machines.
-**Why it's needed:** The whole zero-dependency approach rests on `DecompressionStream`, which is
-unavailable in older browsers. If a locked-down or older browser must be supported, roughly 200 extra
-lines of fallback code are required. Better to know now than after Stage 3.
-**Blocks:** nothing yet; changes the scope of `feature-docx-reader` if the answer is restrictive.
+### [x] 5. ~~Confirm which browsers must be supported~~ — done 2026-07-21
+**Decided:** current Chrome/Edge only. `DecompressionStream('deflate-raw')` is confirmed working in
+Chromium 148, so no fallback inflate was needed. If a locked-down older browser ever has to be
+supported, that is roughly 200 lines of hand-written inflate — the guard is already in place: the
+file input is disabled with a translated "browser too old" message rather than failing silently.
 
 ---
 
