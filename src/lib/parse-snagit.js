@@ -25,6 +25,7 @@
 
 import { readDocx, decodeText, pngSize } from './docx.js'
 import { captureFingerprint } from './draft.js'
+import { emptyNarrative, emptyScenario } from './case-study.js'
 
 /** Leading step number, e.g. "12. " or "3) ". The only text pattern we match. */
 const STEP_NUMBER = /^\s*(\d+)\s*[.)]\s*/
@@ -161,6 +162,9 @@ export async function parseSnagitDocx(bytes, options = {}) {
     sourceLang,
     languages: langs,
     declaredStepCount: null,
+    // Author-written grounding for the case study. The model never fills these
+    // in — they are what stops it inventing rationale from nothing.
+    scenario: emptyScenario(langs),
     steps: [],
     warnings,
   }
@@ -188,6 +192,9 @@ export async function parseSnagitDocx(bytes, options = {}) {
         index,
         text: { ...emptyLangMap(langs), [sourceLang]: text.replace(STEP_NUMBER, '') },
         images: [],
+        // Narrative belongs to the case study and is always author-or-drafted,
+        // never parsed. Initialised here so every consumer sees one shape.
+        narrative: emptyNarrative(langs),
       }
       capture.steps.push(current)
     } else if (!embeds.length && text) {
@@ -248,6 +255,7 @@ export async function parseSnagitDocx(bytes, options = {}) {
           index: capture.steps.length + 1,
           text: emptyLangMap(langs),
           images: [image],
+          narrative: emptyNarrative(langs),
         })
       }
     }

@@ -20,6 +20,7 @@
 
 import { t, LOCALES } from '../lib/i18n.js'
 import { duplicatePairs } from '../lib/authoring.js'
+import { NARRATIVE_FIELDS } from '../lib/case-study.js'
 
 /**
  * Stable, unique, and valid as an HTML id.
@@ -192,6 +193,52 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
             })
           )
         }
+      }
+
+      fieldset.append(group)
+    }
+
+    // --- case-study narrative, source language only ----------------------
+    // Only the source language is edited here. The French comes through the
+    // translation round trip, which already exists — duplicating 20 more
+    // fields would double the form for no gain.
+    for (const field of NARRATIVE_FIELDS) {
+      const passage = step.narrative?.[field]?.[capture.sourceLang]
+      const group = document.createElement('div')
+      group.className = 'narrative-group'
+
+      const area = document.createElement('textarea')
+      area.rows = 2
+      area.value = passage?.text ?? ''
+      area.lang = LOCALES[capture.sourceLang] ?? capture.sourceLang
+      area.addEventListener('input', () =>
+        handlers.onNarrative(step.index, field, capture.sourceLang, area.value)
+      )
+
+      group.append(
+        labelled(document, {
+          id: fieldId('narr', step.index, field),
+          labelText: t(`caseStudy.${field}`, lang),
+          control: area,
+        })
+      )
+
+      // The review control appears ONLY for drafted text. An authored passage
+      // has nothing to confirm, and showing a permanent unticked box would
+      // imply otherwise.
+      if (passage?.drafted && passage.text) {
+        const notice = document.createElement('p')
+        notice.className = 'narrative-drafted'
+        notice.textContent = t('caseStudy.unreviewed', lang)
+        group.append(notice)
+        group.append(
+          checkbox(document, {
+            id: fieldId('narrok', step.index, field),
+            labelText: t('caseStudy.confirm', lang),
+            checked: false,
+            onChange: (value) => value && handlers.onConfirmNarrative(step.index, field, capture.sourceLang),
+          })
+        )
       }
 
       fieldset.append(group)

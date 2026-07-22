@@ -10,7 +10,7 @@ nothing else, so all three are independent and can be built in any order.
 ## Features
 - [x] `feature-quick-steps` — terse cheat sheet for users who know the system
 - [x] `feature-html-walkthrough` — the two-pane interactive guide (the headline artifact)
-- [ ] `feature-case-study` — narrative skeleton plus copy-prompt
+- [x] `feature-case-study` — narrative skeleton plus copy-prompt
 
 ## Shared requirements — apply to all three
 - **Self-contained.** One HTML file, screenshots inlined as data URIs. No image folder, no broken
@@ -51,8 +51,19 @@ The shared machinery now proven by a real artifact: self-contained output with n
 both languages emitted with per-block `lang`, progressive enhancement so the no-JavaScript state is
 bilingual rather than broken, and axe running over the generated document as a document.
 
-`feature-html-walkthrough` is now built too - the headline artifact, 1.09 MB for the real capture
-with all 10 screenshots inlined and decoding, axe clean in both languages.
+**All three artifacts are built** and `awaiting verification`. 201/201 tests; every artifact is
+self-contained, bilingual, readable with JavaScript disabled, and axe clean with contrast measured
+in a real browser.
 
-Remaining: `feature-case-study`. Printing is untested for every artifact, so the one-page claim for
-quick-steps is intent rather than evidence, and the walkthrough's print stylesheet is unproven.
+| Artifact | Size (real capture) | axe |
+|---|---|---|
+| quick-steps | 7.7 KB | 0 / 0 |
+| walkthrough | 1.09 MB | 0 / 0 |
+| case study | 1.08 MB | 0 / 0 |
+
+The case study additionally refuses to emit unreviewed drafted narrative, gated separately so an
+unreviewed explanation cannot block the other two artifacts.
+
+**What Stage 3 has NOT proven: printing.** Untested for all three. The quick-steps one-page claim is
+design intent, and the walkthrough already had a bug (`loading="lazy"`) whose main symptom would
+have been blank screenshots in print. Plural forms in generated counts are also wrong.

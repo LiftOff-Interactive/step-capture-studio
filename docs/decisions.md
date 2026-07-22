@@ -219,3 +219,21 @@ and carried by the capture (never recomputed from an edited one), and matching i
 rather than position, so merges and deletions cannot misalign them. ·
 **Revisit if:** captures routinely exceed the quota even without images, or if re-dropping proves
 too annoying in practice.
+
+## 2026-07-21 — The case study is gated, not badged
+**Chose:** Export of the case study is blocked while any model-drafted passage is unconfirmed. The
+exported artifact therefore carries no "unreviewed" marking, because unreviewed content cannot reach
+it. Empty explanations are always allowed. ·
+**Because:** the artifact's whole risk is a confident, wrong *why* reaching learners with apparent
+authority. Badging drafted paragraphs in the deliverable would be honest but unshippable — authors
+would strip the badges, leaving the text unreviewed AND unmarked, which is strictly worse than
+either. Gating moves the decision to a point where the author is already working. The distinction
+that keeps it bearable is **empty vs unreviewed**: claiming nothing is safe, claiming something
+unchecked is not. ·
+**Rejected:** marking drafted passages in the export (invites stripping); no gate at all (the failure
+this feature exists to prevent); requiring every field to be filled (would push authors to accept
+whatever the model said, the exact opposite of the intent). ·
+**Enforced twice:** the UI disables the download, and the emitter itself throws. There is no path to
+the artifact that skips a review. ·
+**Revisit if:** authors routinely confirm without reading — that would mean the gate has become a
+formality and the friction is in the wrong place.

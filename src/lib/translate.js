@@ -19,6 +19,9 @@
 /** Ids are short and alphanumeric so no chat client reflows or linkifies them. */
 const STEP_ID = (index) => `s${index}`
 const ALT_ID = (index, position) => `s${index}a${position}`
+/** Narrative ids match the case-study prompt's, so authors see one scheme. */
+const NARRATIVE_ID = (index, field) => `s${index}${field === 'why' ? 'w' : 'b'}`
+const NARRATIVE_FIELDS = ['why', 'ifSkipped']
 
 const DELIMITER = '|||'
 
@@ -60,6 +63,21 @@ export function collectTranslatable(capture, from = capture.sourceLang) {
         imageId: image.id,
       })
     })
+
+    // Case-study narrative, but only what a human stands behind. A drafted
+    // passage nobody has reviewed must not be translated into a second
+    // language — that would multiply an unchecked claim rather than catch it.
+    for (const field of NARRATIVE_FIELDS) {
+      const passage = step.narrative?.[field]?.[from]
+      if (!passage?.text?.trim() || passage.drafted) continue
+      items.push({
+        id: NARRATIVE_ID(step.index, field),
+        text: passage.text.trim(),
+        kind: 'narrative',
+        stepIndex: step.index,
+        field,
+      })
+    }
   }
 
   return items
@@ -228,6 +246,20 @@ export function applyTranslation(capture, entries, target, from = capture.source
       applied++
     }
 
+    // Narrative arrives translated but still unconfirmed in the target
+    // language, exactly as alt text does.
+    let narrative = step.narrative
+    for (const field of NARRATIVE_FIELDS) {
+      const value = entries.get(NARRATIVE_ID(step.index, field))
+      if (!value || !narrative?.[field]) continue
+      narrative = {
+        ...narrative,
+        [field]: { ...narrative[field], [target]: { text: value, drafted: true } },
+      }
+      stepChanged = true
+      applied++
+    }
+
     const nextImages = images.map((image, i) => {
       const value = entries.get(ALT_ID(step.index, i + 1))
       if (!value) return image
@@ -243,7 +275,7 @@ export function applyTranslation(capture, entries, target, from = capture.source
     })
     if (nextImages.some((image, i) => image !== images[i])) images = nextImages
 
-    return stepChanged ? { ...step, text, images } : step
+    return stepChanged ? { ...step, text, images, narrative } : step
   })
 
   const missing = [...expected.values()]

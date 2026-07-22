@@ -417,6 +417,39 @@ input[type="file"] {
   margin: 0;
 }
 
+.narrative-group {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+}
+
+/* Drafted text is called out in words, not by colour alone. */
+.narrative-drafted {
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  background: var(--warn-surface);
+  border: 1px solid var(--warn-border);
+  color: var(--warn-text);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.narrative-group textarea {
+  font: inherit;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+
 .alt-group {
   display: grid;
   gap: 0.5rem;

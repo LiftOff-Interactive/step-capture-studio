@@ -34,6 +34,17 @@ import {
 import { saveDraft, loadDraft, clearDraft, rehydrate, DraftError } from '../lib/draft.js'
 import { emitQuickSteps } from '../lib/emit-quick-steps.js'
 import { emitWalkthrough } from '../lib/emit-walkthrough.js'
+import { emitCaseStudy } from '../lib/emit-case-study.js'
+import {
+  setNarrative,
+  confirmNarrative,
+  setScenario,
+  caseStudyReadiness,
+  hasNarrative,
+  buildCaseStudyPrompt,
+  applyCaseStudyResponse,
+  SCENARIO_FIELDS,
+} from '../lib/case-study.js'
 import { applyStaticStrings, buildMeta, buildWarnings } from './render.js'
 import { buildEditableSteps, buildBlockerList, readinessSummaryText, fieldId } from './editor.js'
 
@@ -67,6 +78,15 @@ const els = {
   saveState: document.getElementById('save-state'),
   downloadQuickSteps: document.getElementById('download-quick-steps'),
   downloadWalkthrough: document.getElementById('download-walkthrough'),
+  downloadCaseStudy: document.getElementById('download-case-study'),
+  caseStudy: document.getElementById('case-study'),
+  casePrompt: document.getElementById('case-prompt'),
+  casePromptOutput: document.getElementById('case-prompt-output'),
+  caseDraftInput: document.getElementById('case-draft-input'),
+  applyCaseDraft: document.getElementById('apply-case-draft'),
+  scenario: Object.fromEntries(
+    ['audience', 'context', 'outcome'].map((f) => [f, document.getElementById(`scenario-${f}`)])
+  ),
   exportHint: document.getElementById('export-hint'),
 }
 
@@ -199,6 +219,12 @@ function renderReadiness({ announce = true } = {}) {
   // a button that vanishes tells the author nothing about what to fix.
   els.downloadQuickSteps.disabled = !readiness.ready
   els.downloadWalkthrough.disabled = !readiness.ready
+  // The case study carries an extra condition: no unreviewed drafted prose,
+  // and something to actually say. Its own gate, because an unreviewed
+  // explanation must not block the other two artifacts.
+  const narrative = caseStudyReadiness(state.capture, state.capture.languages)
+  els.downloadCaseStudy.disabled =
+    !readiness.ready || !narrative.ready || !hasNarrative(state.capture, state.capture.languages)
   els.exportHint.hidden = readiness.ready
 
   show(els.readiness)
@@ -242,9 +268,14 @@ function renderAll({ announceReadiness = true } = {}) {
   renderSteps()
   renderReadiness({ announce: announceReadiness })
 
+  for (const field of SCENARIO_FIELDS) {
+    els.scenario[field].value = state.capture.scenario?.[field]?.[state.capture.sourceLang] ?? ''
+  }
+
   els.undo.hidden = state.history.length === 0
   show(els.capture)
   show(els.translate)
+  show(els.caseStudy)
   show(els.steps)
 }
 
@@ -364,6 +395,19 @@ const handlers = {
     }
   },
 
+  onNarrative(stepIndex, field, lang, value) {
+    // Typing over a drafted passage IS the review — setNarrative marks it
+    // authored, which is why no separate confirm step is needed after an edit.
+    const wasDrafted = state.capture.steps[stepIndex - 1]?.narrative?.[field]?.[lang]?.drafted
+    editInPlace(setNarrative(state.capture, stepIndex, field, lang, value))
+    if (wasDrafted) rerenderSteps()
+  },
+
+  onConfirmNarrative(stepIndex, field, lang) {
+    commit(confirmNarrative(state.capture, stepIndex, field, lang))
+    rerenderSteps()
+  },
+
   onDecorative(stepIndex, imageId, decorative) {
     // Changes which fields exist, so the list must be rebuilt.
     commit(setDecorative(state.capture, stepIndex, imageId, decorative))
@@ -403,6 +447,7 @@ async function loadFile(file) {
   hide(els.steps)
   hide(els.readiness)
   hide(els.translate)
+  hide(els.caseStudy)
   setStatus('status.reading')
 
   try {
@@ -597,6 +642,54 @@ function exportArtifact(emit, suffix) {
 }
 
 els.downloadQuickSteps.addEventListener('click', () => exportArtifact(emitQuickSteps, 'quick-steps'))
+els.downloadCaseStudy.addEventListener('click', () => exportArtifact(emitCaseStudy, 'case-study'))
+
+for (const field of SCENARIO_FIELDS) {
+  els.scenario[field].addEventListener('input', () => {
+    editInPlace(setScenario(state.capture, field, state.capture.sourceLang, els.scenario[field].value))
+  })
+}
+
+els.casePrompt.addEventListener('click', async () => {
+  clearError()
+  let prompt
+  try {
+    prompt = buildCaseStudyPrompt(state.capture, state.capture.sourceLang)
+  } catch (error) {
+    return announceTranslationError(error)
+  }
+  els.casePromptOutput.value = prompt
+  try {
+    await navigator.clipboard.writeText(prompt)
+    announce('translate.copied')
+  } catch {
+    announce('translate.builtNotCopied')
+    els.casePromptOutput.focus()
+    els.casePromptOutput.select()
+  }
+})
+
+els.applyCaseDraft.addEventListener('click', () => {
+  clearError()
+  let result
+  try {
+    result = applyCaseStudyResponse(state.capture, els.caseDraftInput.value, state.capture.sourceLang)
+  } catch (error) {
+    if (error instanceof TranslationError) return announceTranslationError(error)
+    console.error(error)
+    return showError('UNKNOWN')
+  }
+
+  commit(result.capture)
+  rerenderSteps()
+
+  if (result.declined.length) {
+    // A model declining to guess is a useful signal, not a failure to hide.
+    announce('caseStudy.declined', { count: result.declined.length })
+  } else {
+    announce('caseStudy.drafted', { count: result.applied })
+  }
+})
 els.downloadWalkthrough.addEventListener('click', () => exportArtifact(emitWalkthrough, 'walkthrough'))
 
 // ------------------------------------------------------------ translation ---

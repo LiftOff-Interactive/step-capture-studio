@@ -130,6 +130,14 @@
           >
             Download HTML walkthrough
           </button>
+          <button
+            type="button"
+            id="download-case-study"
+            class="button"
+            data-i18n="export.downloadCaseStudy"
+          >
+            Download case study
+          </button>
         </div>
         <p id="export-hint" class="hint" data-i18n="export.blockedHint">
           Exports unlock once everything above is resolved.
@@ -166,6 +174,56 @@
         <div class="toolbar">
           <button type="button" id="apply-translation" class="button" data-i18n="translate.apply">
             Apply translation
+          </button>
+        </div>
+      </section>
+
+      <section id="case-study" class="panel" hidden aria-labelledby="case-study-heading">
+        <h2 id="case-study-heading" data-i18n="caseStudy.heading">Case study</h2>
+        <p data-i18n="caseStudy.scenarioHeading">About this procedure</p>
+
+        <div class="field">
+          <label class="field-label" for="scenario-audience" data-i18n="caseStudy.audience">
+            Who is this for
+          </label>
+          <input type="text" id="scenario-audience" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="scenario-context" data-i18n="caseStudy.context">
+            What this procedure is for
+          </label>
+          <input type="text" id="scenario-context" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="scenario-outcome" data-i18n="caseStudy.outcome">
+            What success looks like
+          </label>
+          <input type="text" id="scenario-outcome" />
+        </div>
+
+        <div class="toolbar">
+          <button type="button" id="case-prompt" class="button" data-i18n="caseStudy.copyPrompt">
+            Build and copy the case-study prompt
+          </button>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="case-prompt-output" data-i18n="translate.promptLabel">
+            Prompt
+          </label>
+          <textarea id="case-prompt-output" rows="4" readonly></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="case-draft-input" data-i18n="translate.pasteLabel">
+            Paste the result here
+          </label>
+          <textarea id="case-draft-input" rows="4"></textarea>
+        </div>
+
+        <div class="toolbar">
+          <button type="button" id="apply-case-draft" class="button" data-i18n="caseStudy.applyDraft">
+            Apply drafted explanations
           </button>
         </div>
       </section>
