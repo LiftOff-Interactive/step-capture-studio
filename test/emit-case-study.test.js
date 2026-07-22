@@ -207,3 +207,67 @@ test('French narrative declares its own language', async () => {
   for (const el of fr) assert.equal(el.getAttribute('lang'), 'fr-CA')
   dom.window.close()
 })
+
+/**
+ * Regression: chrome was rendered once against `languages[0]`.
+ *
+ * Step text was correctly per-language, so the document looked bilingual while
+ * every heading, label and section title stayed English no matter what the
+ * toggle said. The translations existed the whole time — they were being asked
+ * for in the wrong language.
+ */
+test('headings and labels are translated, not just step text', async () => {
+  const dom = open(emitCaseStudy(await authored()))
+  const { document } = dom.window
+
+  const inFrench = (text) =>
+    [...document.querySelectorAll('[data-lang-block="fr"]')].some((el) =>
+      el.textContent.includes(text)
+    )
+
+  assert.ok(inFrench('Étude de cas'), 'the case-study heading needs a French block')
+  assert.ok(inFrench('À propos de cette procédure'), 'the scenario heading needs a French block')
+
+  // Chrome must be symmetric. Content deliberately is not — an unwritten
+  // French explanation is omitted rather than shown blank — so this checks the
+  // headings only, which is exactly where the bug lived.
+  for (const heading of document.querySelectorAll('h2, h3')) {
+    const en = heading.querySelectorAll('[data-lang-block="en"]').length
+    const fr = heading.querySelectorAll('[data-lang-block="fr"]').length
+    assert.equal(en, fr, `heading "${heading.textContent.trim()}" is not bilingual`)
+  }
+  dom.window.close()
+})
+
+/**
+ * Regression: alt text was pinned to `languages[0]`.
+ *
+ * In French the visible text switched and every image went on describing
+ * itself in English — a WCAG 1.1.1 failure invisible to a print check and to
+ * axe, which cannot judge whether alt text is in the right language.
+ */
+test('alt text follows the language, it is not pinned to the primary', async () => {
+  const dom = open(emitCaseStudy(await authored()))
+  const images = [...dom.window.document.querySelectorAll('.case-step img')]
+
+  assert.ok(images.length > 0, 'the fixture needs at least one image')
+  for (const img of images) {
+    const en = img.getAttribute('data-alt-en')
+    const fr = img.getAttribute('data-alt-fr')
+    assert.ok(en, 'English alt text must travel with the image')
+    assert.ok(fr, 'French alt text must travel with the image')
+    assert.equal(img.getAttribute('alt'), en, 'the default alt matches the primary language')
+  }
+  dom.window.close()
+})
+
+test('the document title carries the artifact name, so print files correctly', async () => {
+  const c = await authored()
+  c.title = 'Testing Windows Audio'
+  const dom = open(emitCaseStudy(c))
+
+  assert.equal(dom.window.document.title, 'TestingWindowsAudio_CaseStudy')
+  // The visible heading stays prose — only <title> carries the file name.
+  assert.equal(dom.window.document.querySelector('h1').textContent, 'Testing Windows Audio')
+  dom.window.close()
+})

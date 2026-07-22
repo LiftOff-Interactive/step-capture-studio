@@ -19,7 +19,7 @@
  */
 
 import { t, LOCALES } from '../lib/i18n.js'
-import { duplicatePairs } from '../lib/authoring.js'
+import { duplicatePairs, stepVerification } from '../lib/authoring.js'
 import { NARRATIVE_FIELDS } from '../lib/case-study.js'
 
 /**
@@ -70,12 +70,50 @@ function checkbox(document, { id, labelText, checked, onChange }) {
 }
 
 /**
+ * The capture title, one field per language.
+ *
+ * Kept out of the step list because it belongs to the whole capture, and out of
+ * the metadata list because that is read-only. Both languages are shown at once
+ * — like the step fields — so an author can see which one is still missing.
+ *
+ * @param {Document} document
+ * @param {object} capture
+ * @param {string} lang       page language, for the field labels
+ * @param {(lang: string, value: string) => void} onTitle
+ */
+export function buildTitleFields(document, capture, lang, onTitle) {
+  const languages = capture.languages ?? ['en']
+  const titles =
+    typeof capture.title === 'string'
+      ? { [capture.sourceLang]: capture.title }
+      : capture.title ?? {}
+
+  const wrap = document.createElement('div')
+  for (const code of languages) {
+    const input = document.createElement('input')
+    input.type = 'text'
+    input.value = titles[code] ?? ''
+    input.lang = LOCALES[code] ?? code
+    input.addEventListener('input', () => onTitle(code, input.value))
+
+    wrap.append(
+      labelled(document, {
+        id: fieldId('title', code),
+        labelText: t('editor.title', lang, { lang: t(`lang.name.${code}`, lang) }),
+        control: input,
+      })
+    )
+  }
+  return wrap
+}
+
+/**
  * Build the editable step list.
  *
  * @param {Document} document
  * @param {object} capture
  * @param {string} lang            page language, for chrome strings
- * @param {object} handlers        { onStepText, onAlt, onConfirmAlt, onDecorative, onMerge, onDelete }
+ * @param {object} handlers        { onStepText, onAlt, onVerifyStep, onDecorative, onMerge, onDelete }
  * @param {(bytes: Uint8Array) => string} imageUrl
  */
 export function buildEditableSteps(document, capture, lang, handlers, imageUrl) {
@@ -86,6 +124,9 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
   return capture.steps.map((step) => {
     const li = document.createElement('li')
     li.className = 'step step--editing'
+    // Lets a re-render put focus back in the step the author was working in,
+    // rather than at the top of the list.
+    li.dataset.stepIndex = String(step.index)
 
     const fieldset = document.createElement('fieldset')
     fieldset.className = 'step__fields'
@@ -184,14 +225,6 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
             })
           )
 
-          group.append(
-            checkbox(document, {
-              id: fieldId('altok', step.index, image.id, code),
-              labelText: t('editor.confirmAlt', lang),
-              checked: Boolean(image.altConfirmed?.[code]),
-              onChange: (value) => handlers.onConfirmAlt(step.index, image.id, code, value),
-            })
-          )
         }
       }
 
@@ -223,25 +256,51 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
         })
       )
 
-      // The review control appears ONLY for drafted text. An authored passage
-      // has nothing to confirm, and showing a permanent unticked box would
-      // imply otherwise.
+      // The notice appears ONLY for drafted text. An authored passage has
+      // nothing to confirm. Reviewing it is now part of the single per-step
+      // check below, rather than its own control.
       if (passage?.drafted && passage.text) {
         const notice = document.createElement('p')
         notice.className = 'narrative-drafted'
         notice.textContent = t('caseStudy.unreviewed', lang)
         group.append(notice)
-        group.append(
-          checkbox(document, {
-            id: fieldId('narrok', step.index, field),
-            labelText: t('caseStudy.confirm', lang),
-            checked: false,
-            onChange: (value) => value && handlers.onConfirmNarrative(step.index, field, capture.sourceLang),
-          })
-        )
       }
 
       fieldset.append(group)
+    }
+
+    // --- one verification control for the whole step ----------------------
+    // Replaces a checkbox per image per language plus one per drafted
+    // passage. Its state is DERIVED from the model every render, never
+    // stored, so editing any field in the step unticks it on its own — the
+    // box cannot assert a confirmation the author did not give.
+    const verification = stepVerification(capture, step.index, languages)
+    if (verification.applicable) {
+      const box = checkbox(document, {
+        id: fieldId('stepok', step.index),
+        labelText: t('editor.verifyStep', lang),
+        checked: verification.verified,
+        onChange: (value) => handlers.onVerifyStep(step.index, value),
+      })
+      box.classList.add('step__verify')
+
+      const hint = document.createElement('p')
+      hint.className = 'hint'
+      hint.id = fieldId('stepokhelp', step.index)
+      // Say what ticking it actually asserts. The bulk confirmation in
+      // feature-alt-text.md was specified as deliberately friction-ful; with
+      // one box per step that friction is disclosure rather than a second click.
+      hint.textContent = verification.blocked.length
+        ? t('editor.verifyStepBlocked', lang)
+        : t('editor.verifyStepHelp', lang)
+
+      const input = box.querySelector('input')
+      input.setAttribute('aria-describedby', hint.id)
+      // Empty alt text cannot be confirmed by the model, so offering the
+      // control would be offering something that silently does nothing.
+      if (verification.blocked.length) input.disabled = true
+
+      fieldset.append(box, hint)
     }
 
     // --- destructive action, last ----------------------------------------

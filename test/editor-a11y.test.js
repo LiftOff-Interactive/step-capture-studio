@@ -237,7 +237,7 @@ test('language fields declare their own language', async () => {
 test('confirm checkboxes start unchecked for seeded drafts', async () => {
   const dom = await editorDom(seedAltText(await load()), 'en')
   const boxes = [...dom.window.document.querySelectorAll('#steps-list input[type="checkbox"]')]
-  const confirms = boxes.filter((b) => b.id.startsWith('f-altok'))
+  const confirms = boxes.filter((b) => b.id.startsWith('f-stepok'))
 
   assert.ok(confirms.length > 0)
   assert.ok(
@@ -247,21 +247,73 @@ test('confirm checkboxes start unchecked for seeded drafts', async () => {
   dom.window.close()
 })
 
-test('the confirm checkbox id is derivable, so it can be synced without a re-render', async () => {
-  // Regression test. Editing alt text resets confirmation in the model. If the
-  // checkbox is not synced, the UI shows "Alt text is correct" ticked while the
-  // model says unconfirmed — claiming a confirmation the author never gave.
-  // app.js addresses the box by id rather than re-rendering, which would yank
-  // focus out of the field being typed in. That contract is what this locks in.
-  const { fieldId } = await import('../src/ui/editor.js')
+test('one verification checkbox per step, not one per image per language', async () => {
   const capture = seedAltText(await load())
   const dom = await editorDom(capture, 'en')
+  const { document } = dom.window
 
-  const imageId = capture.steps[0].images[0].id
-  const box = dom.window.document.getElementById(fieldId('altok', 1, imageId, 'en'))
+  for (const step of document.querySelectorAll('#steps-list .step')) {
+    const verify = step.querySelectorAll('input[id^="f-stepok"]')
+    assert.ok(verify.length <= 1, 'a step must never offer more than one verification control')
+  }
 
-  assert.ok(box, 'the confirm checkbox is addressable by derived id')
+  const total = document.querySelectorAll('#steps-list input[id^="f-stepok"]').length
+  assert.equal(total, capture.steps.length, 'every step with something to confirm gets exactly one')
+  dom.window.close()
+})
+
+test('the verification checkbox id is derivable, so it can be synced without a re-render', async () => {
+  // Regression test. Editing alt text resets confirmation in the model. If the
+  // checkbox is not synced, the UI shows the step ticked while the model says
+  // unconfirmed — claiming a confirmation the author never gave. app.js
+  // addresses the box by id rather than re-rendering, which would yank focus
+  // out of the field being typed in. That contract is what this locks in.
+  const { fieldId } = await import('../src/ui/editor.js')
+  const dom = await editorDom(seedAltText(await load()), 'en')
+
+  const box = dom.window.document.getElementById(fieldId('stepok', 1))
+
+  assert.ok(box, 'the verification checkbox is addressable by derived id')
   assert.equal(box.type, 'checkbox')
+  dom.window.close()
+})
+
+test('the verification checkbox reports the model, so it cannot claim a false confirmation', async () => {
+  const { verifyStep, setAltText } = await import('../src/lib/authoring.js')
+  const { fieldId } = await import('../src/ui/editor.js')
+  let base = seedAltText(await load())
+  const languages = base.languages
+
+  // seedAltText only seeds the source language. Empty alt text cannot be
+  // confirmed at all, so the other language has to be filled in before a step
+  // is verifiable — which is the export gate working as designed.
+  for (const step of base.steps) {
+    for (const image of step.images) {
+      for (const lang of languages) {
+        if (!image.alt?.[lang]?.trim()) base = setAltText(base, step.index, image.id, lang, `alt ${lang}`)
+      }
+    }
+  }
+
+  // Confirmed in the model -> ticked in the UI.
+  let capture = base
+  for (const step of base.steps) capture = verifyStep(capture, step.index, languages)
+  let dom = await editorDom(capture, 'en')
+  assert.equal(dom.window.document.getElementById(fieldId('stepok', 1)).checked, true)
+  dom.window.close()
+
+  // Edit one alt text in one language: confirmation is reset, so the single
+  // step checkbox must untick even though the other language is still fine.
+  const imageId = capture.steps[0].images[0].id
+  capture = setAltText(capture, 1, imageId, languages[0], 'something else entirely')
+  dom = await editorDom(capture, 'en')
+  assert.equal(
+    dom.window.document.getElementById(fieldId('stepok', 1)).checked,
+    false,
+    'one edit anywhere in the step must untick the step'
+  )
+  // ...and only that step.
+  assert.equal(dom.window.document.getElementById(fieldId('stepok', 2)).checked, true)
   dom.window.close()
 })
 

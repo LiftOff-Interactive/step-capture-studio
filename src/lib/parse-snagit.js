@@ -24,7 +24,6 @@
  */
 
 import { readDocx, decodeText, pngSize } from './docx.js'
-import { captureFingerprint } from './draft.js'
 import { emptyNarrative, emptyScenario } from './case-study.js'
 
 /** Leading step number, e.g. "12. " or "3) ". The only text pattern we match. */
@@ -154,7 +153,9 @@ export async function parseSnagitDocx(bytes, options = {}) {
   const warnings = []
 
   const capture = {
-    title: null,
+    // Localized like every other user-facing string. The source document can
+    // only ever supply one language; the rest is authored or translated.
+    title: emptyLangMap(langs),
     author: firstTag(coreXml, 'dc:creator'),
     duration: null,
     createdAt: firstTag(coreXml, 'dcterms:created'),
@@ -261,6 +262,11 @@ export async function parseSnagitDocx(bytes, options = {}) {
     }
   }
 
+  /** The one language the source document can speak for. */
+  const setSourceTitle = (target, text) => {
+    target.title = { ...target.title, [target.sourceLang]: text }
+  }
+
   // Header paragraphs: title, then the "author | N steps | duration" line, then date.
   const metaIndex = header.findIndex((line) => line.includes('|'))
   if (metaIndex !== -1) {
@@ -268,10 +274,10 @@ export async function parseSnagitDocx(bytes, options = {}) {
     capture.author = meta.author || capture.author
     capture.duration = meta.duration
     capture.declaredStepCount = meta.declaredStepCount
-    capture.title = header.slice(0, metaIndex).join(' ').trim() || null
+    setSourceTitle(capture, header.slice(0, metaIndex).join(' ').trim() || null)
     capture.date = header.slice(metaIndex + 1).join(' ').trim() || null
   } else {
-    capture.title = header[0] || null
+    setSourceTitle(capture, header[0] || null)
     capture.date = header[1] || null
   }
 
@@ -292,11 +298,6 @@ export async function parseSnagitDocx(bytes, options = {}) {
       })
     }
   }
-  // Identifies the source recording so a saved draft can be reunited with its
-  // own file. Taken here, from the pristine parse, and carried forward by every
-  // authoring operation — never recomputed from an edited capture.
-  capture.fingerprint = captureFingerprint(capture)
-
   if (capture.declaredStepCount !== null && capture.declaredStepCount !== capture.steps.length) {
     warnings.push({
       code: 'STEP_COUNT_MISMATCH',

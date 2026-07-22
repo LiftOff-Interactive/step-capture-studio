@@ -276,7 +276,9 @@ test('live regions are never display:none, even when empty', async () => {
   const dom = await makeDom()
   const { document, getComputedStyle } = dom.window
 
-  for (const id of ['status', 'save-state']) {
+  // `save-state` was the autosave indicator and went with that feature; the
+  // rule it was guarding still applies to every remaining live region.
+  for (const id of ['status', 'readiness-summary']) {
     const el = document.getElementById(id)
     assert.ok(el, `#${id} exists`)
     assert.equal(el.textContent.trim(), '', 'starts empty, which is the risky case')

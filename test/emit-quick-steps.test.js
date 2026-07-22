@@ -117,8 +117,22 @@ test('both languages are in the document', async () => {
   const dom = open(emitQuickSteps(await authored()))
   const { document } = dom.window
 
-  assert.equal(document.querySelectorAll('[data-lang-block="en"]').length, ENGLISH_STEPS.length)
-  assert.equal(document.querySelectorAll('[data-lang-block="fr"]').length, ENGLISH_STEPS.length)
+  // Step text: exactly one block per step per language.
+  assert.equal(
+    document.querySelectorAll('.quick-step__text[data-lang-block="en"]').length,
+    ENGLISH_STEPS.length
+  )
+  assert.equal(
+    document.querySelectorAll('.quick-step__text[data-lang-block="fr"]').length,
+    ENGLISH_STEPS.length
+  )
+
+  // Chrome and content alike: whatever exists in one language exists in the
+  // other. Asymmetry is the shape the "render chrome in languages[0]" bug had.
+  const en = document.querySelectorAll('[data-lang-block="en"]').length
+  const fr = document.querySelectorAll('[data-lang-block="fr"]').length
+  assert.equal(en, fr, 'every English block needs a French counterpart')
+  assert.ok(en > ENGLISH_STEPS.length, 'chrome must be translated too, not just step text')
   dom.window.close()
 })
 
@@ -221,3 +235,37 @@ test('escapeHtml covers attribute-breaking characters', () => {
 function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
+
+// -------------------------------------------------------- bilingual title ---
+
+test('a title translated into both languages swaps with the toggle', async () => {
+  const { setTitle } = await import('../src/lib/authoring.js')
+  let capture = await authored()
+  capture = setTitle(capture, 'en', 'Testing Windows Audio')
+  capture = setTitle(capture, 'fr', 'Test du son de Windows')
+
+  const dom = open(emitQuickSteps(capture))
+  const h1 = dom.window.document.querySelector('h1')
+  const blocks = [...h1.querySelectorAll('[data-lang-block]')]
+
+  assert.equal(blocks.length, 2, 'two real titles means two lang-blocks')
+  assert.equal(blocks.find((b) => b.dataset.langBlock === 'en').textContent, 'Testing Windows Audio')
+  assert.equal(blocks.find((b) => b.dataset.langBlock === 'fr').textContent, 'Test du son de Windows')
+  dom.window.close()
+})
+
+test('an untranslated title is rendered once, not duplicated', async () => {
+  // With only one language authored, both blocks would carry the same fallback
+  // text — and with JavaScript disabled (which is also the print view) that
+  // renders the title twice in a row. A single untagged heading is correct.
+  const { setTitle } = await import('../src/lib/authoring.js')
+  let capture = await authored()
+  capture = setTitle(capture, 'en', 'Only English')
+
+  const dom = open(emitQuickSteps(capture), { scripts: false })
+  const h1 = dom.window.document.querySelector('h1')
+
+  assert.equal(h1.textContent, 'Only English', 'must not read "Only EnglishOnly English"')
+  assert.equal(h1.querySelectorAll('[data-lang-block]').length, 0)
+  dom.window.close()
+})

@@ -17,13 +17,16 @@ import { DocxError } from '../lib/docx.js'
 import { t, LANGUAGES, LOCALES } from '../lib/i18n.js'
 import {
   setStepText,
+  setTitle,
   setAltText,
-  confirmAltText,
   setDecorative,
   mergeStepIntoPrevious,
   deleteStep,
   seedAltText,
   exportReadiness,
+  verifyStep,
+  unverifyStep,
+  stepVerification,
 } from '../lib/authoring.js'
 import {
   buildTranslationPrompt,
@@ -31,14 +34,15 @@ import {
   applyTranslation,
   TranslationError,
 } from '../lib/translate.js'
-import { saveDraft, loadDraft, clearDraft, rehydrate, DraftError } from '../lib/draft.js'
 import { emitQuickSteps } from '../lib/emit-quick-steps.js'
 import { emitWalkthrough } from '../lib/emit-walkthrough.js'
 import { emitCaseStudy } from '../lib/emit-case-study.js'
 import { emitDocx } from '../lib/emit-docx.js'
+import { emitProject } from '../lib/emit-project.js'
+import { parseProject, ProjectError } from '../lib/parse-project.js'
+import { artifactName, captureTitle } from '../lib/emit-common.js'
 import {
   setNarrative,
-  confirmNarrative,
   setScenario,
   caseStudyReadiness,
   hasNarrative,
@@ -47,17 +51,43 @@ import {
   SCENARIO_FIELDS,
 } from '../lib/case-study.js'
 import { applyStaticStrings, buildMeta, buildWarnings } from './render.js'
-import { buildEditableSteps, buildBlockerList, readinessSummaryText, fieldId } from './editor.js'
+import {
+  buildEditableSteps,
+  buildTitleFields,
+  buildBlockerList,
+  readinessSummaryText,
+  fieldId,
+} from './editor.js'
+
+/**
+ * An export control and its twin at the foot of the step list.
+ *
+ * Returned as an array so every call site has to act on both. An earlier
+ * shape held the two separately, which makes it possible to disable one and
+ * leave the other live — and a download button that ignores the export gate
+ * is the one bug this app cannot afford.
+ */
+function exportPair(id) {
+  return [document.getElementById(id), document.getElementById(`${id}-bottom`)].filter(Boolean)
+}
+
+/** Apply a property to every control in a pair. */
+function setOnPair(pair, property, value) {
+  for (const element of pair) element[property] = value
+}
 
 const els = {
   unsupported: document.getElementById('unsupported'),
   dropzone: document.getElementById('dropzone'),
   fileInput: document.getElementById('file-input'),
+  projectInput: document.getElementById('project-input'),
+  exportProject: document.getElementById('export-project'),
   status: document.getElementById('status'),
   error: document.getElementById('error'),
   errorDetail: document.getElementById('error-detail'),
   capture: document.getElementById('capture'),
   captureMeta: document.getElementById('capture-meta'),
+  titleFields: document.getElementById('title-fields'),
   warnings: document.getElementById('warnings'),
   warningsList: document.getElementById('warnings-list'),
   readiness: document.getElementById('readiness'),
@@ -73,14 +103,15 @@ const els = {
   seedAlt: document.getElementById('seed-alt'),
   undo: document.getElementById('undo'),
   langToggle: document.getElementById('lang-toggle'),
-  draftPending: document.getElementById('draft-pending'),
-  draftPendingText: document.getElementById('draft-pending-text'),
-  discardDraft: document.getElementById('discard-draft'),
-  saveState: document.getElementById('save-state'),
-  downloadQuickSteps: document.getElementById('download-quick-steps'),
-  downloadWalkthrough: document.getElementById('download-walkthrough'),
-  downloadCaseStudy: document.getElementById('download-case-study'),
-  downloadDocx: document.getElementById('download-docx'),
+  // Each export control appears twice: once in the panel above the editor and
+  // once at the foot of the step list, where the author actually finishes.
+  // Held as pairs so the gate and the labels can never be applied to one and
+  // forgotten on the other.
+  downloadQuickSteps: exportPair('download-quick-steps'),
+  downloadWalkthrough: exportPair('download-walkthrough'),
+  downloadCaseStudy: exportPair('download-case-study'),
+  downloadDocx: exportPair('download-docx'),
+  exportFooter: document.getElementById('export-footer'),
   caseStudy: document.getElementById('case-study'),
   casePrompt: document.getElementById('case-prompt'),
   casePromptOutput: document.getElementById('case-prompt-output'),
@@ -110,22 +141,6 @@ const state = {
 }
 
 // --------------------------------------------------------------- helpers ---
-
-/** Pending draft found at startup, waiting for its file to be re-dropped. */
-let pendingDraft = null
-let saveTimer = null
-
-const formatWhen = (iso) => {
-  try {
-    return new Date(iso).toLocaleString(LOCALES[state.lang] ?? state.lang, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    })
-  } catch {
-    return iso
-  }
-}
-
 
 const show = (el) => {
   el.hidden = false
@@ -219,23 +234,54 @@ function renderReadiness({ announce = true } = {}) {
   // The gate, enforced at the control itself. `disabled` rather than hidden, so
   // the export is visibly present and its unavailability is discoverable —
   // a button that vanishes tells the author nothing about what to fix.
-  els.downloadQuickSteps.disabled = !readiness.ready
-  els.downloadWalkthrough.disabled = !readiness.ready
-  els.downloadDocx.disabled = !readiness.ready
+  setOnPair(els.downloadQuickSteps, 'disabled', !readiness.ready)
+  setOnPair(els.downloadWalkthrough, 'disabled', !readiness.ready)
+  setOnPair(els.downloadDocx, 'disabled', !readiness.ready)
   // One .docx per language — a Word document has no toggle, so the button
   // names which language it will produce.
-  els.downloadDocx.textContent = t('export.downloadDocx', state.lang, {
-    lang: t(`lang.name.${state.lang}`, state.lang),
-  })
+  setOnPair(
+    els.downloadDocx,
+    'textContent',
+    t('export.downloadDocx', state.lang, { lang: t(`lang.name.${state.lang}`, state.lang) })
+  )
   // The case study carries an extra condition: no unreviewed drafted prose,
   // and something to actually say. Its own gate, because an unreviewed
   // explanation must not block the other two artifacts.
   const narrative = caseStudyReadiness(state.capture, state.capture.languages)
-  els.downloadCaseStudy.disabled =
+  setOnPair(
+    els.downloadCaseStudy,
+    'disabled',
     !readiness.ready || !narrative.ready || !hasNarrative(state.capture, state.capture.languages)
+  )
   els.exportHint.hidden = readiness.ready
 
+  // The footer copy is hidden until the gate opens, rather than shown disabled
+  // like the panel above. The panel's job is to explain what is still missing;
+  // repeating that explanation at the bottom would just be noise, and an
+  // author who has not finished has no reason to see a second set of buttons.
+  els.exportFooter.hidden = !readiness.ready
+
   show(els.readiness)
+}
+
+/**
+ * Rebuild the title fields from the model.
+ *
+ * Called on a full render AND after anything that can change the title behind
+ * the author's back — the translation round trip now carries it. Without that
+ * second call the field kept showing an empty French title while the model held
+ * the translated one, and typing into the stale field would have silently
+ * overwritten the translation.
+ *
+ * Editing is applied in place rather than re-rendering, for the same reason as
+ * `onAlt`: rebuilding on every keystroke pulls focus out of the field.
+ */
+function renderTitleFields() {
+  els.titleFields.replaceChildren(
+    buildTitleFields(document, state.capture, state.lang, (code, value) => {
+      editInPlace(setTitle(state.capture, code, value))
+    })
+  )
 }
 
 function renderSteps() {
@@ -255,16 +301,10 @@ function renderAll({ announceReadiness = true } = {}) {
 
   retranslateStatus()
 
-  // Also generated rather than data-i18n markup, so it needs the same treatment.
-  if (pendingDraft) {
-    els.draftPendingText.textContent = t('draft.pending', state.lang, {
-      when: formatWhen(pendingDraft.savedAt),
-    })
-  }
-
   if (!state.capture) return
 
   els.captureMeta.replaceChildren(...buildMeta(document, state.capture, state.lang))
+  renderTitleFields()
 
   if (state.capture.warnings.length) {
     els.warningsList.replaceChildren(...buildWarnings(document, state.capture, state.lang))
@@ -298,7 +338,7 @@ function renderAll({ announceReadiness = true } = {}) {
  * treats null as nullish and fell through to `document.activeElement` anyway,
  * so focus stuck to whatever button had been pressed before.
  */
-function rerenderSteps({ preserveFocus = true, fallbackPosition } = {}) {
+function rerenderSteps({ preserveFocus = true, fallbackPosition, fallbackStepIndex } = {}) {
   const activeId = preserveFocus ? document.activeElement?.id : null
   renderSteps()
   renderReadiness()
@@ -306,6 +346,15 @@ function rerenderSteps({ preserveFocus = true, fallbackPosition } = {}) {
 
   const restored = activeId && document.getElementById(activeId)
   if (restored) return restored.focus()
+
+  // Land back in the step the author was working in. Falling through to
+  // `seedAlt` sends focus to a button above the whole list, which the browser
+  // then scrolls to — reading as the page jumping to the top after a click.
+  if (fallbackStepIndex != null) {
+    const step = els.stepsList.querySelector(`[data-step-index="${fallbackStepIndex}"]`)
+    const control = step?.querySelector('input, textarea, button')
+    if (control) return control.focus()
+  }
 
   if (fallbackPosition != null) {
     const items = els.stepsList.querySelectorAll('.step')
@@ -355,14 +404,43 @@ function clearError() {
 function commit(next) {
   state.history.push(state.capture)
   state.capture = next
-  scheduleSave()
 }
 
 /** Field edits: update the model, refresh readiness, do NOT re-render. */
 function editInPlace(next) {
   state.capture = next
   renderReadiness()
-  scheduleSave()
+}
+
+/**
+ * Bring one step's verification checkbox back in line with the model, without
+ * rebuilding the list.
+ *
+ * Typing must not re-render — that would pull focus out of the field being
+ * typed in — so the checkbox has to be updated in place. It has three things
+ * to keep in sync, and missing any one of them makes the control lie:
+ *   - `checked`, or it claims a confirmation the edit just withdrew;
+ *   - `disabled`, or filling in the last empty alt field leaves the box
+ *     permanently unclickable, since nothing else triggers a re-render;
+ *   - the hint, which otherwise still tells the author to fill in a field
+ *     they have already filled in.
+ */
+function syncStepVerification(stepIndex) {
+  const box = document.getElementById(fieldId('stepok', stepIndex))
+  if (!box) return
+
+  const verification = stepVerification(state.capture, stepIndex, state.capture.languages)
+  const blocked = verification.blocked.length > 0
+
+  box.checked = verification.verified
+  box.disabled = blocked
+
+  const hint = document.getElementById(fieldId('stepokhelp', stepIndex))
+  if (hint) {
+    hint.textContent = blocked
+      ? t('editor.verifyStepBlocked', state.lang)
+      : t('editor.verifyStepHelp', state.lang)
+  }
 }
 
 const handlers = {
@@ -373,34 +451,12 @@ const handlers = {
   onAlt(stepIndex, imageId, lang, value) {
     editInPlace(setAltText(state.capture, stepIndex, imageId, lang, value))
 
-    // setAltText resets confirmation in the model. Sync the checkbox directly
-    // rather than re-rendering, which would yank focus out of the field being
-    // typed in. Without this the box stays ticked while the model says
-    // unconfirmed — the UI claiming a confirmation the author never gave.
-    const box = document.getElementById(fieldId('altok', stepIndex, imageId, lang))
-    if (box?.checked) box.checked = false
-  },
-
-  onConfirmAlt(stepIndex, imageId, lang, confirmed) {
-    if (!confirmed) {
-      editInPlace(
-        setAltText(
-          state.capture,
-          stepIndex,
-          imageId,
-          lang,
-          currentAlt(stepIndex, imageId, lang) ?? ''
-        )
-      )
-      return
-    }
-    try {
-      editInPlace(confirmAltText(state.capture, stepIndex, imageId, lang))
-    } catch {
-      // Confirming empty alt text is refused by the model. Re-render so the
-      // checkbox returns to its real state rather than lying about it.
-      rerenderSteps()
-    }
+    // setAltText resets confirmation in the model. Sync the step's checkbox
+    // directly rather than re-rendering, which would yank focus out of the
+    // field being typed in. Without this the box stays ticked while the model
+    // says unconfirmed — the UI claiming a confirmation the author never gave,
+    // which is the worst bug this feature has had (feature-alt-text.md).
+    syncStepVerification(stepIndex)
   },
 
   onNarrative(stepIndex, field, lang, value) {
@@ -411,9 +467,21 @@ const handlers = {
     if (wasDrafted) rerenderSteps()
   },
 
-  onConfirmNarrative(stepIndex, field, lang) {
-    commit(confirmNarrative(state.capture, stepIndex, field, lang))
-    rerenderSteps()
+  /**
+   * One control confirms everything outstanding in a step.
+   *
+   * The re-render is unavoidable — confirming drafted narrative removes its
+   * "not yet reviewed" notice, so the step's markup genuinely changes. But the
+   * checkbox itself keeps a stable id across the rebuild, so focus is restored
+   * to it rather than falling back to the top of the page.
+   */
+  onVerifyStep(stepIndex, verified) {
+    commit(
+      verified
+        ? verifyStep(state.capture, stepIndex, state.capture.languages)
+        : unverifyStep(state.capture, stepIndex, state.capture.languages)
+    )
+    rerenderSteps({ fallbackStepIndex: stepIndex })
   },
 
   onDecorative(stepIndex, imageId, decorative) {
@@ -438,11 +506,6 @@ const handlers = {
   },
 }
 
-function currentAlt(stepIndex, imageId, lang) {
-  const step = state.capture.steps[stepIndex - 1]
-  return step?.images.find((image) => image.id === imageId)?.alt?.[lang] ?? null
-}
-
 // ----------------------------------------------------------------- load ----
 
 async function loadFile(file) {
@@ -462,41 +525,16 @@ async function loadFile(file) {
     const bytes = new Uint8Array(await file.arrayBuffer())
     const fresh = await parseSnagitDocx(bytes)
 
-    // A draft holds no screenshots, so this drop is what brings them back.
-    // Rehydrating is refused unless the file is demonstrably the same
-    // recording — restoring onto the wrong images would be silent and wrong.
-    let restored = null
-    if (pendingDraft) {
-      try {
-        restored = rehydrate(pendingDraft, fresh)
-      } catch (error) {
-        if (!(error instanceof DraftError)) throw error
-        // Keep the draft: this may simply be the wrong file, and discarding
-        // someone's work because they dropped the wrong thing is unforgivable.
-        announce('draft.mismatch')
-      }
-    }
-
-    state.capture = restored ? restored.capture : fresh
+    state.capture = fresh
     state.history = []
     // A new capture is a new baseline, so its outstanding count is announced.
     state.lastBlockerCount = null
     renderAll()
 
-    if (restored) {
-      pendingDraft = null
-      hide(els.draftPending)
-      announce('draft.restored', {
-        steps: state.capture.steps.length,
-        images: restored.restoredImages,
-      })
-    } else if (!pendingDraft) {
-      setStatus('status.parsed', {
-        count: state.capture.steps.length,
-        title: state.capture.title || t('capture.untitled', state.lang),
-      })
-    }
-    scheduleSave()
+    setStatus('status.parsed', {
+      count: state.capture.steps.length,
+      title: captureTitle(state.capture, state.lang),
+    })
   } catch (error) {
     state.capture = null
     if (error instanceof DocxError) {
@@ -508,9 +546,62 @@ async function loadFile(file) {
   }
 }
 
+/**
+ * Restore a previously exported project file.
+ *
+ * Unlike `loadFile` this does no `.docx` parsing at all — the project file
+ * already holds the finished model, screenshots included. It is the only way
+ * back into a session once the tab has closed.
+ */
+async function loadProjectFile(file) {
+  if (!file) return
+
+  releaseObjectUrls()
+  clearError()
+  hide(els.capture)
+  hide(els.warnings)
+  hide(els.steps)
+  hide(els.readiness)
+  hide(els.translate)
+  hide(els.caseStudy)
+  setStatus('status.reading')
+
+  try {
+    const restored = parseProject(await file.text())
+
+    state.capture = restored
+    state.history = []
+    state.lastBlockerCount = null
+    renderAll()
+    announce('project.imported', { count: restored.steps.length })
+  } catch (error) {
+    state.capture = null
+    if (error instanceof ProjectError) {
+      showError(error.code, { detail: error.detail ?? '' })
+    } else {
+      console.error(error)
+      showError('UNKNOWN')
+    }
+  }
+}
+
 // ---------------------------------------------------------------- events ---
 
 els.fileInput.addEventListener('change', (event) => loadFile(event.target.files[0]))
+els.projectInput.addEventListener('change', (event) => loadProjectFile(event.target.files[0]))
+
+els.exportProject.addEventListener('click', () => {
+  if (!state.capture) return
+  clearError()
+  const name = `${artifactName(captureTitle(state.capture, state.lang), 'Project')}.html`
+  try {
+    downloadHtml(emitProject(state.capture), name)
+    announce('project.exported', { name })
+  } catch (error) {
+    console.error(error)
+    showError('EXPORT_FAILED', { reason: error.message })
+  }
+})
 
 // Drag and drop is an enhancement only — the file input alone is sufficient.
 for (const type of ['dragenter', 'dragover']) {
@@ -544,84 +635,11 @@ els.undo.addEventListener('click', () => {
   if (!state.history.length) return
   state.capture = state.history.pop()
   rerenderSteps()
-  // Undo changes the document, so the draft must follow it back.
-  scheduleSave()
   announce('editor.undone')
   if (els.undo.hidden) els.seedAlt.focus()
 })
 
-// ----------------------------------------------------------------- draft ---
-
-/**
- * Persist after a short idle gap.
- *
- * Writing on every keystroke would thrash storage and make typing feel
- * sluggish, so edits coalesce. A failure is reported in text — silently losing
- * autosave is worse than not offering it, because the author stops being
- * careful once they believe their work is safe.
- */
-function scheduleSave() {
-  if (!state.capture) return
-  // A draft is still waiting to be reunited with its file. Saving now would
-  // overwrite work the author has not recovered yet — which is exactly the
-  // thing autosave exists to prevent. Saving resumes once the draft is either
-  // restored or deliberately discarded.
-  if (pendingDraft) return
-  clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => {
-    try {
-      const { savedAt } = saveDraft(localStorage, state.capture)
-      els.saveState.textContent = t('draft.saved', state.lang, { when: formatWhen(savedAt) })
-    } catch (error) {
-      els.saveState.textContent = t('draft.notSaved', state.lang)
-      if (error instanceof DraftError) showError(error.code)
-    }
-  }, 800)
-}
-
-function discardPendingDraft() {
-  clearDraft(localStorage)
-  pendingDraft = null
-  hide(els.draftPending)
-  els.saveState.textContent = ''
-  announce('draft.discarded')
-}
-
-/** At startup, look for work left behind by a previous session. */
-function checkForPendingDraft() {
-  try {
-    pendingDraft = loadDraft(localStorage)
-  } catch (error) {
-    // An unreadable or outdated draft is discarded, with an explanation —
-    // never loaded into a shape the code no longer expects.
-    clearDraft(localStorage)
-    pendingDraft = null
-    if (error instanceof DraftError) showError(error.code)
-    return
-  }
-
-  if (!pendingDraft) return
-  els.draftPendingText.textContent = t('draft.pending', state.lang, {
-    when: formatWhen(pendingDraft.savedAt),
-  })
-  show(els.draftPending)
-}
-
-els.discardDraft.addEventListener('click', discardPendingDraft)
-
 // ---------------------------------------------------------------- export ---
-
-/** Slug for a filename: safe on every filesystem, still recognisable. */
-function fileSlug(text, fallback) {
-  const slug = String(text ?? '')
-    .normalize('NFD')
-    // Combining diacritics, written as escapes so the source stays ASCII-safe.
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-zA-Z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .toLowerCase()
-  return slug || fallback
-}
 
 /** Hand a generated artifact to the browser's download machinery. */
 function downloadHtml(html, name) {
@@ -640,10 +658,15 @@ function downloadBlob(blob, name) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-/** Generate one artifact and hand it to the browser, reporting either way. */
+/**
+ * Generate one artifact and hand it to the browser, reporting either way.
+ *
+ * The filename comes from the same `artifactName` the emitter puts in
+ * `<title>`, so a downloaded file and the PDF it prints to agree.
+ */
 function exportArtifact(emit, suffix) {
   clearError()
-  const name = `${fileSlug(state.capture.title, 'capture')}-${suffix}.html`
+  const name = `${artifactName(captureTitle(state.capture, state.lang), suffix)}.html`
   try {
     downloadHtml(emit(state.capture, { languages: state.capture.languages }), name)
     announce('export.downloaded', { name })
@@ -653,12 +676,19 @@ function exportArtifact(emit, suffix) {
   }
 }
 
-els.downloadQuickSteps.addEventListener('click', () => exportArtifact(emitQuickSteps, 'quick-steps'))
-els.downloadCaseStudy.addEventListener('click', () => exportArtifact(emitCaseStudy, 'case-study'))
+/** Bind one handler to both copies of an export control. */
+function onExportClick(pair, handler) {
+  for (const element of pair) element.addEventListener('click', handler)
+}
 
-els.downloadDocx.addEventListener('click', async () => {
+onExportClick(els.downloadQuickSteps, () => exportArtifact(emitQuickSteps, 'QuickStep'))
+onExportClick(els.downloadCaseStudy, () => exportArtifact(emitCaseStudy, 'CaseStudy'))
+
+onExportClick(els.downloadDocx, async () => {
   clearError()
-  const name = `${fileSlug(state.capture.title, 'capture')}-${state.lang}.docx`
+  // `_Document_EN`. The language marker is a success criterion, not decoration:
+  // one file per language, and the filename has to say which.
+  const name = `${artifactName(captureTitle(state.capture, state.lang), 'Document')}_${state.lang.toUpperCase()}.docx`
   try {
     const bytes = await emitDocx(state.capture, { lang: state.lang })
     downloadBlob(
@@ -720,7 +750,7 @@ els.applyCaseDraft.addEventListener('click', () => {
     announce('caseStudy.drafted', { count: result.applied })
   }
 })
-els.downloadWalkthrough.addEventListener('click', () => exportArtifact(emitWalkthrough, 'walkthrough'))
+onExportClick(els.downloadWalkthrough, () => exportArtifact(emitWalkthrough, 'Walkthrough'))
 
 // ------------------------------------------------------------ translation ---
 
@@ -776,6 +806,10 @@ els.applyTranslation.addEventListener('click', () => {
 
   commit(result.capture)
   rerenderSteps()
+  // The round trip now carries the guide title, which lives outside the step
+  // list — without this the field keeps showing the old value while the model
+  // holds the translation, and typing in it would overwrite what just arrived.
+  renderTitleFields()
 
   if (result.missing.length) {
     // Never a silent partial import — name what did not come back.
@@ -816,4 +850,3 @@ if (typeof DecompressionStream === 'undefined') {
 
 applyStaticStrings(document, state.lang)
 setStatus('status.empty')
-checkForPendingDraft()

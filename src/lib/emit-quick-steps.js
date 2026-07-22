@@ -10,7 +10,15 @@
  * no-JavaScript case.
  */
 
-import { escapeHtml, langBlock, renderDocument, documentHeader } from './emit-common.js'
+import {
+  escapeHtml,
+  langBlock,
+  langLabel,
+  artifactName,
+  captureTitle,
+  renderDocument,
+  documentHeader,
+} from './emit-common.js'
 import { t } from './i18n.js'
 
 const QUICK_CSS = `
@@ -65,18 +73,23 @@ export function emitQuickSteps(capture, { languages = capture.languages ?? ['en'
     })
     .join('\n')
 
-  const title = capture.title || t('capture.untitled', primary)
-  const subtitle = [capture.author, capture.date, `${capture.steps.length} ${t('capture.stepCount', primary).toLowerCase()}`]
-    .filter(Boolean)
-    .join(' · ')
+  const title = captureTitle(capture, primary)
+  const titles = Object.fromEntries(languages.map((code) => [code, captureTitle(capture, code)]))
+  const meta = { author: capture.author, date: capture.date, stepCount: capture.steps.length }
 
-  const body = `${documentHeader({ title, subtitle, languages })}
+  const body = `${documentHeader({ title, titles, meta, languages })}
 <main>
-  <h2 class="visually-hidden">${escapeHtml(t('steps.heading', primary))}</h2>
+  <h2 class="visually-hidden">${langLabel('steps.heading', languages)}</h2>
   <ol class="quick-list">
 ${items}
   </ol>
 </main>`
 
-  return renderDocument({ title, languages, body, css: QUICK_CSS })
+  return renderDocument({
+    title,
+    docTitle: artifactName(title, 'QuickStep'),
+    languages,
+    body,
+    css: QUICK_CSS,
+  })
 }

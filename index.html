@@ -35,15 +35,6 @@
         </p>
       </div>
 
-      <!-- Shown on load when a saved draft is waiting for its file. -->
-      <section id="draft-pending" class="panel panel--warn" hidden aria-labelledby="draft-heading">
-        <h2 id="draft-heading" class="visually-hidden" data-i18n="draft.discard">Saved draft</h2>
-        <p id="draft-pending-text"></p>
-        <button type="button" id="discard-draft" class="button button--quiet" data-i18n="draft.discard">
-          Discard saved draft
-        </button>
-      </section>
-
       <section id="loader" aria-labelledby="loader-heading" class="panel">
         <h2 id="loader-heading" data-i18n="load.heading">Load a capture</h2>
 
@@ -59,6 +50,23 @@
           />
           <p class="hint" id="load-hint" data-i18n="load.hint">
             Or drag a file onto this area. Nothing is uploaded — parsing happens on your device.
+          </p>
+        </div>
+
+        <!--
+          Resuming a saved project is a second way in, not a variant of the
+          first: it takes a different file type and skips parsing entirely.
+          Its own labelled input, so the accept filter and the description can
+          both be honest about what it wants.
+        -->
+        <div class="dropzone dropzone--secondary">
+          <label class="field-label" for="project-input" data-i18n="project.importLabel">
+            Or resume a saved project file
+          </label>
+          <input type="file" id="project-input" accept=".html,text/html" aria-describedby="project-hint" />
+          <p class="hint" id="project-hint" data-i18n="project.importHint">
+            The .html project file you exported earlier. Screenshots travel inside it, so there is
+            nothing else to re-attach.
           </p>
         </div>
 
@@ -84,6 +92,13 @@
       <section id="capture" class="panel" hidden aria-labelledby="capture-heading">
         <h2 id="capture-heading" data-i18n="capture.heading">Capture</h2>
         <dl id="capture-meta" class="meta"></dl>
+
+        <!--
+          The title is the most visible string in every artifact, and the source
+          document can only ever supply one language. Editable here, one field
+          per language, and also carried by the translation round trip.
+        -->
+        <div id="title-fields"></div>
       </section>
 
       <section id="warnings" class="panel panel--warn" hidden aria-labelledby="warnings-heading">
@@ -244,14 +259,66 @@
             Undo
           </button>
           <!--
-            Save state in text, not an icon: an icon alone conveys nothing to a
-            screen reader and little to anyone else. Polite, because it changes
-            on a timer and must never interrupt typing.
+            Deliberately NOT behind the export gate. This is a save, not a
+            deliverable: the moment it is most needed is when the work is
+            half-finished, which is exactly when the gate is closed.
           -->
-          <p id="save-state" class="hint" role="status" aria-live="polite"></p>
+          <button type="button" id="export-project" class="button" data-i18n="project.export">
+            Export project file
+          </button>
         </div>
 
         <ol id="steps-list" class="steps"></ol>
+
+        <!--
+          The same exports as the panel at the top of the page, repeated where
+          the author actually finishes: at the foot of a long step list, after
+          checking the last step. Scrolling back up to find the buttons is the
+          whole reason this exists.
+
+          These are a genuine duplicate, so they must not duplicate anything
+          that has to stay unique. No live region here — the readiness summary
+          above is the single announcer. The heading keeps them findable by
+          screen reader and keyboard, and they are hidden entirely until the
+          export gate opens, so they never offer something that would fail.
+        -->
+        <section
+          id="export-footer"
+          class="panel"
+          hidden
+          aria-labelledby="export-footer-heading"
+        >
+          <h2 id="export-footer-heading" data-i18n="export.readyHeading">Ready to export</h2>
+          <div class="toolbar">
+            <button
+              type="button"
+              id="download-quick-steps-bottom"
+              class="button"
+              data-i18n="export.downloadQuickSteps"
+            >
+              Download quick-steps guide
+            </button>
+            <button
+              type="button"
+              id="download-walkthrough-bottom"
+              class="button"
+              data-i18n="export.downloadWalkthrough"
+            >
+              Download HTML walkthrough
+            </button>
+            <button
+              type="button"
+              id="download-case-study-bottom"
+              class="button"
+              data-i18n="export.downloadCaseStudy"
+            >
+              Download case study
+            </button>
+            <button type="button" id="download-docx-bottom" class="button">
+              Download Word document
+            </button>
+          </div>
+        </section>
       </section>
 
       <section class="panel panel--quiet" aria-labelledby="privacy-heading">

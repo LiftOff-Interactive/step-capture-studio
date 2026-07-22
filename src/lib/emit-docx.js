@@ -22,7 +22,7 @@
  */
 
 import { writeZip } from './zip-write.js'
-import { altFor } from './emit-common.js'
+import { altFor, captureTitle } from './emit-common.js'
 import { t } from './i18n.js'
 
 /** English Metric Units: 914400 per inch, 9525 per pixel at 96 dpi. */
@@ -134,7 +134,7 @@ function stylesXml(lang) {
  */
 export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = {}) {
   const tag = localeTag(lang)
-  const title = capture.title || t('capture.untitled', lang)
+  const title = captureTitle(capture, lang)
   const total = capture.steps.length
 
   const media = []
@@ -229,6 +229,29 @@ export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = 
     `<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">` +
     `<Application>step-capture-studio</Application></Properties>`
 
+  /**
+   * Settings — required, and required for one specific reason.
+   *
+   * ⚠️ **Do not remove `compatibilityMode`.** Word infers the format era from
+   * this single setting. With no `settings.xml` at all, Word assumes the 2007
+   * era and opens the file in **Compatibility Mode**: "This document is in an
+   * older format with limited functionality." One of the functions it limits
+   * is the **Accessibility Checker**, which is disabled outright — so the file
+   * cannot be checked without converting it first, and a converted file is
+   * Word's document, not ours. Verified against Word 16.0 by a human, 2026-07-22.
+   *
+   * `15` is the Word 2013+ mode, which is what makes the modern checker
+   * available. This part existing is not cosmetic: without it the export can
+   * never satisfy its own accessibility criterion.
+   */
+  const settingsXml =
+    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
+    `<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">` +
+    `<w:compat>` +
+    `<w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/>` +
+    `</w:compat>` +
+    `</w:settings>`
+
   const contentTypes =
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
     `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
@@ -237,6 +260,7 @@ export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = 
     `<Default Extension="png" ContentType="image/png"/>` +
     `<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>` +
     `<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>` +
+    `<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>` +
     `<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>` +
     `<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>` +
     `</Types>`
@@ -253,6 +277,7 @@ export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = 
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
     `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
     `<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>` +
+    `<Relationship Id="rIdSettings" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>` +
     rels.join('') +
     `</Relationships>`
 
@@ -263,6 +288,7 @@ export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = 
     { name: 'word/document.xml', data: utf8(documentXml), deflate: true },
     { name: 'word/_rels/document.xml.rels', data: utf8(documentRels), deflate: true },
     { name: 'word/styles.xml', data: utf8(stylesXml(lang)), deflate: true },
+    { name: 'word/settings.xml', data: utf8(settingsXml), deflate: true },
     { name: 'docProps/core.xml', data: utf8(coreXml), deflate: true },
     { name: 'docProps/app.xml', data: utf8(appXml), deflate: true },
     ...media,

@@ -52,18 +52,6 @@ const STRINGS = {
     'lang.name.en': 'English',
     'lang.name.fr': 'French',
 
-    'draft.pending': 'Saved draft from {when} — drop the same .docx file to continue where you left off.',
-    'draft.restored': 'Draft restored: {steps} steps, {images} screenshots. Your edits are back.',
-    'draft.mismatch': 'This file does not match your saved draft, so nothing was restored. Drop the original recording, or discard the draft.',
-    'draft.discard': 'Discard saved draft',
-    'draft.discarded': 'Saved draft discarded.',
-    'draft.saved': 'Draft saved: {when}',
-    'draft.notSaved': 'Draft could NOT be saved — your work is only in this tab.',
-    'error.QUOTA_EXCEEDED': 'There is no room left to save your draft. Your work is only in this tab — finish and export before closing it.',
-    'error.STORAGE_UNAVAILABLE': 'This browser is blocking local storage, so drafts cannot be saved. Your work is only in this tab.',
-    'error.CORRUPT_DRAFT': 'The saved draft could not be read and has been discarded.',
-    'error.VERSION_MISMATCH': 'The saved draft was made by an older version of this tool and cannot be opened. It has been discarded.',
-    'error.NO_FINGERPRINT': 'This capture cannot be saved as a draft. Reload the file and try again.',
 
     'caseStudy.heading': 'Case study',
     'caseStudy.audience': 'Who is this for',
@@ -111,10 +99,15 @@ const STRINGS = {
     'editor.heading': 'Edit steps',
     'editor.intro':
       'Snagit writes step text automatically, so it often repeats itself and never includes alt text. Fix both here before exporting.',
+    'editor.title': 'Guide title ({lang})',
     'editor.stepText': 'Step text ({lang})',
     'editor.altText': 'Alt text ({lang})',
     'editor.altHelp': 'Describe what the screenshot shows, not what to click.',
     'editor.confirmAlt': 'Alt text is correct',
+    'editor.verifyStep': 'I have checked this step',
+    'editor.verifyStepHelp':
+      'Confirms the alt text for every image in this step, in each language, and marks any drafted explanation as reviewed.',
+    'editor.verifyStepBlocked': 'Fill in the empty alt text above before this step can be checked.',
     'editor.decorative': 'Decorative image — no alt text needed',
     'editor.delete': 'Delete step {index}',
     'editor.merge': 'Merge into step {previous}',
@@ -128,6 +121,20 @@ const STRINGS = {
     'editor.seedAll': 'Draft alt text from step text',
 
     'export.heading': 'Before you export',
+    'export.readyHeading': 'Ready to export',
+    'project.export': 'Export project file',
+    'project.exported': 'Project saved as {name}.',
+    'project.importLabel': 'Or resume a saved project file',
+    'project.importHint':
+      'The .html project file you exported earlier. Screenshots travel inside it, so there is nothing else to re-attach.',
+    'project.imported': 'Project restored: {count} steps.',
+    'error.PROJECT_NOT_RECOGNISED':
+      'That file is not a Step Capture Studio project file. Export one with “Export project file”, then load that.',
+    'error.PROJECT_NO_STEPS': 'That project file has no steps in it.',
+    'error.PROJECT_NO_LANGUAGES': 'That project file does not say which languages it holds.',
+    'error.PROJECT_IMAGE_MISSING': 'A screenshot is missing from that project file ({detail}).',
+    'error.PROJECT_IMAGE_UNREADABLE': 'A screenshot in that project file could not be read.',
+    'error.PROJECT_NO_PARSER': 'This browser cannot read project files.',
     'export.downloadQuickSteps': 'Download quick-steps guide',
     'export.downloadWalkthrough': 'Download HTML walkthrough',
     'walkthrough.previous': 'Previous step',
@@ -204,18 +211,6 @@ const STRINGS = {
     'lang.name.en': 'anglais',
     'lang.name.fr': 'français',
 
-    'draft.pending': 'Ébauche enregistrée du {when} — déposez le même fichier .docx pour reprendre où vous en étiez.',
-    'draft.restored': 'Ébauche restaurée : {steps} étapes, {images} captures d’écran. Vos modifications sont de retour.',
-    'draft.mismatch': 'Ce fichier ne correspond pas à votre ébauche enregistrée; rien n’a été restauré. Déposez l’enregistrement d’origine ou supprimez l’ébauche.',
-    'draft.discard': 'Supprimer l’ébauche enregistrée',
-    'draft.discarded': 'Ébauche enregistrée supprimée.',
-    'draft.saved': 'Ébauche enregistrée : {when}',
-    'draft.notSaved': 'L’ébauche n’a PAS pu être enregistrée — votre travail n’existe que dans cet onglet.',
-    'error.QUOTA_EXCEEDED': 'Il n’y a plus d’espace pour enregistrer votre ébauche. Votre travail n’existe que dans cet onglet : terminez et exportez avant de le fermer.',
-    'error.STORAGE_UNAVAILABLE': 'Ce navigateur bloque le stockage local; les ébauches ne peuvent pas être enregistrées. Votre travail n’existe que dans cet onglet.',
-    'error.CORRUPT_DRAFT': 'L’ébauche enregistrée n’a pas pu être lue et a été supprimée.',
-    'error.VERSION_MISMATCH': 'L’ébauche enregistrée provient d’une version antérieure de cet outil et ne peut pas être ouverte. Elle a été supprimée.',
-    'error.NO_FINGERPRINT': 'Cette capture ne peut pas être enregistrée comme ébauche. Rechargez le fichier et réessayez.',
 
     'caseStudy.heading': 'Étude de cas',
     'caseStudy.audience': 'À qui cela s’adresse',
@@ -268,11 +263,17 @@ const STRINGS = {
     'editor.heading': 'Modifier les étapes',
     'editor.intro':
       'Snagit rédige le texte des étapes automatiquement : il se répète souvent et n’inclut jamais de texte de remplacement. Corrigez les deux ici avant d’exporter.',
+    'editor.title': 'Titre du guide ({lang})',
     'editor.stepText': 'Texte de l’étape ({lang})',
     'editor.altText': 'Texte de remplacement ({lang})',
     'editor.altHelp':
       'Décrivez ce que montre la capture d’écran, et non ce sur quoi il faut cliquer.',
     'editor.confirmAlt': 'Le texte de remplacement est exact',
+    'editor.verifyStep': 'J’ai vérifié cette étape',
+    'editor.verifyStepHelp':
+      'Confirme le texte de remplacement de chaque image de cette étape, dans chaque langue, et marque toute explication en ébauche comme révisée.',
+    'editor.verifyStepBlocked':
+      'Remplissez le texte de remplacement manquant ci-dessus avant de pouvoir vérifier cette étape.',
     'editor.decorative': 'Image décorative — aucun texte de remplacement requis',
     'editor.delete': 'Supprimer l’étape {index}',
     'editor.merge': 'Fusionner avec l’étape {previous}',
@@ -288,6 +289,20 @@ const STRINGS = {
     'editor.seedAll': 'Rédiger une ébauche à partir du texte des étapes',
 
     'export.heading': 'Avant d’exporter',
+    'export.readyHeading': 'Prêt à exporter',
+    'project.export': 'Exporter le fichier de projet',
+    'project.exported': 'Projet enregistré sous {name}.',
+    'project.importLabel': 'Ou reprendre un fichier de projet enregistré',
+    'project.importHint':
+      'Le fichier de projet .html que vous avez exporté. Les captures d’écran y sont incluses; rien d’autre à joindre.',
+    'project.imported': 'Projet restauré : {count} étapes.',
+    'error.PROJECT_NOT_RECOGNISED':
+      'Ce fichier n’est pas un fichier de projet Step Capture Studio. Exportez-en un avec « Exporter le fichier de projet », puis chargez-le.',
+    'error.PROJECT_NO_STEPS': 'Ce fichier de projet ne contient aucune étape.',
+    'error.PROJECT_NO_LANGUAGES': 'Ce fichier de projet n’indique pas les langues qu’il contient.',
+    'error.PROJECT_IMAGE_MISSING': 'Une capture d’écran est absente de ce fichier de projet ({detail}).',
+    'error.PROJECT_IMAGE_UNREADABLE': 'Une capture d’écran de ce fichier de projet est illisible.',
+    'error.PROJECT_NO_PARSER': 'Ce navigateur ne peut pas lire les fichiers de projet.',
     'export.downloadQuickSteps': 'Télécharger le guide des étapes rapides',
     'export.downloadWalkthrough': 'Télécharger le guide interactif HTML',
     'walkthrough.previous': 'Étape précédente',

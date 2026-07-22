@@ -56,7 +56,8 @@ test('reads the metadata line even though it spans two runs', async () => {
   assert.equal(capture.author, 'A. Author')
   assert.equal(capture.duration, '1 minute')
   assert.equal(capture.declaredStepCount, ENGLISH_STEPS.length)
-  assert.equal(capture.title, 'Microsoft Edge')
+  assert.equal(capture.title.en, 'Microsoft Edge')
+  assert.equal(capture.title.fr, null, 'the source document can only speak for one language')
   assert.equal(capture.date, 'July 21, 2026')
 })
 

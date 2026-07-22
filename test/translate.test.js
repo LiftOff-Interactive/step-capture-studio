@@ -262,3 +262,39 @@ test('translating in the other direction works — nothing assumes en to fr', as
   assert.match(prompt, /Canadian French/)
   assert.match(reverse, /to es/)
 })
+
+// -------------------------------------------------------- bilingual title ---
+
+test('the guide title is offered for translation', async () => {
+  const capture = await fullyConfirmed()
+  const items = collectTranslatable(capture, 'en')
+  const title = items.find((item) => item.id === 'title')
+
+  assert.ok(title, 'the title must be in the prompt — it is the most visible string there is')
+  assert.equal(title.kind, 'title')
+  assert.equal(items[0].id, 'title', 'and first, so it is easy to spot in the response')
+})
+
+test('a translated title is applied to the target language only', async () => {
+  const capture = await fullyConfirmed()
+  const before = capture.title.en
+
+  const { capture: next } = applyTranslation(
+    capture,
+    new Map([['title', 'Test du son de Windows']]),
+    'fr',
+    'en'
+  )
+
+  assert.equal(next.title.fr, 'Test du son de Windows')
+  assert.equal(next.title.en, before, 'the source title must not be touched')
+})
+
+test('a capture with no title still translates everything else', async () => {
+  const capture = await fullyConfirmed()
+  const untitled = { ...capture, title: { en: null, fr: null } }
+
+  const items = collectTranslatable(untitled, 'en')
+  assert.ok(!items.some((item) => item.id === 'title'), 'nothing to translate, nothing offered')
+  assert.ok(items.length > 0, 'the steps are still there')
+})

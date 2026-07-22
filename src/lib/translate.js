@@ -17,6 +17,7 @@
  */
 
 /** Ids are short and alphanumeric so no chat client reflows or linkifies them. */
+const TITLE_ID = 'title'
 const STEP_ID = (index) => `s${index}`
 const ALT_ID = (index, position) => `s${index}a${position}`
 /** Narrative ids match the case-study prompt's, so authors see one scheme. */
@@ -43,6 +44,13 @@ export class TranslationError extends Error {
  */
 export function collectTranslatable(capture, from = capture.sourceLang) {
   const items = []
+
+  // The title first: it is the most visible string in every artifact, and the
+  // one an author is most likely to notice missing.
+  const title = typeof capture.title === 'string' ? capture.title : capture.title?.[from]
+  if (title?.trim()) {
+    items.push({ id: TITLE_ID, text: title.trim(), kind: 'title' })
+  }
 
   for (const step of capture.steps) {
     const text = step.text?.[from]
@@ -112,8 +120,9 @@ export function buildTranslationPrompt(capture, { from, to } = {}) {
     `Translate the following software training strings from ${sourceLabel} to ${targetLabel}.`,
     '',
     'Context: these are steps from a click-by-click software guide, plus alt text describing',
-    'screenshots. Lines beginning with an id like s3 are the instruction for that step. Lines with',
-    'an id like s3a1 describe the screenshot for that step.',
+    'screenshots. The line with the id "title" is the title of the whole guide. Lines beginning',
+    'with an id like s3 are the instruction for that step. Lines with an id like s3a1 describe the',
+    'screenshot for that step.',
     '',
     'Rules:',
     `- Translate into ${targetLabel}, not European French.`,
@@ -234,6 +243,15 @@ export function applyTranslation(capture, entries, target, from = capture.source
   }
 
   let applied = 0
+
+  // The title is not per-step, so it is applied outside the step loop.
+  let title = typeof capture.title === 'string' ? { [from]: capture.title } : capture.title ?? {}
+  const titleValue = entries.get(TITLE_ID)
+  if (titleValue) {
+    title = { ...title, [target]: titleValue }
+    applied++
+  }
+
   const steps = capture.steps.map((step) => {
     let stepChanged = false
     let text = step.text
@@ -282,5 +300,5 @@ export function applyTranslation(capture, entries, target, from = capture.source
     .filter((item) => !entries.has(item.id))
     .map(({ id, kind, stepIndex }) => ({ id, kind, stepIndex }))
 
-  return { capture: { ...capture, steps }, applied, missing }
+  return { capture: { ...capture, title, steps }, applied, missing }
 }

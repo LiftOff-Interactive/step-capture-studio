@@ -23,7 +23,18 @@
  * trade rather than an oversight.
  */
 
-import { escapeHtml, langBlock, toDataUri, altFor, renderDocument, documentHeader, localeTag } from './emit-common.js'
+import {
+  escapeHtml,
+  langBlock,
+  langLabel,
+  artifactName,
+  captureTitle,
+  toDataUri,
+  altFor,
+  renderDocument,
+  documentHeader,
+  localeTag,
+} from './emit-common.js'
 import { t } from './i18n.js'
 
 const WALKTHROUGH_CSS = `
@@ -239,14 +250,15 @@ ${figures}
     .map((code) => `data-template-${code}="${escapeHtml(t('step.label', code, { index: '{index}', total: '{total}' }))}"`)
     .join(' ')
 
-  const title = capture.title || t('capture.untitled', primary)
-  const subtitle = [capture.author, capture.date].filter(Boolean).join(' · ')
+  const title = captureTitle(capture, primary)
+  const titles = Object.fromEntries(languages.map((code) => [code, captureTitle(capture, code)]))
+  const meta = { author: capture.author, date: capture.date }
 
-  const body = `${documentHeader({ title, subtitle, languages })}
+  const body = `${documentHeader({ title, titles, meta, languages })}
 <main>
   <div class="viewer">
     <nav class="rail" aria-labelledby="rail-heading">
-      <h2 id="rail-heading">${escapeHtml(t('steps.heading', primary))}</h2>
+      <h2 id="rail-heading">${langLabel('steps.heading', languages)}</h2>
       <ol>
 ${railItems}
       </ol>
@@ -258,13 +270,20 @@ ${stepItems}
       </ol>
 
       <div class="step-nav">
-        <button type="button" id="step-prev" hidden>${escapeHtml(t('walkthrough.previous', primary))}</button>
-        <button type="button" id="step-next" hidden>${escapeHtml(t('walkthrough.next', primary))}</button>
+        <button type="button" id="step-prev" hidden>${langLabel('walkthrough.previous', languages)}</button>
+        <button type="button" id="step-next" hidden>${langLabel('walkthrough.next', languages)}</button>
         <p class="step-progress" id="step-progress" role="status" aria-live="polite" ${progressTemplates}></p>
       </div>
     </div>
   </div>
 </main>`
 
-  return renderDocument({ title, languages, body, css: WALKTHROUGH_CSS, script: WALKTHROUGH_JS })
+  return renderDocument({
+    title,
+    docTitle: artifactName(title, 'Walkthrough'),
+    languages,
+    body,
+    css: WALKTHROUGH_CSS,
+    script: WALKTHROUGH_JS,
+  })
 }

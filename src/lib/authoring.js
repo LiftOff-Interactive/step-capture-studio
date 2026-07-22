@@ -15,6 +15,7 @@
  */
 
 import { t } from './i18n.js'
+import { NARRATIVE_FIELDS, confirmNarrative } from './case-study.js'
 
 /** Re-derive 1-based indexes from array position. */
 function renumber(steps) {
@@ -147,6 +148,18 @@ export function seedAltText(capture, lang = capture.sourceLang) {
   return withSteps(capture, steps)
 }
 
+/**
+ * Set the capture's title in one language.
+ *
+ * The title is localized like every other user-facing string. The source
+ * document can only supply one language; the other is authored here or filled
+ * in by the translation round trip.
+ */
+export function setTitle(capture, lang, text) {
+  const current = typeof capture.title === 'string' ? { [capture.sourceLang]: capture.title } : capture.title ?? {}
+  return { ...capture, title: { ...current, [lang]: text?.trim() ? text : null } }
+}
+
 /** Set alt text. Any edit resets confirmation — the author must re-affirm. */
 export function setAltText(capture, stepIndex, imageId, lang, text) {
   return mapImage(capture, stepIndex, imageId, (image) => ({
@@ -175,6 +188,116 @@ export function confirmAltText(capture, stepIndex, imageId, lang) {
  */
 export function setDecorative(capture, stepIndex, imageId, decorative) {
   return mapImage(capture, stepIndex, imageId, (image) => ({ ...image, decorative: Boolean(decorative) }))
+}
+
+// ---------------------------------------------------- per-step verification ---
+
+/**
+ * Everything in one step that still needs the author's explicit confirmation,
+ * gathered so the UI can offer **one** control per step instead of one per
+ * image per language.
+ *
+ * Deriving this from the model rather than tracking a separate "step verified"
+ * flag is deliberate. `feature-alt-text.md` records the worst bug this feature
+ * ever had — *the confirm checkbox lied*: editing alt text reset the model but
+ * left the box ticked, so the UI asserted a confirmation the author never gave.
+ * A stored flag would reintroduce exactly that. Here the checkbox has no state
+ * of its own; it reports what the model says, so an edit anywhere in the step
+ * unticks it automatically.
+ *
+ * @returns {{items: Array, total: number, done: number, blocked: Array,
+ *            verified: boolean, applicable: boolean}}
+ */
+export function stepVerification(capture, stepIndex, languages = capture.languages ?? ['en']) {
+  const step = capture.steps.find((s) => s.index === stepIndex)
+  if (!step) throw new Error(`no step ${stepIndex}`)
+
+  const items = []
+
+  for (const image of step.images) {
+    // A decorative image satisfies the alt requirement with alt="" and has
+    // nothing to attest to.
+    if (image.decorative) continue
+    for (const lang of languages) {
+      const text = image.alt?.[lang]?.trim()
+      items.push({
+        kind: 'alt',
+        imageId: image.id,
+        lang,
+        done: Boolean(image.altConfirmed?.[lang] && text),
+        // Empty alt text cannot be confirmed at all — the model refuses it.
+        blocked: !text,
+      })
+    }
+  }
+
+  // Only *drafted* narrative needs review. Once confirmed it stops being
+  // drafted and drops out of this list entirely, which is why `done` is always
+  // false here: a present item is by definition still unreviewed.
+  for (const field of NARRATIVE_FIELDS) {
+    for (const lang of languages) {
+      const passage = step.narrative?.[field]?.[lang]
+      if (passage?.drafted && passage.text?.trim()) {
+        items.push({ kind: 'narrative', field, lang, done: false, blocked: false })
+      }
+    }
+  }
+
+  const blocked = items.filter((item) => item.blocked)
+  const done = items.filter((item) => item.done).length
+
+  return {
+    items,
+    total: items.length,
+    done,
+    blocked,
+    // Nothing to attest to is not the same as verified — see `applicable`.
+    verified: items.length > 0 && done === items.length,
+    applicable: items.length > 0,
+  }
+}
+
+/**
+ * Confirm everything confirmable in one step.
+ *
+ * Blocked items (empty alt text) are skipped rather than throwing, so one
+ * missing field cannot discard the author's confirmation of the others. The
+ * checkbox then stays unticked because `stepVerification` still reports them
+ * outstanding — the UI tells the truth without needing to know why.
+ */
+export function verifyStep(capture, stepIndex, languages = capture.languages ?? ['en']) {
+  let next = capture
+  for (const item of stepVerification(capture, stepIndex, languages).items) {
+    if (item.blocked || item.done) continue
+    next =
+      item.kind === 'alt'
+        ? confirmAltText(next, stepIndex, item.imageId, item.lang)
+        : confirmNarrative(next, stepIndex, item.field, item.lang)
+  }
+  return next
+}
+
+/**
+ * Withdraw the alt-text confirmations in one step.
+ *
+ * Re-setting the same text is what clears confirmation — `setAltText` treats
+ * any write as an edit. Narrative review is deliberately **not** undone:
+ * confirming a drafted passage marks it authored, and there is no meaningful
+ * way to un-author prose the person has already read and accepted.
+ */
+export function unverifyStep(capture, stepIndex, languages = capture.languages ?? ['en']) {
+  const step = capture.steps.find((s) => s.index === stepIndex)
+  if (!step) throw new Error(`no step ${stepIndex}`)
+
+  let next = capture
+  for (const image of step.images) {
+    if (image.decorative) continue
+    for (const lang of languages) {
+      if (!image.altConfirmed?.[lang]) continue
+      next = setAltText(next, stepIndex, image.id, lang, image.alt?.[lang] ?? '')
+    }
+  }
+  return next
 }
 
 // -------------------------------------------------------- export readiness ---

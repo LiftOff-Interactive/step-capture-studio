@@ -92,11 +92,51 @@ test('the package contains every part Word requires', async () => {
     'word/document.xml',
     'word/_rels/document.xml.rels',
     'word/styles.xml',
+    'word/settings.xml',
     'docProps/core.xml',
     'docProps/app.xml',
   ]) {
     assert.ok(entries.has(part), `${part} present`)
   }
+})
+
+/**
+ * Regression: compatibility mode.
+ *
+ * Word infers the format era from `compatibilityMode` in settings.xml. With no
+ * settings.xml the file opened in Compatibility Mode — "this document is in an
+ * older format with limited functionality" — and one of the functions Word
+ * limits is the **Accessibility Checker**, which it disables outright.
+ *
+ * That made the export unable to satisfy its own accessibility criterion: the
+ * document could not be checked at all without first converting it, and a
+ * converted file is Word's document, not ours. Every structural test passed
+ * throughout; only a human opening Word could see it.
+ *
+ * Sibling of the `<dc:language>` defect. Same lesson: the consumer is the spec.
+ */
+test('settings.xml declares compatibility mode 15, or Word disables the checker', async () => {
+  const entries = await readDocx(await emitDocx(await authored(), { lang: 'en' }))
+  const settings = decodeText(entries.get('word/settings.xml'))
+
+  parseXml(settings, 'word/settings.xml')
+  assert.match(
+    settings,
+    /<w:compatSetting[^>]*w:name="compatibilityMode"[^>]*w:val="15"/,
+    'compatibilityMode 15 is what keeps the file out of Compatibility Mode'
+  )
+
+  // The part is inert unless it is both declared and related to.
+  assert.match(
+    decodeText(entries.get('[Content_Types].xml')),
+    /PartName="\/word\/settings\.xml"/,
+    'settings.xml needs a content-type override'
+  )
+  assert.match(
+    decodeText(entries.get('word/_rels/document.xml.rels')),
+    /relationships\/settings"[^>]*Target="settings\.xml"/,
+    'settings.xml needs a relationship from document.xml'
+  )
 })
 
 test('every XML part is well formed', async () => {

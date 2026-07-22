@@ -13,6 +13,8 @@
  * you get a bilingual document rather than a blank page.
  */
 
+import { t } from './i18n.js'
+
 const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
 
 /** Escape for HTML text and double-quoted attribute values alike. */
@@ -35,6 +37,60 @@ export function toDataUri(bytes, mime = 'image/png') {
   }
   const base64 = typeof btoa === 'function' ? btoa(binary) : Buffer.from(binary, 'binary').toString('base64')
   return `data:${mime};base64,${base64}`
+}
+
+/**
+ * The capture's title in one language.
+ *
+ * Falls back to the source language rather than to the placeholder: a French
+ * artifact showing the English title is imperfect, but showing "Untitled
+ * capture" when a title plainly exists is worse.
+ *
+ * Tolerates a plain string, which is what `capture.title` was before it became
+ * bilingual — project files and tests written against the old shape still load.
+ */
+export function captureTitle(capture, lang) {
+  const title = capture?.title
+  if (typeof title === 'string') return title.trim() || t('capture.untitled', lang)
+  return (
+    title?.[lang]?.trim() ||
+    title?.[capture?.sourceLang]?.trim() ||
+    t('capture.untitled', lang)
+  )
+}
+
+/**
+ * PascalCase, ASCII-safe stem for an artifact name: "Testing Windows Audio"
+ * becomes "TestingWindowsAudio".
+ *
+ * Accents are folded rather than dropped (é -> e) so a French title still
+ * yields a readable name that is safe on every filesystem and in a URL.
+ */
+export function nameStem(title, fallback = 'Capture') {
+  const stem = String(title ?? '')
+    .normalize('NFD')
+    // Combining diacritics, written as escapes so the source stays ASCII-safe.
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('')
+  return stem || fallback
+}
+
+/**
+ * The name an artifact is known by — used for BOTH the download filename and
+ * the document `<title>`.
+ *
+ * These must agree: browsers derive the print header and the "Save as PDF"
+ * filename from `<title>`, not from the name the file was downloaded under.
+ * Deriving both from one function is what stops a file called
+ * `TestingWindowsAudio_CaseStudy.html` printing to `Testing Windows Audio.pdf`.
+ */
+export function artifactName(title, suffix) {
+  return `${nameStem(title)}_${suffix}`
 }
 
 /** BCP 47 tags. Kept here so emitted artifacts never hardcode a language pair. */
@@ -102,6 +158,12 @@ p, li { max-width: 68ch; }
 html[data-lang="en"] [data-lang-block="fr"],
 html[data-lang="fr"] [data-lang-block="en"] { display: none; }
 
+/* Chrome blocks are inline spans so they sit inside a heading. With no
+ * JavaScript both languages render, and margin-top does nothing to an inline
+ * box — the two ran together as "StepsEtapes" and "6 stepsTraining Tester".
+ * Stack them explicitly; this is also the print path.
+ * (No backticks in this comment — it lives inside a template literal.) */
+html:not([data-lang]) .lang-block { display: block; }
 html:not([data-lang]) .lang-block + .lang-block { margin-top: .35rem; }
 html:not([data-lang]) .lang-toggle { display: none; }
 
@@ -152,16 +214,44 @@ export const LANG_TOGGLE_JS = `
 `.trim()
 
 /**
+ * A translated piece of *chrome* — a heading, a button label, a field name —
+ * rendered once per language so it swaps with the toggle.
+ *
+ * ⚠️ **Never render chrome with `t(key, primary)`.** That was the original bug:
+ * step text was correctly emitted per language via `langBlock`, but headings
+ * and buttons were resolved once against `languages[0]`. Toggling to French
+ * swapped the content and left every label in English. The translations were
+ * never missing — they were being asked for in the wrong language.
+ *
+ * Because these are real `lang-block`s, they also do the right thing with
+ * JavaScript disabled: both languages show, like the rest of the document.
+ *
+ * @param {string} key         i18n key
+ * @param {string[]} languages language codes
+ * @param {object} [options]
+ * @param {string} [options.tag]    wrapper element; `span` for inline labels
+ * @param {object} [options.params] interpolation params passed through to `t`
+ */
+export function langLabel(key, languages, { tag = 'span', params = {} } = {}) {
+  return languages
+    .map((code) => langBlock(code, escapeHtml(t(key, code, params)), { tag }))
+    .join('')
+}
+
+/**
  * Wrap body content in a complete, self-contained HTML document.
  *
  * @param {object} options
  * @param {string} options.title       document title, already plain text
+ * @param {string} [options.docTitle]  what goes in `<title>`; defaults to `title`.
+ *   This is deliberately separable: the `<h1>` should read as prose, while
+ *   `<title>` carries the artifact name so the printed PDF is filed correctly.
  * @param {string[]} options.languages language codes, first is the default
  * @param {string} options.body        body HTML
  * @param {string} [options.css]       artifact-specific CSS, appended to BASE_CSS
  * @param {string} [options.script]    artifact-specific JS, appended to the toggle
  */
-export function renderDocument({ title, languages, body, css = '', script = '' }) {
+export function renderDocument({ title, docTitle, languages, body, css = '', script = '' }) {
   const names = Object.fromEntries(languages.map((code) => [code, code === 'fr' ? 'Français' : 'English']))
   const locales = Object.fromEntries(languages.map((code) => [code, localeTag(code)]))
 
@@ -173,7 +263,7 @@ export function renderDocument({ title, languages, body, css = '', script = '' }
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)}</title>
+<title>${escapeHtml(docTitle || title)}</title>
 <style>
 ${BASE_CSS}
 ${css}
@@ -190,17 +280,65 @@ ${script}
 `
 }
 
-/** Header shared by the artifacts: title, metadata, and the toggle. */
-export function documentHeader({ title, subtitle, languages }) {
+/**
+ * Header shared by the artifacts: title, metadata, and the toggle.
+ *
+ * The metadata line is built here rather than by each emitter, because all
+ * three built the identical string and all three built it in one language.
+ * Author and date are language-neutral; only the word "steps" is translated.
+ *
+ * @param {object} options
+ * @param {string} options.title       document title, plain text — the fallback
+ *   when no per-language map is supplied
+ * @param {object} [options.titles]    `{ en, fr }` resolved titles. When given,
+ *   the heading is rendered per language like any other content, so it swaps
+ *   with the toggle instead of being fixed to `languages[0]`.
+ * @param {object} [options.meta]      `{ author, date, stepCount }`, all optional
+ * @param {string[]} options.languages language codes
+ */
+export function documentHeader({ title, titles = null, meta = null, languages }) {
   const toggle =
     languages.length > 1
       ? `<button type="button" id="lang-toggle" class="lang-toggle" hidden>Français</button>`
       : ''
 
+  const subtitle = meta
+    ? languages
+        .map((code) => {
+          const parts = [
+            meta.author,
+            meta.date,
+            meta.stepCount != null
+              ? `${meta.stepCount} ${t('capture.stepCount', code).toLowerCase()}`
+              : null,
+          ].filter(Boolean)
+          return parts.length ? langBlock(code, escapeHtml(parts.join(' · ')), { tag: 'span' }) : ''
+        })
+        .join('')
+    : ''
+
+  // The title is content, not chrome, so it gets real lang-blocks — but only
+  // when the languages actually differ.
+  //
+  // Where one language has no title, `captureTitle` falls back to the other, so
+  // both blocks would carry identical text. Two lang-blocks then render the
+  // same words twice with JavaScript disabled, which is also the print view:
+  // "Testing Windows AudioTesting Windows Audio". A single untagged heading is
+  // correct in that case — it is the same title in both languages.
+  const resolved = titles ? languages.map((code) => titles[code] ?? title) : null
+  const allSame = resolved ? resolved.every((value) => value === resolved[0]) : true
+
+  const heading =
+    resolved && !allSame
+      ? languages
+          .map((code) => langBlock(code, escapeHtml(titles[code] ?? title), { tag: 'span' }))
+          .join('')
+      : escapeHtml(resolved ? resolved[0] : title)
+
   return `<header class="doc-header">
   <div>
-    <h1>${escapeHtml(title)}</h1>
-    ${subtitle ? `<p class="doc-meta">${escapeHtml(subtitle)}</p>` : ''}
+    <h1>${heading}</h1>
+    ${subtitle ? `<p class="doc-meta">${subtitle}</p>` : ''}
   </div>
   ${toggle}
 </header>`

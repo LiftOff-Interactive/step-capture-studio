@@ -15,7 +15,17 @@
  * claims nothing, which is always safe; an unchecked one is not.
  */
 
-import { escapeHtml, langBlock, toDataUri, altFor, renderDocument, documentHeader } from './emit-common.js'
+import {
+  escapeHtml,
+  langBlock,
+  langLabel,
+  artifactName,
+  captureTitle,
+  toDataUri,
+  altFor,
+  renderDocument,
+  documentHeader,
+} from './emit-common.js'
 import { t } from './i18n.js'
 import { NARRATIVE_FIELDS, SCENARIO_FIELDS, caseStudyReadiness, hasNarrative } from './case-study.js'
 
@@ -40,10 +50,55 @@ const CASE_STUDY_CSS = `
 .case-note h4 { font-size: .9rem; text-transform: uppercase; letter-spacing: .04em;
   color: var(--muted); margin: 0 0 .25rem; }
 
+/*
+ * Print sizing.
+ *
+ * On screen an image may use the full 46rem column. In print that is ~7.3in
+ * against a ~6.5in text column, so every screenshot claimed a whole page and
+ * pushed its own explanation onto the next one — the step and the text
+ * describing it ended up in different places, which is the one thing a case
+ * study cannot do.
+ *
+ * max-height is what actually constrains this: capping width alone does
+ * nothing for a tall portrait screenshot. break-inside on the figure then
+ * keeps each image with the text it belongs to.
+ *
+ * No backticks in this comment — it lives inside a template literal.
+ */
 @media print {
   .case-step { break-inside: avoid; }
   .scenario { break-inside: avoid; }
+  .case-step figure { break-inside: avoid; margin: 0 0 .6rem; }
+  .case-step img {
+    max-width: 4.6in;
+    max-height: 3.2in;
+    width: auto;
+    object-fit: contain;
+  }
+  .case-step { padding-bottom: 1.25rem; }
+  .case-step + .case-step { padding-top: 1rem; }
 }
+`.trim()
+
+/**
+ * Alt text is per-language; swap it when the language changes.
+ *
+ * The same mechanism the walkthrough uses. Without it the visible text
+ * switches to French and every image keeps describing itself in English.
+ */
+const ALT_SYNC_JS = `
+(function () {
+  var root = document.documentElement;
+  function syncAlt() {
+    var lang = root.getAttribute('data-lang') || 'en';
+    Array.prototype.forEach.call(document.querySelectorAll('.case-step img'), function (img) {
+      var value = img.getAttribute('data-alt-' + lang);
+      if (value !== null) img.setAttribute('alt', value);
+    });
+  }
+  document.addEventListener('artifact:langchange', syncAlt);
+  syncAlt();
+})();
 `.trim()
 
 /**
@@ -85,7 +140,7 @@ export function emitCaseStudy(capture, { languages = capture.languages ?? ['en']
 
   const scenarioBlock = scenarioRows
     ? `  <section class="scenario" aria-labelledby="scenario-heading">
-    <h2 id="scenario-heading">${escapeHtml(t('caseStudy.scenarioHeading', primary))}</h2>
+    <h2 id="scenario-heading">${langLabel('caseStudy.scenarioHeading', languages)}</h2>
     <dl>
 ${scenarioRows}
     </dl>
@@ -104,10 +159,16 @@ ${scenarioRows}
         )
         .join('')
 
+      // Alt text is per-language, exactly as in the walkthrough. Rendering it
+      // once in `primary` left every image describing itself in English while
+      // the visible text was French — a WCAG failure no print check can show.
       const figures = step.images
         .map((image) => {
           const dims = image.width && image.height ? ` width="${image.width}" height="${image.height}"` : ''
-          return `      <figure><img src="${toDataUri(image.bytes)}" alt="${escapeHtml(altFor(image, primary))}"${dims} decoding="sync"></figure>`
+          const altAttrs = languages
+            .map((code) => `data-alt-${code}="${escapeHtml(altFor(image, code))}"`)
+            .join(' ')
+          return `      <figure><img src="${toDataUri(image.bytes)}" alt="${escapeHtml(altFor(image, primary))}" ${altAttrs}${dims} decoding="sync"></figure>`
         })
         .join('\n')
 
@@ -140,17 +201,25 @@ ${notes}
     })
     .join('\n')
 
-  const title = capture.title || t('capture.untitled', primary)
-  const subtitle = [capture.author, capture.date].filter(Boolean).join(' · ')
+  const title = captureTitle(capture, primary)
+  const titles = Object.fromEntries(languages.map((code) => [code, captureTitle(capture, code)]))
+  const meta = { author: capture.author, date: capture.date }
 
-  const body = `${documentHeader({ title, subtitle, languages })}
+  const body = `${documentHeader({ title, titles, meta, languages })}
 <main>
 ${scenarioBlock}
-  <h2>${escapeHtml(t('caseStudy.heading', primary))}</h2>
+  <h2>${langLabel('caseStudy.heading', languages)}</h2>
   <ol class="case-steps">
 ${steps}
   </ol>
 </main>`
 
-  return renderDocument({ title, languages, body, css: CASE_STUDY_CSS })
+  return renderDocument({
+    title,
+    docTitle: artifactName(title, 'CaseStudy'),
+    languages,
+    body,
+    css: CASE_STUDY_CSS,
+    script: ALT_SYNC_JS,
+  })
 }

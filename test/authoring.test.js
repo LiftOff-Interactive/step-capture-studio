@@ -21,6 +21,9 @@ import {
   confirmAltText,
   setDecorative,
   exportReadiness,
+  stepVerification,
+  verifyStep,
+  unverifyStep,
 } from '../src/lib/authoring.js'
 import { makeCapture, ENGLISH_STEPS } from './helpers/synthetic.mjs'
 
@@ -267,4 +270,104 @@ test('a fully authored bilingual capture is ready', async () => {
   }
 
   assert.deepEqual(exportReadiness(capture, ['en', 'fr']), { ready: true, blockers: [] })
+})
+
+// ------------------------------------------------------ per-step verification ---
+
+/** Fill every alt field so nothing is blocked by empty text. */
+async function altFilled(languages = ['en', 'fr']) {
+  let capture = seedAltText(await load())
+  for (const step of capture.steps) {
+    for (const image of step.images) {
+      for (const lang of languages) {
+        capture = setAltText(capture, step.index, image.id, lang, `alt ${lang} ${image.id}`)
+      }
+    }
+  }
+  return capture
+}
+
+test('empty alt text blocks a step rather than silently confirming nothing', async () => {
+  // seedAltText fills only the source language, so French starts empty.
+  const capture = seedAltText(await load())
+  const before = stepVerification(capture, 1, ['en', 'fr'])
+
+  assert.ok(before.blocked.length > 0, 'empty French alt text must register as blocked')
+  assert.equal(before.verified, false)
+
+  // verifyStep must not throw on the blocked item, and must not claim success.
+  const after = verifyStep(capture, 1, ['en', 'fr'])
+  assert.equal(stepVerification(after, 1, ['en', 'fr']).verified, false)
+})
+
+test('verifying a step confirms every image in every language at once', async () => {
+  const capture = await altFilled()
+  assert.equal(stepVerification(capture, 1, ['en', 'fr']).verified, false)
+
+  const verified = verifyStep(capture, 1, ['en', 'fr'])
+  const state = stepVerification(verified, 1, ['en', 'fr'])
+
+  assert.equal(state.verified, true)
+  assert.equal(state.done, state.total)
+  for (const image of verified.steps[0].images) {
+    for (const lang of ['en', 'fr']) {
+      assert.equal(image.altConfirmed[lang], true, `${image.id} ${lang} confirmed`)
+    }
+  }
+})
+
+test('verifying one step leaves the others untouched', async () => {
+  const capture = await altFilled()
+  const verified = verifyStep(capture, 1, ['en', 'fr'])
+
+  assert.equal(stepVerification(verified, 1, ['en', 'fr']).verified, true)
+  assert.equal(stepVerification(verified, 2, ['en', 'fr']).verified, false)
+})
+
+test('editing any alt text in a verified step withdraws the whole step', async () => {
+  // The invariant behind the checkbox: it must never assert a confirmation the
+  // author has since invalidated. One edit in one language is enough.
+  const capture = verifyStep(await altFilled(), 1, ['en', 'fr'])
+  assert.equal(stepVerification(capture, 1, ['en', 'fr']).verified, true)
+
+  const edited = setAltText(capture, 1, firstImageId(capture), 'fr', 'texte different')
+  assert.equal(
+    stepVerification(edited, 1, ['en', 'fr']).verified,
+    false,
+    'one edit must withdraw the step, not just that one field'
+  )
+})
+
+test('unverifying a step withdraws its confirmations', async () => {
+  const capture = verifyStep(await altFilled(), 1, ['en', 'fr'])
+  const withdrawn = unverifyStep(capture, 1, ['en', 'fr'])
+
+  assert.equal(stepVerification(withdrawn, 1, ['en', 'fr']).verified, false)
+  // The text itself survives — only the attestation is withdrawn.
+  assert.ok(withdrawn.steps[0].images[0].alt.en)
+})
+
+test('a decorative image needs no confirmation and cannot block a step', async () => {
+  let capture = await altFilled()
+  const imageId = firstImageId(capture)
+  capture = setDecorative(capture, 1, imageId, true)
+
+  const state = stepVerification(capture, 1, ['en', 'fr'])
+  assert.ok(
+    !state.items.some((item) => item.imageId === imageId),
+    'a decorative image has nothing to attest to'
+  )
+})
+
+test('a step with nothing to confirm reports itself as not applicable', async () => {
+  let capture = await altFilled()
+  for (const image of capture.steps[0].images) {
+    capture = setDecorative(capture, 1, image.id, true)
+  }
+  const state = stepVerification(capture, 1, ['en', 'fr'])
+
+  assert.equal(state.applicable, false)
+  // Nothing to confirm is NOT the same as confirmed — the UI shows no control
+  // rather than a ticked box asserting something that was never checked.
+  assert.equal(state.verified, false)
 })
