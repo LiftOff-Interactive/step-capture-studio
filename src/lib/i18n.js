@@ -52,6 +52,19 @@ const STRINGS = {
     'lang.name.en': 'English',
     'lang.name.fr': 'French',
 
+    'draft.pending': 'Saved draft from {when} — drop the same .docx file to continue where you left off.',
+    'draft.restored': 'Draft restored: {steps} steps, {images} screenshots. Your edits are back.',
+    'draft.mismatch': 'This file does not match your saved draft, so nothing was restored. Drop the original recording, or discard the draft.',
+    'draft.discard': 'Discard saved draft',
+    'draft.discarded': 'Saved draft discarded.',
+    'draft.saved': 'Draft saved: {when}',
+    'draft.notSaved': 'Draft could NOT be saved — your work is only in this tab.',
+    'error.QUOTA_EXCEEDED': 'There is no room left to save your draft. Your work is only in this tab — finish and export before closing it.',
+    'error.STORAGE_UNAVAILABLE': 'This browser is blocking local storage, so drafts cannot be saved. Your work is only in this tab.',
+    'error.CORRUPT_DRAFT': 'The saved draft could not be read and has been discarded.',
+    'error.VERSION_MISMATCH': 'The saved draft was made by an older version of this tool and cannot be opened. It has been discarded.',
+    'error.NO_FINGERPRINT': 'This capture cannot be saved as a draft. Reload the file and try again.',
+
     'translate.heading': 'Translate',
     'translate.intro':
       'This tool never sends your capture anywhere. It builds a prompt you run in your own assistant, then takes the answer back. Confirm your English alt text first — only confirmed text is included.',
@@ -163,6 +176,19 @@ const STRINGS = {
 
     'lang.name.en': 'anglais',
     'lang.name.fr': 'français',
+
+    'draft.pending': 'Ébauche enregistrée du {when} — déposez le même fichier .docx pour reprendre où vous en étiez.',
+    'draft.restored': 'Ébauche restaurée : {steps} étapes, {images} captures d’écran. Vos modifications sont de retour.',
+    'draft.mismatch': 'Ce fichier ne correspond pas à votre ébauche enregistrée; rien n’a été restauré. Déposez l’enregistrement d’origine ou supprimez l’ébauche.',
+    'draft.discard': 'Supprimer l’ébauche enregistrée',
+    'draft.discarded': 'Ébauche enregistrée supprimée.',
+    'draft.saved': 'Ébauche enregistrée : {when}',
+    'draft.notSaved': 'L’ébauche n’a PAS pu être enregistrée — votre travail n’existe que dans cet onglet.',
+    'error.QUOTA_EXCEEDED': 'Il n’y a plus d’espace pour enregistrer votre ébauche. Votre travail n’existe que dans cet onglet : terminez et exportez avant de le fermer.',
+    'error.STORAGE_UNAVAILABLE': 'Ce navigateur bloque le stockage local; les ébauches ne peuvent pas être enregistrées. Votre travail n’existe que dans cet onglet.',
+    'error.CORRUPT_DRAFT': 'L’ébauche enregistrée n’a pas pu être lue et a été supprimée.',
+    'error.VERSION_MISMATCH': 'L’ébauche enregistrée provient d’une version antérieure de cet outil et ne peut pas être ouverte. Elle a été supprimée.',
+    'error.NO_FINGERPRINT': 'Cette capture ne peut pas être enregistrée comme ébauche. Rechargez le fichier et réessayez.',
 
     'translate.heading': 'Traduire',
     'translate.intro':

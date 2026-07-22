@@ -68,3 +68,32 @@ error and then switched language kept reading English. ·
 **Do instead:** keep generated text as data (`state.lastError = {code, vars}`) rather than as a
 rendered string, and regenerate it on every language change. If a string is not in the DOM with a
 `data-i18n` attribute, something has to re-render it deliberately.
+
+## 2026-07-21 — Autosaving over a draft that had not been restored yet
+**Why it failed:** on load, the app saves a draft. If a draft was already waiting for its file and
+the author dropped the *wrong* file, the mismatch was reported correctly — and then the autosave
+timer fired and overwrote the waiting draft with the wrong capture. Dropping the wrong file
+destroyed the work autosave existed to protect. The code comment two lines above literally called
+this outcome unforgivable. ·
+**Do instead:** suspend autosave entirely while a draft is pending. Saving resumes only once the
+draft is restored or deliberately discarded. Where a feature protects something, enumerate every
+path that writes to it — the guard belongs at the write, not at the decision that precedes it.
+
+## 2026-07-21 — `display: none` on an empty live region
+**Why it failed:** `.status:empty { display: none }` existed to avoid a blank gap. Once the status
+element's fallback text moved into JS, it started life empty — and therefore `display: none`, which
+removes it from the accessibility tree. Since a live region that re-enters the tree at the same
+moment it gains content is not announced, the first message after every empty state would have been
+silent. The same rule had just been added for `#save-state`, reproducing the bug immediately. ·
+**Do instead:** never `display: none` (or `visibility: hidden`) a live region. Collapse its margin
+if the gap is the problem. This is the third variant of the same trap in this project — a live
+region must exist, and keep existing, before its content changes.
+
+## 2026-07-21 — `data-i18n` on the status live region
+**Why it failed:** `applyStaticStrings` rewrites every `data-i18n` element on each render. The
+status region carried `data-i18n="status.empty"`, so any announcement made just before a re-render
+was silently overwritten with "No capture loaded yet." The draft-mismatch warning never appeared. ·
+**Do instead:** keep live regions out of the static-string sweep. Track the current message as
+`{key, vars}` and re-translate it explicitly on a language change. Generated text — errors, the
+draft banner, the status — all need this; if it is not in the DOM with `data-i18n`, something must
+re-render it deliberately.

@@ -202,3 +202,20 @@ still fire on meaningless changes, and adds timing that tests cannot pin down); 
 (the original state, and an outright WCAG 4.1.3 failure). ·
 **Revisit if:** a future edit path changes the count several times in one action — then the count
 alone stops being a good proxy for "something meaningful happened".
+
+## 2026-07-21 — Drafts persist text only; screenshots come back on re-drop
+**Chose:** `localStorage` holds the capture model minus image bytes. On resume the author re-drops
+the same `.docx` and the screenshots are reattached by their source path. ·
+**Because:** the quota is ~5 MB and the reference capture's images alone are 843 KB — a longer
+recording would exceed it, and autosave that fails on large captures is worse than none, because
+authors stop being careful once they believe their work is safe. Text-only drafts measured **3.3 KB**
+for the real 10-step capture. ·
+**Rejected:** IndexedDB for image bytes (no practical quota, but a second storage layer and a
+migration path for a problem re-dropping solves for free); storing images as base64 in
+`localStorage` (would blow the quota immediately). ·
+**Consequence to protect:** reattaching a draft to the WRONG screenshots would be silent and produce
+a guide whose text contradicts its images. Two defences: a fingerprint taken from the pristine parse
+and carried by the capture (never recomputed from an edited one), and matching images by source path
+rather than position, so merges and deletions cannot misalign them. ·
+**Revisit if:** captures routinely exceed the quota even without images, or if re-dropping proves
+too annoying in practice.

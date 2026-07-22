@@ -24,6 +24,7 @@
  */
 
 import { readDocx, decodeText, pngSize } from './docx.js'
+import { captureFingerprint } from './draft.js'
 
 /** Leading step number, e.g. "12. " or "3) ". The only text pattern we match. */
 const STEP_NUMBER = /^\s*(\d+)\s*[.)]\s*/
@@ -283,6 +284,11 @@ export async function parseSnagitDocx(bytes, options = {}) {
       })
     }
   }
+  // Identifies the source recording so a saved draft can be reunited with its
+  // own file. Taken here, from the pristine parse, and carried forward by every
+  // authoring operation — never recomputed from an edited capture.
+  capture.fingerprint = captureFingerprint(capture)
+
   if (capture.declaredStepCount !== null && capture.declaredStepCount !== capture.steps.length) {
     warnings.push({
       code: 'STEP_COUNT_MISMATCH',

@@ -1,49 +1,45 @@
 # Handoff — step-capture-studio
-_Last updated: 2026-07-21 · Current stage: stage-2-authoring_
+_Last updated: 2026-07-21 · Current stage: stage-2-authoring (built, awaiting verification)_
 
 ## 🎯 Goals
-Finish Stage 2: the bilingual translation round trip and `localStorage` autosave, and close the
-accessibility gap the editor left open.
+Close out Stage 2's human verification, then start Stage 3: the three artifact emitters.
 
 ## 📍 Current State
-- **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT licensed, Pages serving
-  from `main`/root. A `.docx` parses correctly there; zero console output.
-- **Stage 1 complete except `app-shell`**, which is `awaiting verification` only because **nobody has
-  looked at the page**. `docx-reader`, `snagit-parser`, `pages-deploy` are all `verified done`.
-- **Stage 2:** `step-editor` and `alt-text` built, `awaiting verification`. 82 controls on the real
-  capture, **0 axe violations, 0 needs-review**, contrast passing on 190 nodes, both languages.
-  The readiness count is now announced to assistive tech and verified at runtime.
-- History was scrubbed before publishing: all 8 commits and every blob clean, old repo deleted and
-  recreated rather than force-pushed. **83/83 tests.**
+- **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT, Pages green.
+- **Stage 1 done** except `app-shell`, which waits only on a human looking at it.
+- **Stage 2: all four features built** — step editor, alt-text gate, bilingual round trip, autosave.
+  All `awaiting verification`. **129/129 tests**; axe 0 violations / 0 incomplete, both languages.
+- Verified in-browser end to end: edit → seed → confirm → merge → translate → reload → re-drop →
+  draft restored with images reattached. Wrong file refused, draft preserved byte for byte.
+- Drafts are text-only (**3.3 KB** vs 843 KB of screenshots); images return on re-drop.
 
 ## 📂 Files I'm Working On
-- `src/lib/authoring.js` — immutable capture operations + the export gate.
-- `src/ui/editor.js` — the editable form; `fieldId` is exported for syncing controls without re-render.
+- `src/lib/draft.js` — persistence + fingerprint · `src/lib/translate.js` — the round trip.
+- `src/ui/app.js` — events and state only; DOM building lives in `render.js` / `editor.js`.
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` item 7).
 
 ## ✅ Things I've Changed
-- 2026-07-21 — Readiness count now announced (WCAG 4.1.3), as a persistent live region.
+- 2026-07-21 — Autosave: text-only drafts, re-drop to restore screenshots.
+- 2026-07-21 — Bilingual round trip: copy-prompt out, strict paste-back in.
+- 2026-07-21 — Readiness count announced (WCAG 4.1.3) via a persistent live region.
+- 2026-07-21 — Editor UI with the alt-text confirmation gate.
 - 2026-07-21 — Published live: MIT licence, sanitised, history scrubbed, repo recreated public.
-- 2026-07-21 — Built the editor UI; fixed two browser-only defects (see Watch Out).
-- 2026-07-21 — Added `src/lib/authoring.js` and the alt-text confirmation gate.
-- 2026-07-21 — Wired axe-core; hardened it after mutation testing exposed 3 blind spots.
-- 2026-07-21 — Built the app shell; fixed two AA defects found in-browser.
 
 ## ❌ Watch Out
-- **A correct model is not a correct UI.** The confirm checkbox stayed ticked after an edit that
-  unconfirmed it; tests passed throughout. See `docs/failed-approaches.md`.
-- **The repo is public now.** The pre-commit hook is the only thing between a real capture and a
-  permanent public record. Never `--no-verify`.
-- **Nobody has visually seen this UI.** axe proves contrast, not usability.
-- **Never put a live region inside a container that gets rebuilt** — it silently stops announcing.
-  See `docs/failed-approaches.md`.
+- **Live regions: never `display:none`, never inside a rebuilt container, never `data-i18n`.**
+  Three separate variants of that one silent failure have bitten this project already.
+- **Generated text must be re-rendered on language change** — errors, banners, status. `data-i18n`
+  only covers markup.
+- **A correct model is not a correct UI.** Every browser session so far has found a defect the
+  passing test suite could not see. See `docs/failed-approaches.md`.
 
 ## ➡️ Next Up
-1. `feature-bilingual-roundtrip`: copy-prompt export and strict paste-back import.
-2. `feature-autosave` — decide its open question first: screenshots blow the ~5 MB `localStorage`
-   quota, so text-only persistence or IndexedDB.
-3. The "confirm all seeded values" bulk action, still unbuilt in `feature-alt-text.md`.
+1. Run `npm start`, look at the app, and time authoring one capture end to end — Stage 2's own
+   done-criteria include a 15-minute budget nobody has measured.
+2. Screen-reader pass if NVDA/Narrator is available (`help.md` item 6).
+3. Stage 3: `feature-quick-steps`, `feature-html-walkthrough`, `feature-case-study`. Flesh out the
+   sketches first — they were left deliberately rough.
 
 ## 🔗 Pointer
-→ Current stage folder: `staging/stage-2-authoring/` · Active feature file:
-`staging/stage-2-authoring/feature-bilingual-roundtrip.md`
+→ Current stage folder: `staging/stage-3-generators/` · Active feature file:
+`staging/stage-3-generators/feature-html-walkthrough.md`

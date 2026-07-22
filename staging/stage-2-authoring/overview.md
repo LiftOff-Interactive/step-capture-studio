@@ -8,10 +8,10 @@ step text, writing alt text for every screenshot, and getting the French in. The
 mechanical 80%; this stage is the 20% that makes the output shippable.
 
 ## Features
-- [ ] `feature-step-editor` — dedup detection and inline editing of step text
-- [ ] `feature-alt-text` — required EN + FR alt text per image, gating export
-- [ ] `feature-bilingual-roundtrip` — copy-prompt translation export and paste-back import
-- [ ] `feature-autosave` — `localStorage` draft persistence
+- [x] `feature-step-editor` — dedup detection and inline editing of step text
+- [x] `feature-alt-text` — required EN + FR alt text per image, gating export
+- [x] `feature-bilingual-roundtrip` — copy-prompt translation export and paste-back import
+- [x] `feature-autosave` — `localStorage` draft persistence
 
 ## Definition of done — testable checklist
 - [ ] The real sample reaches a **complete** bilingual model: every step has EN and FR text, every
@@ -31,3 +31,12 @@ This stage is where the manual burden lives — roughly 20+ hand-entered fields 
 once alt text and French are counted. That number is the reason autosave was pulled into v1, and it
 is the number to watch: if authoring the sample takes more than about 15 minutes, the design needs
 rethinking before Stage 3 builds on top of it.
+
+
+## Status - 2026-07-21
+All four features are built and `awaiting verification`. 129/129 tests; axe clean in both languages
+across every editor state. What remains is verification a machine cannot do: a screen-reader pass
+(`help.md` item 6) and a human actually looking at the interface.
+
+The stage's own warning - "if authoring the sample takes more than about 15 minutes, the design needs
+rethinking" - has not been measured. Nobody has authored a capture end to end at human speed.

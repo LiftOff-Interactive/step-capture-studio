@@ -35,6 +35,15 @@
         </p>
       </div>
 
+      <!-- Shown on load when a saved draft is waiting for its file. -->
+      <section id="draft-pending" class="panel panel--warn" hidden aria-labelledby="draft-heading">
+        <h2 id="draft-heading" class="visually-hidden" data-i18n="draft.discard">Saved draft</h2>
+        <p id="draft-pending-text"></p>
+        <button type="button" id="discard-draft" class="button button--quiet" data-i18n="draft.discard">
+          Discard saved draft
+        </button>
+      </section>
+
       <section id="loader" aria-labelledby="loader-heading" class="panel">
         <h2 id="loader-heading" data-i18n="load.heading">Load a capture</h2>
 
@@ -58,9 +67,13 @@
           need to interrupt. Errors get their own role="alert" region below,
           which is the pattern screen readers handle most predictably.
         -->
-        <p id="status" class="status" role="status" aria-live="polite" data-i18n="status.empty">
-          No capture loaded yet.
-        </p>
+        <!--
+          NO data-i18n here, deliberately. applyStaticStrings rewrites every
+          data-i18n element on each render, which silently wiped announcements
+          made just before one. The initial text is set from JS instead, and
+          re-translated explicitly on a language change.
+        -->
+        <p id="status" class="status" role="status" aria-live="polite"></p>
       </section>
 
       <section id="error" class="panel panel--error" hidden aria-labelledby="error-heading">
@@ -149,6 +162,12 @@
           <button type="button" id="undo" class="button button--quiet" hidden data-i18n="editor.undo">
             Undo
           </button>
+          <!--
+            Save state in text, not an icon: an icon alone conveys nothing to a
+            screen reader and little to anyone else. Polite, because it changes
+            on a timer and must never interrupt typing.
+          -->
+          <p id="save-state" class="hint" role="status" aria-live="polite"></p>
         </div>
 
         <ol id="steps-list" class="steps"></ol>

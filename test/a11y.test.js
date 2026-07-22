@@ -268,6 +268,27 @@ test('heading hierarchy has exactly one h1 and no skipped levels', async () => {
   dom.window.close()
 })
 
+test('live regions are never display:none, even when empty', async () => {
+  // Regression test. `.status:empty { display: none }` removed the region from
+  // the accessibility tree whenever it had no text — and a live region that
+  // re-enters the tree at the same moment it gains content is not announced.
+  // Every message following an empty state would have been silent.
+  const dom = await makeDom()
+  const { document, getComputedStyle } = dom.window
+
+  for (const id of ['status', 'save-state']) {
+    const el = document.getElementById(id)
+    assert.ok(el, `#${id} exists`)
+    assert.equal(el.textContent.trim(), '', 'starts empty, which is the risky case')
+    assert.notEqual(
+      getComputedStyle(el).display,
+      'none',
+      `#${id} must stay in the accessibility tree while empty`
+    )
+  }
+  dom.window.close()
+})
+
 test('status is a polite live region and errors are a separate alert', async () => {
   const dom = await makeDom()
   const { document } = dom.window

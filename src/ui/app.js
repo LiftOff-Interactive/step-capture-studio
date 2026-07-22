@@ -14,7 +14,7 @@
 
 import { parseSnagitDocx } from '../lib/parse-snagit.js'
 import { DocxError } from '../lib/docx.js'
-import { t, LANGUAGES } from '../lib/i18n.js'
+import { t, LANGUAGES, LOCALES } from '../lib/i18n.js'
 import {
   setStepText,
   setAltText,
@@ -31,6 +31,7 @@ import {
   applyTranslation,
   TranslationError,
 } from '../lib/translate.js'
+import { saveDraft, loadDraft, clearDraft, rehydrate, DraftError } from '../lib/draft.js'
 import { applyStaticStrings, buildMeta, buildWarnings } from './render.js'
 import { buildEditableSteps, buildBlockerList, readinessSummaryText, fieldId } from './editor.js'
 
@@ -58,6 +59,10 @@ const els = {
   seedAlt: document.getElementById('seed-alt'),
   undo: document.getElementById('undo'),
   langToggle: document.getElementById('lang-toggle'),
+  draftPending: document.getElementById('draft-pending'),
+  draftPendingText: document.getElementById('draft-pending-text'),
+  discardDraft: document.getElementById('discard-draft'),
+  saveState: document.getElementById('save-state'),
 }
 
 const state = {
@@ -79,6 +84,22 @@ const state = {
 
 // --------------------------------------------------------------- helpers ---
 
+/** Pending draft found at startup, waiting for its file to be re-dropped. */
+let pendingDraft = null
+let saveTimer = null
+
+const formatWhen = (iso) => {
+  try {
+    return new Date(iso).toLocaleString(LOCALES[state.lang] ?? state.lang, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
+  } catch {
+    return iso
+  }
+}
+
+
 const show = (el) => {
   el.hidden = false
 }
@@ -86,14 +107,27 @@ const hide = (el) => {
   el.hidden = true
 }
 
+/**
+ * The status region has no data-i18n, so its key is tracked here — otherwise a
+ * language change would leave the last message stranded in the old language.
+ */
+let currentStatus = { key: 'status.empty', vars: undefined }
+
 function setStatus(key, vars) {
+  currentStatus = { key, vars }
   els.status.textContent = t(key, state.lang, vars)
 }
 
 function announce(key, vars) {
+  currentStatus = { key, vars }
   // Re-assigning identical text does not re-announce, so clear first.
   els.status.textContent = ''
   els.status.textContent = t(key, state.lang, vars)
+}
+
+/** Re-render the status in the current language, without re-announcing. */
+function retranslateStatus() {
+  els.status.textContent = t(currentStatus.key, state.lang, currentStatus.vars)
 }
 
 function releaseObjectUrls() {
@@ -172,10 +206,16 @@ function renderAll({ announceReadiness = true } = {}) {
     els.errorDetail.textContent = errorMessage(state.lastError.code, state.lastError.vars)
   }
 
-  if (!state.capture) {
-    setStatus('status.empty')
-    return
+  retranslateStatus()
+
+  // Also generated rather than data-i18n markup, so it needs the same treatment.
+  if (pendingDraft) {
+    els.draftPendingText.textContent = t('draft.pending', state.lang, {
+      when: formatWhen(pendingDraft.savedAt),
+    })
   }
+
+  if (!state.capture) return
 
   els.captureMeta.replaceChildren(...buildMeta(document, state.capture, state.lang))
 
@@ -263,12 +303,14 @@ function clearError() {
 function commit(next) {
   state.history.push(state.capture)
   state.capture = next
+  scheduleSave()
 }
 
 /** Field edits: update the model, refresh readiness, do NOT re-render. */
 function editInPlace(next) {
   state.capture = next
   renderReadiness()
+  scheduleSave()
 }
 
 const handlers = {
@@ -352,15 +394,43 @@ async function loadFile(file) {
 
   try {
     const bytes = new Uint8Array(await file.arrayBuffer())
-    state.capture = await parseSnagitDocx(bytes)
+    const fresh = await parseSnagitDocx(bytes)
+
+    // A draft holds no screenshots, so this drop is what brings them back.
+    // Rehydrating is refused unless the file is demonstrably the same
+    // recording — restoring onto the wrong images would be silent and wrong.
+    let restored = null
+    if (pendingDraft) {
+      try {
+        restored = rehydrate(pendingDraft, fresh)
+      } catch (error) {
+        if (!(error instanceof DraftError)) throw error
+        // Keep the draft: this may simply be the wrong file, and discarding
+        // someone's work because they dropped the wrong thing is unforgivable.
+        announce('draft.mismatch')
+      }
+    }
+
+    state.capture = restored ? restored.capture : fresh
     state.history = []
     // A new capture is a new baseline, so its outstanding count is announced.
     state.lastBlockerCount = null
     renderAll()
-    setStatus('status.parsed', {
-      count: state.capture.steps.length,
-      title: state.capture.title || t('capture.untitled', state.lang),
-    })
+
+    if (restored) {
+      pendingDraft = null
+      hide(els.draftPending)
+      announce('draft.restored', {
+        steps: state.capture.steps.length,
+        images: restored.restoredImages,
+      })
+    } else if (!pendingDraft) {
+      setStatus('status.parsed', {
+        count: state.capture.steps.length,
+        title: state.capture.title || t('capture.untitled', state.lang),
+      })
+    }
+    scheduleSave()
   } catch (error) {
     state.capture = null
     if (error instanceof DocxError) {
@@ -408,9 +478,70 @@ els.undo.addEventListener('click', () => {
   if (!state.history.length) return
   state.capture = state.history.pop()
   rerenderSteps()
+  // Undo changes the document, so the draft must follow it back.
+  scheduleSave()
   announce('editor.undone')
   if (els.undo.hidden) els.seedAlt.focus()
 })
+
+// ----------------------------------------------------------------- draft ---
+
+/**
+ * Persist after a short idle gap.
+ *
+ * Writing on every keystroke would thrash storage and make typing feel
+ * sluggish, so edits coalesce. A failure is reported in text — silently losing
+ * autosave is worse than not offering it, because the author stops being
+ * careful once they believe their work is safe.
+ */
+function scheduleSave() {
+  if (!state.capture) return
+  // A draft is still waiting to be reunited with its file. Saving now would
+  // overwrite work the author has not recovered yet — which is exactly the
+  // thing autosave exists to prevent. Saving resumes once the draft is either
+  // restored or deliberately discarded.
+  if (pendingDraft) return
+  clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => {
+    try {
+      const { savedAt } = saveDraft(localStorage, state.capture)
+      els.saveState.textContent = t('draft.saved', state.lang, { when: formatWhen(savedAt) })
+    } catch (error) {
+      els.saveState.textContent = t('draft.notSaved', state.lang)
+      if (error instanceof DraftError) showError(error.code)
+    }
+  }, 800)
+}
+
+function discardPendingDraft() {
+  clearDraft(localStorage)
+  pendingDraft = null
+  hide(els.draftPending)
+  els.saveState.textContent = ''
+  announce('draft.discarded')
+}
+
+/** At startup, look for work left behind by a previous session. */
+function checkForPendingDraft() {
+  try {
+    pendingDraft = loadDraft(localStorage)
+  } catch (error) {
+    // An unreadable or outdated draft is discarded, with an explanation —
+    // never loaded into a shape the code no longer expects.
+    clearDraft(localStorage)
+    pendingDraft = null
+    if (error instanceof DraftError) showError(error.code)
+    return
+  }
+
+  if (!pendingDraft) return
+  els.draftPendingText.textContent = t('draft.pending', state.lang, {
+    when: formatWhen(pendingDraft.savedAt),
+  })
+  show(els.draftPending)
+}
+
+els.discardDraft.addEventListener('click', discardPendingDraft)
 
 // ------------------------------------------------------------ translation ---
 
@@ -506,3 +637,4 @@ if (typeof DecompressionStream === 'undefined') {
 
 applyStaticStrings(document, state.lang)
 setStatus('status.empty')
+checkForPendingDraft()
