@@ -49,7 +49,8 @@ any architecture involving a server is disqualified.
 - Per-image alt text, required before export
 - Step dedup and inline editing of step text
 - Copy-prompt export for case-study narrative and for FR translation
-- `localStorage` autosave of in-progress work
+- Portable project file: export the whole capture to one `.html`, import it back
+  (replaced `localStorage` autosave, 2026-07-22 — see `docs/decisions.md`)
 - Live on GitHub Pages with a synthetic demo capture
 
 **Explicitly out (v1):**

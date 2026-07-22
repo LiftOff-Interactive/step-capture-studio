@@ -92,6 +92,37 @@ inside the rebuilt container, are each caught. Control case clean.
 seeded values" bulk action is still not built. No screen-reader pass yet (`help.md` item 6). Nobody
 has visually looked at the editor.
 
+### 2026-07-22 — Confirmation moved from per-image-per-language to one control per step
+
+On the author's request, the scattered confirm boxes became **one checkbox per step**. A bilingual
+step with one screenshot previously carried three checkboxes; it now carries one verification
+control plus the decorative setting.
+
+**This is the "confirm all seeded values" bulk action** listed as unbuilt in the criteria above,
+at per-step granularity. That criterion specified it must be *deliberately friction-ful*. The
+friction is now disclosure rather than a second click: the control states exactly what ticking it
+asserts — every image in the step, in each language, plus any drafted explanation.
+
+**The gate was not weakened.** Empty alt text still cannot be confirmed: the model refuses it, so
+`verifyStep` skips those items and the checkbox stays unticked and disabled with an explanation.
+Confirming remains an act the author performs, not a default.
+
+**Its state is derived from the model on every render, never stored.** That is a direct response to
+the defect recorded below — *the confirm checkbox lied*. A stored "step verified" flag would have
+reintroduced it exactly. Editing any alt field in a step unticks that step and only that step,
+proven by a mutation test: forcing the box to keep its own state fails two tests.
+
+**A bug this introduced, found only by driving the real UI.** The checkbox is disabled while alt
+text is empty, but `onAlt` deliberately does not re-render (re-rendering would yank focus out of
+the field being typed in) — so filling in the last empty field left the box permanently
+unclickable. `syncStepVerification` now updates `checked`, `disabled` and the hint together.
+**The suite passed 233/233 both before and after that fix**: it exercises the builder in isolation
+and never the live sync, which is the coverage gap to remember here.
+
+Also fixed: confirming used to remove the control that had just been clicked, so focus fell through
+to a button above the whole list and the page appeared to jump to the top. Focus now returns to the
+originating step — measured, the control holds its exact viewport position.
+
 ## Open Questions
 - Is step text a good enough alt-text seed? `Click "Open in Word"` describes the *action*, not the
   *image*. Better seeding might be `Screenshot showing the Open in Word button` — worth testing which

@@ -72,6 +72,29 @@ never multiplied into a second language.
 artifact. Plural forms are wrong in generated counts ("1 items", "1 were returned") - see Open
 Questions.
 
+### 2026-07-22 — Print sizing, bilingual chrome, and alt text pinned to English
+
+**Printing verified by the author:** screenshots appear. But images printed at full page width,
+so each step's explanation was orphaned onto the next page — the one thing a case study cannot do,
+since the whole artifact exists to keep a screenshot next to the reason for it. Print now caps
+images at 4.6in × 3.2in with `break-inside: avoid` on the figure. Measured in a real browser: a
+screenshot went from 736px wide (overflowing a ~624px text column) to 441 × 251px, **29% of a page
+instead of 100%**.
+
+**Chrome was English in French mode** — "Case study" and "About this procedure" — same
+`languages[0]` root cause as the other two artifacts. Fixed via `langLabel()`. Verified live:
+`Case study → Étude de cas`, `About this procedure → À propos de cette procédure`,
+`Step 1 of 6 → Étape 1 sur 6`.
+
+**A WCAG defect the print check could not have shown:** alt text was pinned to `languages[0]`, so
+in French every image went on describing itself in English. The walkthrough already solved this
+with `data-alt-*` and an `artifact:langchange` listener; the case study never did. It now uses the
+same mechanism. axe cannot catch this — it checks that alt text *exists*, not what language it is
+in — so it is pinned by a bespoke assertion, mutation-tested.
+
+**Naming:** `<title>` is now `TestingWindowsAudio_CaseStudy`, matching the download filename. The
+visible `<h1>` still reads as prose; only `<title>` carries the file name.
+
 ## Open Questions
 - ~~How strongly should unreviewed AI content be marked in the exported artifact?~~ **RESOLVED** - it
   is never in the artifact, because export is blocked until reviewed.

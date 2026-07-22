@@ -1,5 +1,29 @@
 # Feature: autosave
-_Stage: stage-2-authoring · Status: awaiting verification_
+_Stage: stage-2-authoring · Status: **REMOVED 2026-07-22** — superseded by `feature-project-file`_
+
+## ⚠️ This feature was built, worked, and was then deliberately deleted
+
+Autosave shipped and did its job: it was observed restoring a session across a page reload during
+the 2026-07-22 working session. It was removed on the author's explicit instruction, after the
+portable project file gave the tool an alternative way to preserve work.
+
+**The two were not equivalent, and the difference was stated before the decision was made:**
+autosave was *crash recovery* — automatic, requiring nothing of the author. The project file is
+*portability* — explicit, requiring the author to remember to export. Closing the tab without
+exporting now loses the session, with no warning and no recovery.
+
+The author was told this plainly and chose it anyway; that is their call to make. It is recorded
+here so that a future session finds the reasoning rather than assuming autosave was never built,
+and so the cost is visible if the decision is ever revisited.
+
+**What was deleted:** `src/lib/draft.js`, `test/draft.test.js`, the draft-pending and save-state UI,
+the `draft.*` and storage-error strings, and `capture.fingerprint` in `parse-snagit.js` (which
+existed only to reunite a draft with its source recording). All recoverable from git history at
+`bcb68fa` if the decision is reversed.
+
+---
+
+_Original record below, unchanged._
 
 ## Goal
 Make authoring safe to do in more than one sitting. A 10-step capture needs 20+ hand-entered fields

@@ -131,6 +131,65 @@ for fr-CA). A regression test in `test/emit-docx.test.js` asserts the element is
 someone else's parser, the parser is the specification — and a silent discard looks exactly like
 success until something downstream is missing.
 
+## 2026-07-22 — Omitting `word/settings.xml` to keep the package minimal
+**Why it failed:** the package deliberately shipped only the parts "genuinely required", on the
+reasoning that every part omitted is one that cannot be got subtly wrong. But Word infers the format
+era from `compatibilityMode` in `settings.xml`, and with the part **absent** it assumes the 2007 era
+and opens the document in **Compatibility Mode**. One of the functions Word limits in that mode is
+the **Accessibility Checker**, which it disables outright. So the export could not satisfy its own
+accessibility criterion by any amount of human care — the checker could not be run on our file at
+all, only on a converted copy of it. Every structural test passed throughout. ·
+**How it was found:** by a human trying to run the checker and reporting the message they had to
+click through — *"This document is in an older format with limited functionality."* The prompt was
+treated as noise on the way to the real task; it **was** the finding. Confirmed by
+`Document.CompatibilityMode` over COM, which reports 12/14 for compatibility mode and 15 for
+Word 2013+. ·
+**Do instead:** emit `word/settings.xml` with `compatibilityMode` = 15, plus its content-type
+override and a relationship from `document.xml` — a part that is present but unreferenced is inert.
+Pinned by a regression test that asserts all three. ·
+**Wider lesson:** the sibling of the `dc:language` defect above, and the more dangerous direction.
+There, a part we *added* was silently discarded. Here, a part we *omitted* silently changed how the
+consumer interpreted everything else. **Minimalism is not neutral: absence is an input.** Ask not
+only "can this part be malformed?" but "what does the consumer assume when it is missing?"
+**And when a human reports friction on the way to a verification, that friction is data** — the
+result obtained after clicking through a conversion prompt is a result about a different file.
+
+## 2026-07-22 — Rendering artifact chrome with `t(key, languages[0])`
+**Why it failed:** the emitters rendered step text per language through `langBlock`, but headings,
+button labels and the metadata line were resolved **once** against `languages[0]`. Toggling to
+French swapped the content and left every label in English. The French translations were present in
+`i18n.js` the whole time — they were simply being asked for in the wrong language, so nothing looked
+missing from either the dictionary or the tests. The case study had the same bug in a worse place:
+`altFor(image, primary)` meant every image described itself in English in French mode — a WCAG 1.1.1
+failure that axe cannot catch, because axe checks that alt text *exists*, not what language it is
+in. Printing cannot reveal it either. ·
+**How it was found:** by the author reading the French output and listing six "still in English"
+items across three artifacts — which turned out to be one bug, not six. ·
+**Do instead:** use `langLabel()` from `emit-common.js` for every user-facing string in an emitter.
+It renders real `lang-block`s, so chrome swaps with the toggle and both languages still show with
+JavaScript disabled. Pinned by per-heading symmetry assertions; note that *content* is legitimately
+asymmetric (an unwritten French explanation is omitted, not blanked), so symmetry is asserted on
+chrome only. ·
+**Wider lesson:** a bilingual document is not proven by the presence of both languages somewhere in
+it. The tests counted lang-blocks and found them; they never asked whether the *labels* were among
+them.
+
+## 2026-07-22 — A control whose `disabled` state only updates on re-render
+**Why it failed:** the new per-step verification checkbox is disabled while any alt text in the step
+is empty, because the model refuses to confirm empty alt text and offering the control would be
+offering something that silently does nothing. But `onAlt` deliberately does **not** re-render —
+re-rendering would pull focus out of the field being typed in. So filling in the last empty alt
+field left the checkbox disabled forever, and the step could never be verified. ·
+**How it was found:** only by driving the real app and clicking the thing. **The suite passed
+233/233 both before and after the fix** — it builds the editor in isolation and asserts on the
+returned nodes, so it never exercises the in-place sync that `app.js` performs between renders. ·
+**Do instead:** when a control is updated in place rather than rebuilt, sync *every* property that
+depends on the model — `checked`, `disabled`, and any describing text — in one function
+(`syncStepVerification`), not just the one that prompted the fix. ·
+**Wider lesson:** "we chose not to re-render here" is a decision that has to be paid for at every
+property, not just the obvious one. And an isolated builder test can be fully green while the live
+UI is unusable — the same gap that `feature-app-shell.md` and the print checks keep re-teaching.
+
 ## 2026-07-22 — Driving Word by COM without process hygiene
 **Why it failed:** a PowerShell script that errored mid-way left an invisible WINWORD process holding
 a document open. Every subsequent `Documents.Open` blocked forever, and two 120-second tool timeouts

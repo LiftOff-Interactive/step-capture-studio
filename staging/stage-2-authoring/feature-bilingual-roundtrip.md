@@ -68,6 +68,34 @@ third language proving nothing assumes en→fr.
 panel. The prompt has never been run through a real assistant end to end — the French above was
 written by hand, so the *format robustness* against a live chat client is still unproven.
 
+### 2026-07-22 — The guide title joins the round trip
+
+The author reported the title still reading in English in every French artifact. Unlike the six
+other "still in English" items that session, this one was **not a bug** — it was a model gap.
+`capture.title` was a single string parsed from the source document: no French title existed
+anywhere, there was no field to type one into, and it was not in the prompt.
+
+**Decided (help.md 9): both an editable field and the round trip.** `capture.title` is now
+`{en, fr}` like every other localized field.
+
+- `collectTranslatable` emits it **first**, under the id `title`, so it is easy to spot in a reply.
+- `applyTranslation` writes it to the target language only; the source title is never touched.
+- A capture with no title simply offers nothing — everything else still translates.
+- The prompt explains the id, so the assistant knows it is a guide title rather than a step.
+
+**Verified in a real browser, end to end:** field prefilled from the source document in that
+language only → prompt carries `title ||| Testing Windows Audio` as its first line → pasted reply
+applied 13 items → the French field filled in → the emitted artifact carried both titles, swapping
+with the toggle.
+
+**A bug found on the way, and the same one as last time.** Applying a translation re-rendered the
+step list but not the title fields, which live outside it — so the field kept showing an empty
+French title while the model held the translated one, and typing into that stale field would have
+silently overwritten what had just arrived. `renderTitleFields()` is now called after an apply.
+**The suite passed 234/234 both before and after that fix**, exactly as it did for the checkbox
+sync defect. Anything rendered outside `rerenderSteps` needs its own refresh, and no test currently
+covers that seam.
+
 ## Open Questions
 - What return format survives copy-paste from a chat UI most reliably? Fenced JSON is
   machine-parseable but chat clients sometimes reformat it; a delimited `id ||| text` line format is

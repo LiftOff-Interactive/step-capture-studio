@@ -104,7 +104,22 @@ be skipped under deadline pressure, which is exactly when it matters). ·
 **Revisit if:** authors find the gate so onerous they stop using the tool — but soften the UX, not
 the requirement.
 
-## 2026-07-21 — `localStorage` autosave added to v1
+## 2026-07-22 — Autosave removed in favour of a portable project file
+**Chose:** Delete `localStorage` autosave. Work is preserved by explicitly exporting a
+self-contained `.html` project file and importing it back. ·
+**Because:** the author asked for it, wanting one mechanism rather than two. The project file does
+things autosave never could: it survives a different machine, can be hand-edited in a text editor,
+and carries the screenshots (autosave stored text only and needed the original `.docx` re-dropped). ·
+**Cost, stated before the decision and accepted:** autosave was *crash recovery* and required
+nothing of the author; the project file is *portability* and requires remembering to export.
+Closing the tab without exporting now loses the session with no warning. The two solve different
+problems and only one of them is now solved. ·
+**Reversible:** everything removed is in git at `bcb68fa`, and
+`staging/stage-2-authoring/feature-autosave.md` records exactly what went. If the loss bites, the
+cheaper mitigation is a `beforeunload` prompt rather than restoring the whole feature. ·
+**Supersedes the entry below.**
+
+## 2026-07-21 — `localStorage` autosave added to v1 — SUPERSEDED 2026-07-22
 **Chose:** In-progress work persists to `localStorage` automatically. ·
 **Because:** Authoring a 10-step capture means 20+ hand-entered fields once alt text and French are
 counted. Losing that to an accidental refresh would make the authoring stage hostile to use. Still

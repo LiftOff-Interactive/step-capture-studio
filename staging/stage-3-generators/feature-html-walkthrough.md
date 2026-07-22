@@ -65,6 +65,21 @@ Both are in `docs/failed-approaches.md`. Regression tests were added for each.
 screen-reader pass. The rail's independent scrolling on long captures (an open question below) has
 not been tried with a capture long enough to need it.
 
+### 2026-07-22 — Chrome was never bilingual; print confirmed
+
+**Printing verified by the author:** screenshots appear in print. The `loading="lazy"` class of
+failure — blank images on paper, invisible on screen — is retired by observation, not by argument.
+
+**Defect found by the same pass:** the rail heading and the Previous/Next buttons stayed English in
+French mode. Same root cause as the other two artifacts — chrome resolved once against
+`languages[0]` while content was correctly per-language. Fixed via `langLabel()`.
+
+Verified in a real browser: `Steps → Étapes`, `Previous step → Étape précédente`,
+`Next step → Étape suivante`, progress `Step 1 of 6 → Étape 1 sur 6`, and image alt text
+`Screenshot showing: … → Capture d'écran 1`. Round-trips back to English cleanly.
+
+**Naming:** `<title>` is now `TestingWindowsAudio_Walkthrough`, matching the download filename.
+
 ## Open Questions
 - Does the rail need to scroll independently for long captures, and does that create a keyboard trap?
   The rail is `position: sticky` with `overflow-y: auto` above 60rem, but 10 steps never exercise it.

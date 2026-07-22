@@ -53,6 +53,25 @@ explicable - a button that vanishes tells the author nothing.
 **Still outstanding:** printing has not been tested - the one-page claim is a design intent, not yet
 evidence. Nobody has visually looked at the artifact. No screen-reader pass.
 
+### 2026-07-22 — Chrome was never bilingual; print confirmed
+
+**Printing verified by the author:** fits one page, nothing clipped. The defining criterion of this
+artifact, confirmed on paper rather than inferred.
+
+**Defect found by the same pass — the heading and metadata line were English in French mode.**
+Step text was rendered per language, but chrome resolved once against `languages[0]`. The French
+translations existed the whole time; they were being asked for in the wrong language. Fixed by
+`langLabel()` in `emit-common.js`, which renders chrome as real `lang-block`s so it swaps with the
+toggle and still shows both languages with JavaScript off.
+
+Verified in a real browser (Chromium, served over HTTP so the toggle actually runs):
+`Steps → Étapes`, `6 steps → 6 étapes`, toggle label `Français → English`, root `lang → fr-CA`,
+and the whole thing round-trips back to English.
+
+**Naming:** `<title>` is now `TestingWindowsAudio_QuickStep`, matching the download filename.
+Browsers derive the print header and the "Save as PDF" name from `<title>`, not from the downloaded
+filename — deriving both from one `artifactName()` is what stops them drifting apart.
+
 ## Open Questions
 - Should screenshots be available as an opt-in? A thumbnail rail might help without breaking the
   one-page goal — decide with a real user, not in advance.

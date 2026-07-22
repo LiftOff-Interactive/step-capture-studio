@@ -14,7 +14,10 @@ malformed makes Word offer to "repair" the file — which a user reads as corrup
 - [x] The document has a title in its core properties.
 - [x] One file per language; the filename says which.
 - [x] Zero runtime dependencies — `CompressionStream` + hand-written ZIP.
-- [ ] Passes **Word's own Accessibility Checker** with zero errors. — *not run; see below.*
+- [x] Word opens the file as a **modern document, not in Compatibility Mode** — the precondition
+      for the checker existing at all. `CompatibilityMode=15`, verified via COM 2026-07-22.
+- [ ] Passes **Word's own Accessibility Checker** with zero errors. — *still not run. The first
+      attempt was invalid; see the 2026-07-22 compatibility-mode entry below.*
 
 ## How We'll Verify
 1. `npm test` — round-trip the emitted package through this project's own `docx.js` reader, proving
@@ -60,6 +63,38 @@ Accessibility, confirm zero errors. Everything the checker looks for has been ve
 (title, alt text, real heading styles, language), but "each ingredient is present" is not the same
 as "the checker passes", and this project does not treat those as equivalent.
 
+### 2026-07-22 — Compatibility Mode: the checker was never reachable
+
+**The human attempt at criterion 8 came back "no accessibility errors" — and it did not count.**
+Word had required the document to be **converted** first, reporting: *"This document is in an older
+format with limited functionality. Consider converting this file to a modern format to enable the
+Accessibility Checker."* The checker therefore graded Word's converted derivative, not our output.
+Under this project's rule that the consumer is the spec, that is evidence about a different file.
+
+**Root cause: no `word/settings.xml`.** Word infers the format era from `compatibilityMode` in that
+part. Absent, it assumes the 2007 era and opens in Compatibility Mode — and one of the functions it
+limits is the Accessibility Checker, which it disables outright. So the export could never have
+satisfied its own accessibility criterion: **no human could have passed it, however careful.** The
+criterion was unreachable by construction, and eight months of green structural tests said nothing.
+
+This was recorded as a *deliberate* decision in Notes & Decisions below — "every part omitted is one
+that cannot be got subtly wrong." That reasoning was exactly backwards for this part. Corrected.
+
+**Fixed and verified against Word 16.0 via COM:**
+- `CompatibilityMode` = **15** (Word 2013+) in both EN and FR, was Compatibility Mode before.
+- Both still open with **no repair prompt**; 20 paragraphs, 6 inline shapes.
+- **6/6 images carry alt text**; **6 real `Heading` paragraphs**.
+- Language reported **4105** (en-CA) and **3084** (fr-CA).
+- `Title` = "Testing Windows Audio", `Author` = "Training Tester" — core properties still survive,
+  so the `dc:language` fix has not regressed now that a sibling part sits beside it.
+
+Pinned by `settings.xml declares compatibility mode 15, or Word disables the checker`, which also
+asserts the content-type override and the relationship — a part that is present but unreferenced is
+inert. Mutation-tested: removing the part fails the suite.
+
+**Criterion 8 remains unticked.** Making the checker reachable is not the same as passing it. It
+needs a re-run on a freshly exported file — back in `help.md` as item 3b.
+
 ## Open Questions
 - Should the `.docx` mirror the case study (narrative included) or the walkthrough (steps only)?
   Currently it includes authored narrative when present, and omits unreviewed drafts — consistent
@@ -68,6 +103,11 @@ as "the checker passes", and this project does not treat those as equivalent.
   round-tripped file will not look byte-identical to ours. Only matters if anyone diffs them.
 
 ## Notes & Decisions
-No `docProps/custom.xml`, no `settings.xml`, no `theme1.xml`, no `fontTable.xml`. Word adds all of
-them on save; omitting them keeps the package to the parts that are genuinely required, and every
-part omitted is one that cannot be got subtly wrong.
+No `docProps/custom.xml`, no `theme1.xml`, no `fontTable.xml`. Word adds all of them on save;
+omitting them keeps the package to the parts that are genuinely required.
+
+**`settings.xml` used to be on that list, and that was wrong** — see the 2026-07-22 entry. The
+principle "every part omitted is one that cannot be got subtly wrong" has a limit: a part can also
+be *load-bearing by its absence*. Omitting `settings.xml` silently put the document in
+Compatibility Mode and disabled the Accessibility Checker. When deciding to omit a part, the
+question is not only "can this be malformed?" but "what does Word assume when it is missing?"
