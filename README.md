@@ -56,3 +56,9 @@ a pre-commit hook enforces this, and it exists for a reason.
 ## Licence
 
 [MIT](LICENSE) © 2026 Mike Bubyn.
+
+<!--
+`.nojekyll` disables GitHub Pages' Jekyll processing. This is a plain static
+site with no build step; Jekyll would otherwise ignore any path beginning with
+an underscore and was erroring on the legacy Pages builder.
+-->
