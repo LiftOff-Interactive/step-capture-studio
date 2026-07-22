@@ -97,3 +97,19 @@ was silently overwritten with "No capture loaded yet." The draft-mismatch warnin
 `{key, vars}` and re-translate it explicitly on a language change. Generated text — errors, the
 draft banner, the status — all need this; if it is not in the DOM with `data-i18n`, something must
 re-render it deliberately.
+
+## 2026-07-21 — `loading="lazy"` on inlined screenshots
+**Why it failed:** the walkthrough's images are data URIs, already present in the file, so deferring
+them buys nothing — there is no network request to save. But a lazy image that is never scrolled
+into view can print blank, and stayed undecoded entirely while its step was hidden by the viewer.
+Caught only because a browser check reported `imagesDecoded: 0` against 10 inlined images. ·
+**Do instead:** never lazy-load inlined images. `loading="lazy"` is a network optimisation; applying
+it where there is no network trades a real risk for no benefit.
+
+## 2026-07-21 — Unguarded `history.replaceState` in a click handler
+**Why it failed:** the walkthrough's rail links update the fragment so a step can be linked to. In a
+context with an opaque URL — an `about:srcdoc` iframe, some sandboxes — `replaceState` throws, and
+because the call sat before the navigation it took the whole handler with it. The rail silently
+stopped working: clicks did nothing at all. ·
+**Do instead:** guard optional side effects so they cannot take the feature down with them. Keeping
+the URL in sync is a nicety; changing the step is the feature, and it must happen either way.

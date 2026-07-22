@@ -13,8 +13,9 @@ emitter foundation the quick-steps guide just proved.
 - Verified in-browser end to end: edit → seed → confirm → merge → translate → reload → re-drop →
   draft restored with images reattached. Wrong file refused, draft preserved byte for byte.
 - Drafts are text-only (**3.3 KB** vs 843 KB of screenshots); images return on re-drop.
-- **Stage 3 started:** `feature-quick-steps` built + the shared emitter foundation. **145/145 tests.**
-  Emitted artifact verified in-browser: 7.7 KB, axe clean with contrast, toggle works standalone.
+- **Stage 3: two of three artifacts built.** quick-steps (7.7 KB) and the HTML walkthrough
+  (1.09 MB, 10/10 screenshots decoding). **167/167 tests.** Both axe clean with contrast, in both
+  languages, and both readable with JavaScript disabled.
 
 ## 📂 Files I'm Working On
 - `src/lib/draft.js` — persistence + fingerprint · `src/lib/translate.js` — the round trip.
@@ -22,6 +23,7 @@ emitter foundation the quick-steps guide just proved.
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` item 7).
 
 ## ✅ Things I've Changed
+- 2026-07-21 — HTML walkthrough: one DOM serving both a plain guide and a two-pane viewer.
 - 2026-07-21 — Quick-steps artifact + shared emitter foundation + the export gate.
 - 2026-07-21 — Autosave: text-only drafts, re-drop to restore screenshots.
 - 2026-07-21 — Bilingual round trip: copy-prompt out, strict paste-back in.
@@ -41,9 +43,10 @@ emitter foundation the quick-steps guide just proved.
 1. Run `npm start`, look at the app, and time authoring one capture end to end — Stage 2's own
    done-criteria include a 15-minute budget nobody has measured.
 2. Screen-reader pass if NVDA/Narrator is available (`help.md` item 6).
-3. `feature-html-walkthrough` — the headline artifact. Then `feature-case-study`.
-4. Printing is untested for any artifact; the quick-steps one-page claim is intent, not evidence.
+3. `feature-case-study` — the last artifact. Its skeleton needs the copy-prompt pattern from
+   `translate.js`, and drafted passages must stay visibly distinguishable from authored ones.
+4. Printing is untested for every artifact — the quick-steps one-page claim is intent, not evidence.
 
 ## 🔗 Pointer
 → Current stage folder: `staging/stage-3-generators/` · Active feature file:
-`staging/stage-3-generators/feature-html-walkthrough.md`
+`staging/stage-3-generators/feature-case-study.md`

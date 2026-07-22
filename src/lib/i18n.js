@@ -109,6 +109,9 @@ const STRINGS = {
 
     'export.heading': 'Before you export',
     'export.downloadQuickSteps': 'Download quick-steps guide',
+    'export.downloadWalkthrough': 'Download HTML walkthrough',
+    'walkthrough.previous': 'Previous step',
+    'walkthrough.next': 'Next step',
     'export.blockedHint': 'Exports unlock once everything above is resolved.',
     'export.downloaded': '{name} downloaded.',
     'error.EXPORT_FAILED': 'The artifact could not be generated: {reason}',
@@ -246,6 +249,9 @@ const STRINGS = {
 
     'export.heading': 'Avant d’exporter',
     'export.downloadQuickSteps': 'Télécharger le guide des étapes rapides',
+    'export.downloadWalkthrough': 'Télécharger le guide interactif HTML',
+    'walkthrough.previous': 'Étape précédente',
+    'walkthrough.next': 'Étape suivante',
     'export.blockedHint': 'Les exportations se débloquent une fois tout ce qui précède réglé.',
     'export.downloaded': '{name} téléchargé.',
     'error.EXPORT_FAILED': 'L’artefact n’a pas pu être généré : {reason}',

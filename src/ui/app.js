@@ -33,6 +33,7 @@ import {
 } from '../lib/translate.js'
 import { saveDraft, loadDraft, clearDraft, rehydrate, DraftError } from '../lib/draft.js'
 import { emitQuickSteps } from '../lib/emit-quick-steps.js'
+import { emitWalkthrough } from '../lib/emit-walkthrough.js'
 import { applyStaticStrings, buildMeta, buildWarnings } from './render.js'
 import { buildEditableSteps, buildBlockerList, readinessSummaryText, fieldId } from './editor.js'
 
@@ -65,6 +66,7 @@ const els = {
   discardDraft: document.getElementById('discard-draft'),
   saveState: document.getElementById('save-state'),
   downloadQuickSteps: document.getElementById('download-quick-steps'),
+  downloadWalkthrough: document.getElementById('download-walkthrough'),
   exportHint: document.getElementById('export-hint'),
 }
 
@@ -196,6 +198,7 @@ function renderReadiness({ announce = true } = {}) {
   // the export is visibly present and its unavailability is discoverable —
   // a button that vanishes tells the author nothing about what to fix.
   els.downloadQuickSteps.disabled = !readiness.ready
+  els.downloadWalkthrough.disabled = !readiness.ready
   els.exportHint.hidden = readiness.ready
 
   show(els.readiness)
@@ -580,17 +583,21 @@ function downloadHtml(html, name) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-els.downloadQuickSteps.addEventListener('click', () => {
+/** Generate one artifact and hand it to the browser, reporting either way. */
+function exportArtifact(emit, suffix) {
   clearError()
-  const name = `${fileSlug(state.capture.title, 'capture')}-quick-steps.html`
+  const name = `${fileSlug(state.capture.title, 'capture')}-${suffix}.html`
   try {
-    downloadHtml(emitQuickSteps(state.capture, { languages: state.capture.languages }), name)
+    downloadHtml(emit(state.capture, { languages: state.capture.languages }), name)
     announce('export.downloaded', { name })
   } catch (error) {
     console.error(error)
     showError('EXPORT_FAILED', { reason: error.message })
   }
-})
+}
+
+els.downloadQuickSteps.addEventListener('click', () => exportArtifact(emitQuickSteps, 'quick-steps'))
+els.downloadWalkthrough.addEventListener('click', () => exportArtifact(emitWalkthrough, 'walkthrough'))
 
 // ------------------------------------------------------------ translation ---
 

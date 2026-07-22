@@ -9,7 +9,7 @@ nothing else, so all three are independent and can be built in any order.
 
 ## Features
 - [x] `feature-quick-steps` — terse cheat sheet for users who know the system
-- [ ] `feature-html-walkthrough` — the two-pane interactive guide (the headline artifact)
+- [x] `feature-html-walkthrough` — the two-pane interactive guide (the headline artifact)
 - [ ] `feature-case-study` — narrative skeleton plus copy-prompt
 
 ## Shared requirements — apply to all three
@@ -51,5 +51,8 @@ The shared machinery now proven by a real artifact: self-contained output with n
 both languages emitted with per-block `lang`, progressive enhancement so the no-JavaScript state is
 bilingual rather than broken, and axe running over the generated document as a document.
 
-Remaining: `feature-html-walkthrough` (the headline artifact) and `feature-case-study`. Printing is
-untested for any artifact, so the one-page claim for quick-steps is intent, not evidence.
+`feature-html-walkthrough` is now built too - the headline artifact, 1.09 MB for the real capture
+with all 10 screenshots inlined and decoding, axe clean in both languages.
+
+Remaining: `feature-case-study`. Printing is untested for every artifact, so the one-page claim for
+quick-steps is intent rather than evidence, and the walkthrough's print stylesheet is unproven.

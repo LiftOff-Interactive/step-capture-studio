@@ -134,6 +134,11 @@ export const LANG_TOGGLE_JS = `
     var next = order[(order.indexOf(code) + 1) % order.length];
     button.textContent = names[next] || next;
     button.setAttribute('aria-label', button.textContent);
+    // Synchronous, explicit contract for artifact scripts that must react —
+    // swapping per-language alt text, for instance. An earlier version observed
+    // the attribute with MutationObserver, which fires a microtask later; that
+    // left the alt text momentarily describing the wrong language.
+    document.dispatchEvent(new CustomEvent('artifact:langchange', { detail: { lang: code } }));
   }
 
   // Only now does the document become monolingual; without this it shows both.
