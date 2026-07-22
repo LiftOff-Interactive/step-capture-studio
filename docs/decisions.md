@@ -176,3 +176,16 @@ rewriting history (would have discarded the whole commit history, and was unnece
 had never been public). ·
 **Revisit if:** a real capture is ever committed by accident — that requires history rewriting and an
 immediate visibility flip, not a follow-up commit.
+
+## 2026-07-21 — Delete and recreate the repo instead of force-pushing the scrubbed history
+**Chose:** After rewriting history with `git-filter-repo`, delete the private repo on GitHub and
+create it fresh as public, then push the clean 8 commits. ·
+**Because:** a force-push does not remove anything from GitHub. The old commits survive as
+unreachable objects and stay fetchable by direct SHA URL until GitHub garbage-collects — on no
+schedule the owner controls. Once the repo went public those objects would have been readable by
+anyone who knew a SHA, defeating the entire scrub. The repo was one day old with no issues, PRs,
+stars or forks, and the full history existed locally plus in two backup bundles. ·
+**Rejected:** force-push (leaves the old objects; purging needs a GitHub Support request); squashing
+to one commit (would have discarded the commit narrative, and the author chose to keep all 8). ·
+**Revisit if:** never — this is the correct order of operations any time history is scrubbed before
+a repo becomes public.

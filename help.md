@@ -19,18 +19,13 @@ assert Crown copyright over this work, the licence line is the thing to revisit 
 Authenticated as **<your-account>**. Repo created at `<your-account>/step-capture-studio`, **private**, both commits
 pushed. Pages not enabled — see item 2b.
 
-### [ ] 2b. Decide how Pages should be exposed when the repo goes public
-**What:** Two things to know before Pages is switched on.
-1. **Pages on a *private* repo requires a paid GitHub plan.** Your token lacks the `user` scope so
-   the plan could not be read. If you are on Free, Pages will only work once the repo is public.
-2. **A Pages site on a private repo can still be publicly reachable.** That is why Pages was left
-   off rather than enabled quietly — it would have contradicted your "private until licensing
-   clears" decision.
-**Why it's needed:** Determines whether the live URL arrives before or after item 1 is resolved.
-**Blocks:** the full `feature-pages-deploy` definition of done. Browser verification of the app
-itself is *not* blocked — that runs against a local static server in the meantime.
+### [x] 2b. ~~Decide how Pages should be exposed~~ — done 2026-07-21
+Repo is **public**, Pages enabled from `main` / root, HTTPS enforced.
+Live at **https://mbubyn.github.io/step-capture-studio/**
 
----
+Before publishing: internal references were sanitised, history rewritten with `git-filter-repo`, and
+the old private repo **deleted and recreated** rather than force-pushed — GitHub retains unreachable
+objects after a force-push, which stay fetchable by SHA once a repo is public.
 
 ## 🟡 Needed soon
 

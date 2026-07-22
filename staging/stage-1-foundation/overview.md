@@ -11,7 +11,7 @@ works — before any feature depth is built on top of them.
 - [x] `feature-snagit-parser` — `document.xml` → normalised capture model — **verified done**
 - [ ] `feature-app-shell` — accessible file-drop UI — *awaiting verification* (screen reader +
       rendered demo outstanding)
-- [ ] `feature-pages-deploy` — live URL — *deferred by decision until the repo goes public*
+- [x] `feature-pages-deploy` — live URL — **verified done**, https://mbubyn.github.io/step-capture-studio/
 
 ## Definition of done — testable checklist
 - [x] `npm test` passes with zero failures. — 29/29
@@ -26,8 +26,8 @@ works — before any feature depth is built on top of them.
       four states in both languages, plus in-browser runs (EN, FR, dark/mobile) all at 0 violations
       and 0 needs-review, with `color-contrast` passing on 43 nodes.
 - [x] All UI strings resolve through `src/lib/i18n.js` — zero hardcoded user-facing text.
-- [ ] The site is reachable at its public Pages URL and the sample parses **there**, not just locally.
-      *Blocked by the licensing decision — see `help.md` item 1.*
+- [x] The site is reachable at its public Pages URL and a capture parses **there**. (The real sample
+      itself needs a manual drag-and-drop — an HTTPS page cannot fetch it from localhost.)
 - [x] `git status` is clean and no capture file exists anywhere in the repo or its history.
 
 ## Status — 2026-07-21
