@@ -52,6 +52,29 @@ const STRINGS = {
     'lang.name.en': 'English',
     'lang.name.fr': 'French',
 
+    'translate.heading': 'Translate',
+    'translate.intro':
+      'This tool never sends your capture anywhere. It builds a prompt you run in your own assistant, then takes the answer back. Confirm your English alt text first — only confirmed text is included.',
+    'translate.copyPrompt': 'Build and copy the prompt',
+    'translate.promptLabel': 'Prompt (select and copy if the button did not work)',
+    'translate.copied': 'Prompt copied. Run it in your assistant, then paste the result below.',
+    'translate.builtNotCopied':
+      'Prompt ready in the box below. Select it and copy manually — the browser blocked automatic copying.',
+    'translate.pasteLabel': 'Paste the translated result here',
+    'translate.apply': 'Apply translation',
+    'translate.applied': '{count} translations applied. Review the French, then confirm each alt text.',
+    'translate.appliedWithMissing':
+      '{count} applied, but {missing} were not returned and are still empty: {ids}',
+
+    'error.EMPTY_RESPONSE': 'Nothing was pasted. Paste the assistant’s reply into the box first.',
+    'error.UNPARSEABLE_RESPONSE':
+      'No translations were found. Each line must look like: s1 ||| translated text',
+    'error.DUPLICATE_IDS': 'The same line id appears more than once: {ids}. Ask for one line per id.',
+    'error.UNKNOWN_IDS':
+      'These ids are not in this capture: {ids}. Nothing was applied — the reply may belong to a different capture.',
+    'error.NOTHING_TO_TRANSLATE':
+      'There is nothing to translate yet. Add step text, or confirm some alt text first.',
+
     'editor.heading': 'Edit steps',
     'editor.intro':
       'Snagit writes step text automatically, so it often repeats itself and never includes alt text. Fix both here before exporting.',
@@ -140,6 +163,34 @@ const STRINGS = {
 
     'lang.name.en': 'anglais',
     'lang.name.fr': 'français',
+
+    'translate.heading': 'Traduire',
+    'translate.intro':
+      'Cet outil n’envoie jamais votre capture ailleurs. Il crée une consigne que vous exécutez dans votre propre assistant, puis récupère la réponse. Confirmez d’abord le texte de remplacement en anglais : seul le texte confirmé est inclus.',
+    'translate.copyPrompt': 'Créer et copier la consigne',
+    'translate.promptLabel':
+      'Consigne (sélectionnez et copiez si le bouton n’a pas fonctionné)',
+    'translate.copied':
+      'Consigne copiée. Exécutez-la dans votre assistant, puis collez le résultat ci-dessous.',
+    'translate.builtNotCopied':
+      'La consigne est prête dans la zone ci-dessous. Sélectionnez-la et copiez-la manuellement : le navigateur a bloqué la copie automatique.',
+    'translate.pasteLabel': 'Collez ici le résultat traduit',
+    'translate.apply': 'Appliquer la traduction',
+    'translate.applied':
+      '{count} traductions appliquées. Vérifiez le français, puis confirmez chaque texte de remplacement.',
+    'translate.appliedWithMissing':
+      '{count} appliquées, mais {missing} n’ont pas été retournées et restent vides : {ids}',
+
+    'error.EMPTY_RESPONSE':
+      'Rien n’a été collé. Collez d’abord la réponse de l’assistant dans la zone.',
+    'error.UNPARSEABLE_RESPONSE':
+      'Aucune traduction trouvée. Chaque ligne doit ressembler à : s1 ||| texte traduit',
+    'error.DUPLICATE_IDS':
+      'Le même identifiant apparaît plusieurs fois : {ids}. Demandez une seule ligne par identifiant.',
+    'error.UNKNOWN_IDS':
+      'Ces identifiants ne figurent pas dans cette capture : {ids}. Rien n’a été appliqué — la réponse provient peut-être d’une autre capture.',
+    'error.NOTHING_TO_TRANSLATE':
+      'Il n’y a rien à traduire pour l’instant. Ajoutez du texte d’étape ou confirmez un texte de remplacement.',
 
     'editor.heading': 'Modifier les étapes',
     'editor.intro':

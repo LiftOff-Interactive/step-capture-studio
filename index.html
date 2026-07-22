@@ -101,6 +101,40 @@
         <div id="readiness-body"></div>
       </section>
 
+      <section id="translate" class="panel" hidden aria-labelledby="translate-heading">
+        <h2 id="translate-heading" data-i18n="translate.heading">Translate</h2>
+        <p data-i18n="translate.intro">
+          This tool never sends your capture anywhere. It builds a prompt you run in your own
+          assistant, then takes the answer back.
+        </p>
+
+        <div class="toolbar">
+          <button type="button" id="copy-prompt" class="button" data-i18n="translate.copyPrompt">
+            Build and copy the prompt
+          </button>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="prompt-output" data-i18n="translate.promptLabel">
+            Prompt (select and copy if the button did not work)
+          </label>
+          <textarea id="prompt-output" rows="4" readonly></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="translation-input" data-i18n="translate.pasteLabel">
+            Paste the translated result here
+          </label>
+          <textarea id="translation-input" rows="4"></textarea>
+        </div>
+
+        <div class="toolbar">
+          <button type="button" id="apply-translation" class="button" data-i18n="translate.apply">
+            Apply translation
+          </button>
+        </div>
+      </section>
+
       <section id="steps" hidden aria-labelledby="steps-heading">
         <h2 id="steps-heading" data-i18n="editor.heading">Edit steps</h2>
         <p data-i18n="editor.intro">

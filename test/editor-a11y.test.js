@@ -334,6 +334,33 @@ test('buildBlockerList returns only the list, so the summary cannot be swept awa
   dom.window.close()
 })
 
+test('the translation panel is axe clean once visible', async () => {
+  // It is hidden by default, and hidden content is not in the accessibility
+  // tree — so axe would silently skip it unless it is revealed first.
+  const dom = await editorDom(seedAltText(await load()), 'en')
+  const { document } = dom.window
+  document.getElementById('translate').hidden = false
+
+  assertAxeClean(await dom.window.axe.run(document, AXE_OPTIONS), 'translation panel')
+  dom.window.close()
+})
+
+test('both translation textareas have real labels', async () => {
+  const dom = await editorDom(seedAltText(await load()), 'en')
+  const { document } = dom.window
+  document.getElementById('translate').hidden = false
+
+  const labels = new Map(
+    [...document.querySelectorAll('label[for]')].map((l) => [l.getAttribute('for'), l.textContent.trim()])
+  )
+  for (const id of ['prompt-output', 'translation-input']) {
+    assert.ok(labels.get(id), `${id} has a non-empty label`)
+  }
+  // The prompt box is output, not input — it must say so programmatically.
+  assert.equal(document.getElementById('prompt-output').readOnly, true)
+  dom.window.close()
+})
+
 test('summary text reflects readiness in both languages', async () => {
   const capture = seedAltText(await load())
   const blocked = exportReadiness(capture, ['en'])

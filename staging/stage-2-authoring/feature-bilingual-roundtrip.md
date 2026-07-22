@@ -1,5 +1,5 @@
 # Feature: bilingual-roundtrip
-_Stage: stage-2-authoring · Status: not started_
+_Stage: stage-2-authoring · Status: awaiting verification_
 
 ## Goal
 Get French content into the capture model without the tool ever calling a model or touching a
@@ -7,16 +7,16 @@ network. The tool builds a complete, ready-to-paste translation prompt; the auth
 whatever assistant they already use and pastes the result back.
 
 ## Success Criteria
-- [ ] A "Copy translation prompt" action produces a prompt containing every step text and every
+- [x] A "Copy translation prompt" action produces a prompt containing every step text and every
       confirmed alt text, each tagged with a stable id.
-- [ ] The prompt specifies **Canadian French** and requests a strict, machine-parseable return format.
-- [ ] Pasting the response back populates the matching `fr` fields by id.
-- [ ] A response with missing, extra, or unrecognised ids produces a clear error naming exactly what
+- [x] The prompt specifies **Canadian French** and requests a strict, machine-parseable return format.
+- [x] Pasting the response back populates the matching `fr` fields by id.
+- [x] A response with missing, extra, or unrecognised ids produces a clear error naming exactly what
       did not match — never a silent partial import.
-- [ ] Import is idempotent: pasting the same response twice changes nothing the second time.
-- [ ] Every `fr` field remains hand-editable after import.
-- [ ] The round trip requires no JSON editing by the author.
-- [ ] Language codes are used as model keys throughout — nothing assumes exactly two languages.
+- [x] Import is idempotent: pasting the same response twice changes nothing the second time.
+- [x] Every `fr` field remains hand-editable after import.
+- [x] The round trip requires no JSON editing by the author.
+- [x] Language codes are used as model keys throughout — nothing assumes exactly two languages.
 
 ## How We'll Verify
 1. `npm test` — round-trip a fixture: build prompt → feed a canned well-formed response → assert every
@@ -30,7 +30,43 @@ whatever assistant they already use and pastes the result back.
 5. Show the user the populated bilingual state.
 
 ## Verification Log
-_Empty. Cannot be `verified done` until dated evidence appears here._
+
+### 2026-07-21 — Built; automated PASS, full browser round trip PASS
+
+**Automated: 108/108** (23 new in `test/translate.test.js`). Prompt contents, Canadian-French
+instruction, exclusion of unconfirmed alt text, both return formats, code fences, chat-added bullets,
+accents and guillemets, a translation containing the delimiter, empty/prose/duplicate rejection,
+unknown-id abort, missing-id reporting, idempotency, immutability, post-import editability, and a
+third language proving nothing assumes en→fr.
+
+**In-browser (Chromium 148, real 10-step capture) — a genuine end-to-end round trip:**
+- Confirmed all 10 English alt texts; readiness 30 → 20; prompt built with **20 ids** (10 steps +
+  10 alt), each `s<n>` / `s<n>a<n>`.
+- Wrote real Canadian French for all 20 lines and pasted it back.
+- **20 applied.** 10 French step texts and 10 French alt texts populated; English untouched;
+  guillemets and accents intact (`Cliquez sur « Guide de l'apprenant »`); readiness 20 → 10.
+- **French alt text arrived unconfirmed** — machine translation is a draft in the target language
+  too, so the author confirms it separately.
+- Failure paths, each leaving French untouched: empty paste, prose with no lines, duplicate id, and
+  **unknown id → nothing applied at all**, with the message explaining the reply may belong to a
+  different capture.
+- Partial reply (2 of 20): applied the 2 and **named all 18 missing ids** — loud, not silent.
+- Clipboard write was refused by the browser and the manual-copy fallback engaged correctly.
+- axe at 1280×900: **0 violations, 0 incomplete**, contrast passing on **199 nodes**, both languages.
+
+**Three defects found in the browser and fixed:**
+1. **Repeating the same error was silent.** `role="alert"` fires on mutation; re-assigning identical
+   `textContent` is not one. Now cleared before being set — verified 3 repeats → 3 announcements.
+2. **Error text did not follow the language toggle.** `applyStaticStrings` only re-translates
+   `data-i18n` markup, and errors are generated. The error is now held as `{code, vars}` and
+   regenerated on language change — verified English → French.
+3. A phantom third: 31 `color-contrast` results went "incomplete" and looked like a CSS regression.
+   The browser pane had collapsed to `0x0`, so nothing had layout. Recorded in
+   `docs/failed-approaches.md` so the next person checks the viewport before rewriting CSS.
+
+**Still outstanding:** no screen-reader pass (`help.md` item 6). Nobody has visually looked at the
+panel. The prompt has never been run through a real assistant end to end — the French above was
+written by hand, so the *format robustness* against a live chat client is still unproven.
 
 ## Open Questions
 - What return format survives copy-paste from a chat UI most reliably? Fenced JSON is

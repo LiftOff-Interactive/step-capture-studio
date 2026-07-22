@@ -42,3 +42,29 @@ it. ·
 update only its `textContent`. Make it structural rather than a convention — `readinessSummaryText()`
 returns a *string*, so no caller is able to rebuild the node even by accident. Add `aria-atomic="true"`
 whenever only part of a message changes, or a screen reader may announce the bare digit with no context.
+
+## 2026-07-21 — Trusting axe `color-contrast` results from a zero-size viewport
+**Why it failed:** an axe run reported 31 `color-contrast` results as "incomplete — unable to
+determine contrast ratio", across elements that had not been touched in weeks. It looked exactly
+like a CSS regression from the panel just added. The real cause: the browser pane had collapsed to
+`0x0`, so nothing had layout and axe could not measure any background. Chasing it as a styling bug
+would have meant "fixing" CSS that was never broken. ·
+**Do instead:** assert `innerWidth`/`innerHeight` are non-zero before trusting any layout-dependent
+axe rule. A sudden crop of `incomplete` results on untouched elements is a measurement failure, not
+a code failure — check the viewport first.
+
+## 2026-07-21 — Assigning identical textContent to a live region
+**Why it failed:** `role="alert"` only fires on a DOM mutation. Setting the same string again is not
+a mutation, so a user who made the same mistake twice — pasting bad input, correcting nothing,
+pasting again — got silence the second time. Precisely when they most needed confirmation that
+something had happened. ·
+**Do instead:** clear the region (`textContent = ''`) before setting the new message, exactly as the
+polite status region already did. Any live region written to more than once needs this.
+
+## 2026-07-21 — Generated text left out of the language switch
+**Why it failed:** `applyStaticStrings` re-translates everything carrying `data-i18n`, which covers
+markup but not text generated at runtime. Error messages are generated, so a francophone who hit an
+error and then switched language kept reading English. ·
+**Do instead:** keep generated text as data (`state.lastError = {code, vars}`) rather than as a
+rendered string, and regenerate it on every language change. If a string is not in the DOM with a
+`data-i18n` attribute, something has to re-render it deliberately.
