@@ -54,6 +54,11 @@ predates the fix. A fixed export is named `Something_Document_EN.docx`.
 *errors* specifically, since warnings and tips do not fail this criterion.
 **Blocks:** the last unticked criterion in `staging/stage-4-ship/feature-docx-writer.md`.
 
+**⚠️ Privacy note (2026-07-22):** the `TestingWindowsAudio_*.docx`/`.html` files left on your Desktop
+for this test embed the *original* step-3 screenshot, which shows your email. They are local only,
+but delete them (or re-export fresh from the live site) if you might share them — the repo/live demo
+are already redacted, these Desktop copies are not.
+
 ### [x] 3c. ~~Print each of the three HTML artifacts to PDF~~ — done 2026-07-22
 **Confirmed by you:** the quick-steps guide fits one page with nothing clipped, and screenshots do
 appear in both the walkthrough and the case study. The `loading="lazy"` class of failure is retired.

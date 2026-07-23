@@ -174,6 +174,24 @@ chrome only. ·
 it. The tests counted lang-blocks and found them; they never asked whether the *labels* were among
 them.
 
+## 2026-07-22 — Reviewing a screenshot's subject but not its surroundings
+**Why it failed:** the demo capture was declared "no personal data, no internal system" after
+checking what each screenshot was *of* — Windows Settings pages. But a screenshot carries whatever
+was on screen around the subject: step 3's Settings window included the signed-in account panel
+(display name + personal email), step 1's taskbar showed working-context window titles and desktop
+shortcut names, step 4 showed the PC name. The demo shipped to a public repo and was served live for
+~2 hours before the author spotted the email. ·
+**How it was found:** by the author, not by any check. The written content-review claim was
+confidently wrong, which is worse than absent — it discouraged a second look. ·
+**Do instead:** when clearing a capture for public release, inspect the whole frame at full
+resolution, not the subject — account/profile panels, taskbars, title bars, notifications, desktop
+icons, browser tabs, file paths. Prefer capturing on a clean throwaway profile with no account
+signed in. And never write "reviewed, clean" as a conclusion without recording *what* was inspected. ·
+**Wider lesson:** the same shape as the leak-guard and PNG defects this session — a check that
+looked sufficient because it covered the obvious case and never the ambient one. Also: once public,
+a crop-forward does not undo exposure; git history and CDN caches keep the original. Removing it
+meant recreating the repo (help.md 2b), and even that cannot recall copies already fetched.
+
 ## 2026-07-22 — Assuming every embedded image is a PNG
 **Why it failed:** the whole pipeline hardcoded PNG — `toDataUri` defaulted to `data:image/png`, the
 `.docx` emitter wrote `image{n}.png` with `ContentType="image/png"`, and the editor's blob URL used

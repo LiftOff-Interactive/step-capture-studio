@@ -47,8 +47,13 @@ narrative for the case study, and a full scenario block. `exportReadiness` repor
 blockers** at build time, so a stranger can export all four artifacts on arrival rather than being
 met with a list of things to fix.
 
-**Content reviewed:** Windows Sound settings only — taskbar, Settings, Sound, a monitor's audio
-device. No internal system, no personal data, no identifiable account.
+**Content review — and a miss corrected 2026-07-22.** First review claimed "no personal data, no
+identifiable account." That was wrong: it checked the *subject* of each screenshot (Windows
+Settings) but not the *surroundings*. Step 3's Settings window showed the account panel with a
+display name and personal email; step 1's taskbar showed working-context window titles and desktop
+shortcuts; step 4 shows the PC name. The author caught the email. On the author's instruction the
+account block in step 3 was redacted (painted over, panel-background fill; the "System" target
+untouched); the step-1 and step-4 items were left by explicit choice. No internal *system* is shown.
 
 **The leak guard had a hole, and this feature opened it.** The hook judged files by *name*: it
 blocked `.docx` and loose `.png`, but a project file is a `.html` with every screenshot inlined as
@@ -58,6 +63,23 @@ blocks it outside `assets/demo/` and `docs/assets/`. Matched on payload length r
 string `data:image`, so the emitters and their tests — which mention data URIs but never contain one
 — are not caught; verified zero false positives across the current tree. Tested both directions:
 blocked from the repo root, allowed under `assets/demo/`.
+
+### 2026-07-22 — Email redacted; repo recreated to purge history
+
+The un-redacted step-3 image had already been committed (`acb9c4c`) and served live for ~2 hours.
+Cropping forward would not have removed it from the public repo — the original blob stays fetchable
+by SHA, which is why a new commit is not enough (see `docs/failed-approaches.md`).
+
+Fix: redacted the account block, then rebuilt history so the un-redacted blob
+(`1036e740…`) is unreachable, and — on the author's instruction — deleted and recreated the GitHub
+repo (its prior remediation, help.md 2b). Verified: the blob returns **404** on the new remote;
+Pages rebuilt on the clean history; HTTPS enforced; the live site's step-3 image shows a blank
+account area. Local copies of the original image (scratch, tool-result caches) were deleted; a
+recovery bundle of the clean history is in scratch.
+
+**Residual the author should know:** copies fetched during the live window, or held in any CDN/proxy
+cache, cannot be recalled. The exported `.docx`/HTML files left on the Desktop for the 3b test also
+embed the original image — local only, delete if unwanted.
 
 ## Open Questions
 - ~~2.85 MB.~~ **Resolved 2026-07-22: 0.27 MB.** Downscaled to 75% and re-encoded as JPEG at the

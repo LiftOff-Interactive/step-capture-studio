@@ -303,3 +303,14 @@ silently. ·
 format with nothing to catch it). ·
 **Consequence:** this exposed a hole in the leak guard — see `failed-approaches.md`.
 
+## 2026-07-22 — Redact the account block only; recreate the repo to purge history
+**Chose:** on discovering the demo's step-3 screenshot exposed a personal email, redact just the
+account block (name + email); leave the step-1 taskbar context and the step-4 PC name. And remove
+the already-public original by deleting and recreating the GitHub repo, not by a forward commit. ·
+**Because:** the author judged the account identity the only item needing removal. A crop-forward
+leaves the original blob fetchable by SHA on a public repo (the reason force-push was rejected here
+before, help.md 2b), so recreation is the only reliable purge. ·
+**Rejected:** redacting everything flagged (author's call to keep the rest); force-push (leaves the
+blob SHA-fetchable); fix-forward only (original stays in history). ·
+**Residual:** copies fetched during the ~2-hour live window and any CDN cache cannot be recalled.
+

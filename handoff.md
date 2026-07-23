@@ -5,7 +5,7 @@ _Last updated: 2026-07-22 · Current stage: stage-4-ship_
 Finish Stage 4: a shippable demo capture and public polish, so a stranger can use the live site.
 
 ## 📍 Current State
-- **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT, Pages green on `2a15580`.
+- **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT, Pages green on `497b50f` (repo recreated 2026-07-22 — see below).
   **234/234 tests.** Verified against the live site, not just locally.
 - **Stages 1–3 complete.** Three HTML artifacts: self-contained, bilingual, readable with JavaScript
   off, axe clean with contrast measured in a browser, and **all three print correctly** (author).
@@ -41,8 +41,10 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 - **A green suite can sit on top of an unusable UI.** Editor tests build nodes in isolation and never
   exercise the in-place syncing `app.js` does between renders — twice that seam shipped a bug with
   every test passing. → `failed-approaches.md`, "disabled state only updates on re-render".
-- **Absence is an input.** Omitting `settings.xml` looked like prudence and silently changed how Word
-  read everything else. → `failed-approaches.md`, "Omitting word/settings.xml".
+- **Clear a capture by the whole frame, not its subject.** The demo shipped a personal email in a
+  Settings screenshot because the review checked what each shot was *of*, not the account panel/
+  taskbar around it. → `failed-approaches.md`, "Reviewing a screenshot's subject but not its
+  surroundings". Once public, a crop does not undo it — history/CDN keep the original.
 
 ## ➡️ Next Up
 1. **Re-run Word's Accessibility Checker** (`help.md` 3b) — hard-refresh the live site first; both
