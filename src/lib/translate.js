@@ -46,8 +46,18 @@ export class TranslationError extends Error {
 /**
  * Every translatable string in the capture, as {id, text, kind} in a stable order.
  *
- * Alt text is included only once **confirmed** — translating a draft the author
- * has not accepted would launder an unreviewed guess into a second language.
+ * **Every populated field is offered** — title, scenario, step text, alt text,
+ * and both worked-example fields (why / if skipped) — regardless of whether the
+ * alt is confirmed or the narrative is still a draft. That reverses an earlier,
+ * more cautious rule that excluded unconfirmed alt and drafted narrative.
+ *
+ * The reversal is safe because the *export* gates are unchanged and are the real
+ * guard: a translated alt arrives unconfirmed and a translated narrative arrives
+ * drafted, so neither can reach a shipped artifact until the author reviews it in
+ * the target language (the accessibility gate demands confirmation in every
+ * language; the worked-example gate blocks any drafted passage). Offering more to
+ * translate here only saves the author from translating the rest by hand — it
+ * cannot launder anything into a deliverable.
  */
 export function collectTranslatable(capture, from = capture.sourceLang) {
   const items = []
@@ -77,8 +87,9 @@ export function collectTranslatable(capture, from = capture.sourceLang) {
     }
 
     step.images.forEach((image, i) => {
+      // A decorative image has no alt to translate; otherwise any populated alt
+      // is offered, confirmed or not. The confirmation gate lives at export.
       if (image.decorative) return
-      if (!image.altConfirmed?.[from]) return
       const alt = image.alt?.[from]
       if (!alt?.trim()) return
       items.push({
@@ -90,12 +101,12 @@ export function collectTranslatable(capture, from = capture.sourceLang) {
       })
     })
 
-    // Case-study narrative, but only what a human stands behind. A drafted
-    // passage nobody has reviewed must not be translated into a second
-    // language — that would multiply an unchecked claim rather than catch it.
+    // Both worked-example fields, whenever populated — including drafts. A
+    // translated draft arrives drafted and is blocked at export until reviewed,
+    // so translating it now simply saves the author a manual pass later.
     for (const field of NARRATIVE_FIELDS) {
       const passage = step.narrative?.[field]?.[from]
-      if (!passage?.text?.trim() || passage.drafted) continue
+      if (!passage?.text?.trim()) continue
       items.push({
         id: NARRATIVE_ID(step.index, field),
         text: passage.text.trim(),

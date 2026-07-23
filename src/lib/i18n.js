@@ -68,14 +68,15 @@ const STRINGS = {
     'caseStudy.declined': '{count} were returned as NEEDS AUTHOR — write those yourself.',
     'caseStudy.blocked': '{count} drafted explanations still need your review.',
     'export.downloadCaseStudy': 'Download worked example',
-    'export.downloadDocx': 'Download Word document ({lang})',
+    'export.downloadDocxEn': 'Download Word document (English)',
+    'export.downloadDocxFr': 'Download Word document (French)',
     'blocker.NARRATIVE_UNREVIEWED': 'Step {index}: drafted explanation not yet reviewed.',
     'error.NOTHING_TO_DRAFT': 'Every explanation is already written. Nothing to draft.',
     'error.NO_NARRATIVE': 'The worked example has no explanations yet. Write some, or draft them with the prompt.',
 
     'translate.heading': 'Translation phase',
     'translate.intro':
-      'This tool never sends your capture anywhere. It builds a prompt you run in your own assistant, then takes the answer back. Confirm your English alt text first — only confirmed text is included.',
+      'This tool never sends your capture anywhere. It builds a prompt you run in your own assistant, then takes the answer back. Every populated field is included — step text, alt text, and the worked-example explanations. The translations come back for you to review before export.',
     'translate.copyPrompt': 'Build and copy the prompt',
     'translate.promptLabel': 'Prompt (select and copy if the button did not work)',
     'translate.copied': 'Prompt copied. Run it in your assistant, then paste the result below.',
@@ -234,14 +235,15 @@ const STRINGS = {
     'caseStudy.declined': '{count} ont été retournées comme NEEDS AUTHOR — rédigez-les vous-même.',
     'caseStudy.blocked': '{count} explications rédigées attendent encore votre révision.',
     'export.downloadCaseStudy': 'Télécharger l’exemple pratique',
-    'export.downloadDocx': 'Télécharger le document Word ({lang})',
+    'export.downloadDocxEn': 'Télécharger le document Word (anglais)',
+    'export.downloadDocxFr': 'Télécharger le document Word (français)',
     'blocker.NARRATIVE_UNREVIEWED': 'Étape {index} : explication rédigée non encore révisée.',
     'error.NOTHING_TO_DRAFT': 'Toutes les explications sont déjà rédigées. Rien à rédiger.',
     'error.NO_NARRATIVE': 'L’exemple pratique n’a pas encore d’explications. Rédigez-en ou utilisez la consigne.',
 
     'translate.heading': 'Phase de traduction',
     'translate.intro':
-      'Cet outil n’envoie jamais votre capture ailleurs. Il crée une consigne que vous exécutez dans votre propre assistant, puis récupère la réponse. Confirmez d’abord le texte de remplacement en anglais : seul le texte confirmé est inclus.',
+      'Cet outil n’envoie jamais votre capture ailleurs. Il crée une consigne que vous exécutez dans votre propre assistant, puis récupère la réponse. Tous les champs remplis sont inclus — texte des étapes, texte de remplacement et explications de l’exemple pratique. Les traductions reviennent pour révision avant l’exportation.',
     'translate.copyPrompt': 'Créer et copier la consigne',
     'translate.promptLabel':
       'Consigne (sélectionnez et copiez si le bouton n’a pas fonctionné)',

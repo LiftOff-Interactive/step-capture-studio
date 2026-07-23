@@ -95,20 +95,35 @@ test('duplicatePairs reports nothing on a clean capture', async () => {
   assert.deepEqual(duplicatePairs(capture), [])
 })
 
-test('merging keeps both screenshots and renumbers', async () => {
-  // Two steps sharing a label may still show different screens — dropping one
-  // would lose real information.
+test('merging keeps ONE screenshot (the survivor’s) and renumbers', async () => {
+  // Merge collapses a duplicate into the previous step: one text, one image.
+  // Keeping both produced a merged step with two near-identical screenshots in
+  // the HTML and the .docx — the redundancy the author merges to remove.
   const capture = await load()
+  const survivorImage = capture.steps[2].images[0].id
   const merged = mergeStepIntoPrevious(capture, 4)
 
   assert.equal(merged.steps.length, ENGLISH_STEPS.length - 1)
-  assert.equal(merged.steps[2].images.length, 2, 'both screenshots retained')
+  assert.equal(merged.steps[2].images.length, 1, 'only the survivor’s screenshot remains')
+  assert.equal(merged.steps[2].images[0].id, survivorImage, 'and it is the previous step’s')
   assert.deepEqual(
     merged.steps.map((s) => s.index),
     [1, 2, 3, 4],
     'indexes re-derived from position'
   )
   assert.equal(merged.steps[2].text.en, 'Click "My courses"')
+})
+
+test('merging falls back to the later step’s image when the survivor has none', async () => {
+  // The survivor keeps its own image; only if it has none does the absorbed
+  // step’s image fill in — so a merge never leaves a step with zero images.
+  let capture = await load()
+  const laterImage = capture.steps[3].images[0].id
+  capture = { ...capture, steps: capture.steps.map((s, i) => (i === 2 ? { ...s, images: [] } : s)) }
+  const merged = mergeStepIntoPrevious(capture, 4)
+
+  assert.equal(merged.steps[2].images.length, 1)
+  assert.equal(merged.steps[2].images[0].id, laterImage)
 })
 
 test('merging takes a translation from the later step if the earlier lacks one', async () => {

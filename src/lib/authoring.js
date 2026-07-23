@@ -59,9 +59,13 @@ export function setStepText(capture, stepIndex, lang, text) {
  * Merge the step at `stepIndex` into the one before it.
  *
  * Keeps the earlier step's text — Snagit's duplicates are identical, so there
- * is nothing to choose between them — and keeps BOTH screenshots, because two
- * steps sharing a label may still show different screens. Losing one would
- * lose real information.
+ * is nothing to choose between them — and keeps the earlier step's ONE
+ * screenshot, discarding the absorbed duplicate's. An earlier version kept both
+ * screenshots on the theory that two steps sharing a label might show different
+ * screens; in practice that produced a merged step with two near-identical
+ * images in both the HTML and the .docx, which is the redundancy the author
+ * merges to remove. If two frames are genuinely different steps, do not merge
+ * them.
  */
 export function mergeStepIntoPrevious(capture, stepIndex) {
   const position = stepIndex - 1
@@ -75,7 +79,12 @@ export function mergeStepIntoPrevious(capture, stepIndex) {
   const merged = {
     ...previous,
     text: { ...previous.text },
-    images: [...previous.images, ...current.images],
+    // Merge collapses a duplicate step into the one before it, so the result is
+    // ONE step with ONE screenshot — not two. Keep the surviving (previous)
+    // step's image and drop the absorbed duplicate's; a merged step showing two
+    // near-identical screenshots is exactly what the author is merging to avoid.
+    // Fall back to the later step's images only if the survivor has none.
+    images: previous.images.length ? [...previous.images] : [...current.images],
   }
 
   // Keep whatever the earlier step lacks and the later one has.

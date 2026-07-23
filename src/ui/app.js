@@ -112,7 +112,8 @@ const els = {
   downloadQuickSteps: exportPair('download-quick-steps'),
   downloadWalkthrough: exportPair('download-walkthrough'),
   downloadCaseStudy: exportPair('download-case-study'),
-  downloadDocx: exportPair('download-docx'),
+  downloadDocxEn: document.getElementById('download-docx-en'),
+  downloadDocxFr: document.getElementById('download-docx-fr'),
   caseStudy: document.getElementById('case-study'),
   casePrompt: document.getElementById('case-prompt'),
   casePromptOutput: document.getElementById('case-prompt-output'),
@@ -240,14 +241,10 @@ function renderReadiness({ announce = true } = {}) {
   // a button that vanishes tells the author nothing about what to fix.
   setOnPair(els.downloadQuickSteps, 'disabled', !readiness.ready)
   setOnPair(els.downloadWalkthrough, 'disabled', !readiness.ready)
-  setOnPair(els.downloadDocx, 'disabled', !readiness.ready)
-  // One .docx per language — a Word document has no toggle, so the button
-  // names which language it will produce.
-  setOnPair(
-    els.downloadDocx,
-    'textContent',
-    t('export.downloadDocx', state.lang, { lang: t(`lang.name.${state.lang}`, state.lang) })
-  )
+  // One Word document per language, each its own button — so the French doc is
+  // one click, not a UI-language toggle. Both gated the same as the rest.
+  els.downloadDocxEn.disabled = !readiness.ready
+  els.downloadDocxFr.disabled = !readiness.ready
   // The case study carries an extra condition: no unreviewed drafted prose,
   // and something to actually say. Its own gate, because an unreviewed
   // explanation must not block the other two artifacts.
@@ -719,13 +716,16 @@ function onExportClick(pair, handler) {
 onExportClick(els.downloadQuickSteps, () => exportArtifact(emitQuickSteps, 'QuickStep'))
 onExportClick(els.downloadCaseStudy, () => exportArtifact(emitCaseStudy, 'WorkedExample'))
 
-onExportClick(els.downloadDocx, async () => {
+/**
+ * Export the Word document in one specific language, named for that language
+ * (`_Steps_EN` / `_Steps_FR`). The language is the button's, not the UI's,
+ * so the French doc no longer needs a UI toggle to produce.
+ */
+async function exportDocx(lang) {
   clearError()
-  // `_Document_EN`. The language marker is a success criterion, not decoration:
-  // one file per language, and the filename has to say which.
-  const name = `${artifactName(captureTitle(state.capture, state.lang), 'Document')}_${state.lang.toUpperCase()}.docx`
+  const name = `${artifactName(captureTitle(state.capture, lang), 'Steps')}_${lang.toUpperCase()}.docx`
   try {
-    const bytes = await emitDocx(state.capture, { lang: state.lang })
+    const bytes = await emitDocx(state.capture, { lang })
     downloadBlob(
       new Blob([bytes], {
         type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -737,7 +737,10 @@ onExportClick(els.downloadDocx, async () => {
     console.error(error)
     showError('EXPORT_FAILED', { reason: error.message })
   }
-})
+}
+
+els.downloadDocxEn.addEventListener('click', () => exportDocx('en'))
+els.downloadDocxFr.addEventListener('click', () => exportDocx('fr'))
 
 for (const field of SCENARIO_FIELDS) {
   els.scenario[field].addEventListener('input', () => {

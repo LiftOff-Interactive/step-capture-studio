@@ -64,14 +64,27 @@ test('the prompt asks for Canadian French and a strict return format', async () 
   assert.match(prompt, /cannot see the screenshots/)
 })
 
-test('unconfirmed alt text is excluded from the prompt', async () => {
-  // Translating a draft nobody accepted would launder an unreviewed guess
-  // into a second language.
+test('every populated alt text is offered, confirmed or not', async () => {
+  // The prompt offers all populated fields; the confirmation gate lives at
+  // export. A translated alt arrives unconfirmed, so nothing unreviewed ships.
   const seeded = seedAltText(await load())
   const prompt = buildTranslationPrompt(seeded)
 
   assert.ok(prompt.includes('s1 |||'), 'step text is included')
-  assert.ok(!prompt.includes('s1a1'), 'unconfirmed alt text is not')
+  assert.ok(prompt.includes('s1a1 |||'), 'populated alt text is included even when unconfirmed')
+})
+
+test('a translated alt lands unconfirmed, so the export gate still guards it', async () => {
+  const seeded = seedAltText(await load())
+  const { capture: next } = applyTranslation(
+    seeded,
+    new Map([['s1a1', 'texte de remplacement']]),
+    'fr',
+    'en'
+  )
+  const img = next.steps[0].images[0]
+  assert.equal(img.alt.fr, 'texte de remplacement')
+  assert.equal(img.altConfirmed.fr, false, 'the translation must arrive unconfirmed')
 })
 
 test('a capture with nothing translatable is refused, not silently empty', async () => {
@@ -348,4 +361,21 @@ test('worked-example details and alt text ride the same round trip', async () =>
   assert.ok(kinds.has('narrative'), 'narrative included')
   assert.ok(kinds.has('alt'), 'alt text included')
   assert.ok(kinds.has('step'), 'step text included')
+})
+
+test('a drafted worked-example passage is now offered, and comes back still drafted', async () => {
+  // Reversal of the old exclusion: populated narrative is translated even when
+  // drafted, because the worked-example export gate blocks drafted passages —
+  // translating one now just saves the author a manual pass, and the FR result
+  // stays drafted so it still needs review.
+  const { setNarrative } = await import('../src/lib/case-study.js')
+  let capture = await fullyConfirmed()
+  capture = setNarrative(capture, 1, 'why', 'en', 'AI guessed this', { drafted: true })
+
+  const prompt = buildTranslationPrompt(capture)
+  assert.ok(prompt.includes('s1w |||'), 'a drafted passage is offered for translation')
+
+  const { capture: next } = applyTranslation(capture, new Map([['s1w', 'IA a deviné']]), 'fr', 'en')
+  assert.equal(next.steps[0].narrative.why.fr.text, 'IA a deviné')
+  assert.equal(next.steps[0].narrative.why.fr.drafted, true, 'the translation stays drafted')
 })
