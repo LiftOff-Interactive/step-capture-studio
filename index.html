@@ -36,7 +36,7 @@
       </div>
 
       <section id="loader" aria-labelledby="loader-heading" class="panel">
-        <h2 id="loader-heading" data-i18n="load.heading">Load a capture</h2>
+        <h2 id="loader-heading" data-i18n="load.heading">Load a file</h2>
 
         <div id="dropzone" class="dropzone">
           <label class="field-label" for="file-input" data-i18n="load.label">
@@ -108,7 +108,7 @@
 
       <section id="capture" class="panel" hidden aria-labelledby="capture-heading">
         <h2 id="capture-heading" data-i18n="capture.heading">Capture</h2>
-        <dl id="capture-meta" class="meta"></dl>
+        <div id="capture-meta" class="meta"></div>
 
         <!--
           The title is the most visible string in every artifact, and the source
@@ -121,6 +121,117 @@
       <section id="warnings" class="panel panel--warn" hidden aria-labelledby="warnings-heading">
         <h2 id="warnings-heading" data-i18n="warnings.heading">Things to review</h2>
         <ul id="warnings-list"></ul>
+      </section>
+
+      <section id="case-study" class="panel" hidden aria-labelledby="case-study-heading">
+        <h2 id="case-study-heading" data-i18n="phase.workedExample">Worked example phase</h2>
+        <p data-i18n="caseStudy.scenarioHeading">About this procedure</p>
+
+        <div class="field">
+          <label class="field-label" for="scenario-audience" data-i18n="caseStudy.audience">
+            Who is this for
+          </label>
+          <input type="text" id="scenario-audience" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="scenario-context" data-i18n="caseStudy.context">
+            What this procedure is for
+          </label>
+          <input type="text" id="scenario-context" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="scenario-outcome" data-i18n="caseStudy.outcome">
+            What success looks like
+          </label>
+          <input type="text" id="scenario-outcome" />
+        </div>
+
+        <div class="toolbar">
+          <button type="button" id="case-prompt" class="button" data-i18n="caseStudy.copyPrompt">
+            Build and copy the worked-example prompt
+          </button>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="case-prompt-output" data-i18n="translate.promptLabel">
+            Prompt
+          </label>
+          <textarea id="case-prompt-output" rows="4" readonly></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="case-draft-input" data-i18n="translate.pasteLabel">
+            Paste the result here
+          </label>
+          <textarea id="case-draft-input" rows="4"></textarea>
+        </div>
+
+        <div class="toolbar">
+          <button type="button" id="apply-case-draft" class="button" data-i18n="caseStudy.applyDraft">
+            Apply drafted explanations
+          </button>
+        </div>
+      </section>
+
+      <section id="steps" hidden aria-labelledby="steps-heading">
+        <h2 id="steps-heading" data-i18n="editor.heading">Edit phase</h2>
+        <p data-i18n="editor.intro">
+          Snagit writes step text automatically, so it often repeats itself and never includes alt
+          text. Fix both here before exporting.
+        </p>
+
+        <div class="toolbar">
+          <button type="button" id="seed-alt" class="button" data-i18n="editor.seedAll">
+            Draft alt text from step text
+          </button>
+          <button type="button" id="undo" class="button button--quiet" hidden data-i18n="editor.undo">
+            Undo
+          </button>
+          <!--
+            Deliberately NOT behind the export gate. This is a save, not a
+            deliverable: the moment it is most needed is when the work is
+            half-finished, which is exactly when the gate is closed.
+          -->
+          <button type="button" id="export-project" class="button" data-i18n="project.export">
+            Export project file
+          </button>
+        </div>
+
+        <ol id="steps-list" class="steps"></ol>
+      </section>
+
+      <section id="translate" class="panel" hidden aria-labelledby="translate-heading">
+        <h2 id="translate-heading" data-i18n="translate.heading">Translation phase</h2>
+        <p data-i18n="translate.intro">
+          This tool never sends your capture anywhere. It builds a prompt you run in your own
+          assistant, then takes the answer back.
+        </p>
+
+        <div class="toolbar">
+          <button type="button" id="copy-prompt" class="button" data-i18n="translate.copyPrompt">
+            Build and copy the prompt
+          </button>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="prompt-output" data-i18n="translate.promptLabel">
+            Prompt (select and copy if the button did not work)
+          </label>
+          <textarea id="prompt-output" rows="4" readonly></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="translation-input" data-i18n="translate.pasteLabel">
+            Paste the translated result here
+          </label>
+          <textarea id="translation-input" rows="4"></textarea>
+        </div>
+
+        <div class="toolbar">
+          <button type="button" id="apply-translation" class="button" data-i18n="translate.apply">
+            Apply translation
+          </button>
+        </div>
       </section>
 
       <section id="readiness" class="panel" hidden aria-labelledby="readiness-heading">
@@ -168,174 +279,13 @@
             class="button"
             data-i18n="export.downloadCaseStudy"
           >
-            Download case study
+            Download worked example
           </button>
           <button type="button" id="download-docx" class="button">Download Word document</button>
         </div>
         <p id="export-hint" class="hint" data-i18n="export.blockedHint">
           Exports unlock once everything above is resolved.
         </p>
-      </section>
-
-      <section id="translate" class="panel" hidden aria-labelledby="translate-heading">
-        <h2 id="translate-heading" data-i18n="translate.heading">Translate</h2>
-        <p data-i18n="translate.intro">
-          This tool never sends your capture anywhere. It builds a prompt you run in your own
-          assistant, then takes the answer back.
-        </p>
-
-        <div class="toolbar">
-          <button type="button" id="copy-prompt" class="button" data-i18n="translate.copyPrompt">
-            Build and copy the prompt
-          </button>
-        </div>
-
-        <div class="field">
-          <label class="field-label" for="prompt-output" data-i18n="translate.promptLabel">
-            Prompt (select and copy if the button did not work)
-          </label>
-          <textarea id="prompt-output" rows="4" readonly></textarea>
-        </div>
-
-        <div class="field">
-          <label class="field-label" for="translation-input" data-i18n="translate.pasteLabel">
-            Paste the translated result here
-          </label>
-          <textarea id="translation-input" rows="4"></textarea>
-        </div>
-
-        <div class="toolbar">
-          <button type="button" id="apply-translation" class="button" data-i18n="translate.apply">
-            Apply translation
-          </button>
-        </div>
-      </section>
-
-      <section id="case-study" class="panel" hidden aria-labelledby="case-study-heading">
-        <h2 id="case-study-heading" data-i18n="caseStudy.heading">Case study</h2>
-        <p data-i18n="caseStudy.scenarioHeading">About this procedure</p>
-
-        <div class="field">
-          <label class="field-label" for="scenario-audience" data-i18n="caseStudy.audience">
-            Who is this for
-          </label>
-          <input type="text" id="scenario-audience" />
-        </div>
-        <div class="field">
-          <label class="field-label" for="scenario-context" data-i18n="caseStudy.context">
-            What this procedure is for
-          </label>
-          <input type="text" id="scenario-context" />
-        </div>
-        <div class="field">
-          <label class="field-label" for="scenario-outcome" data-i18n="caseStudy.outcome">
-            What success looks like
-          </label>
-          <input type="text" id="scenario-outcome" />
-        </div>
-
-        <div class="toolbar">
-          <button type="button" id="case-prompt" class="button" data-i18n="caseStudy.copyPrompt">
-            Build and copy the case-study prompt
-          </button>
-        </div>
-
-        <div class="field">
-          <label class="field-label" for="case-prompt-output" data-i18n="translate.promptLabel">
-            Prompt
-          </label>
-          <textarea id="case-prompt-output" rows="4" readonly></textarea>
-        </div>
-
-        <div class="field">
-          <label class="field-label" for="case-draft-input" data-i18n="translate.pasteLabel">
-            Paste the result here
-          </label>
-          <textarea id="case-draft-input" rows="4"></textarea>
-        </div>
-
-        <div class="toolbar">
-          <button type="button" id="apply-case-draft" class="button" data-i18n="caseStudy.applyDraft">
-            Apply drafted explanations
-          </button>
-        </div>
-      </section>
-
-      <section id="steps" hidden aria-labelledby="steps-heading">
-        <h2 id="steps-heading" data-i18n="editor.heading">Edit steps</h2>
-        <p data-i18n="editor.intro">
-          Snagit writes step text automatically, so it often repeats itself and never includes alt
-          text. Fix both here before exporting.
-        </p>
-
-        <div class="toolbar">
-          <button type="button" id="seed-alt" class="button" data-i18n="editor.seedAll">
-            Draft alt text from step text
-          </button>
-          <button type="button" id="undo" class="button button--quiet" hidden data-i18n="editor.undo">
-            Undo
-          </button>
-          <!--
-            Deliberately NOT behind the export gate. This is a save, not a
-            deliverable: the moment it is most needed is when the work is
-            half-finished, which is exactly when the gate is closed.
-          -->
-          <button type="button" id="export-project" class="button" data-i18n="project.export">
-            Export project file
-          </button>
-        </div>
-
-        <ol id="steps-list" class="steps"></ol>
-
-        <!--
-          The same exports as the panel at the top of the page, repeated where
-          the author actually finishes: at the foot of a long step list, after
-          checking the last step. Scrolling back up to find the buttons is the
-          whole reason this exists.
-
-          These are a genuine duplicate, so they must not duplicate anything
-          that has to stay unique. No live region here — the readiness summary
-          above is the single announcer. The heading keeps them findable by
-          screen reader and keyboard, and they are hidden entirely until the
-          export gate opens, so they never offer something that would fail.
-        -->
-        <section
-          id="export-footer"
-          class="panel"
-          hidden
-          aria-labelledby="export-footer-heading"
-        >
-          <h2 id="export-footer-heading" data-i18n="export.readyHeading">Ready to export</h2>
-          <div class="toolbar">
-            <button
-              type="button"
-              id="download-quick-steps-bottom"
-              class="button"
-              data-i18n="export.downloadQuickSteps"
-            >
-              Download quick-steps guide
-            </button>
-            <button
-              type="button"
-              id="download-walkthrough-bottom"
-              class="button"
-              data-i18n="export.downloadWalkthrough"
-            >
-              Download HTML walkthrough
-            </button>
-            <button
-              type="button"
-              id="download-case-study-bottom"
-              class="button"
-              data-i18n="export.downloadCaseStudy"
-            >
-              Download case study
-            </button>
-            <button type="button" id="download-docx-bottom" class="button">
-              Download Word document
-            </button>
-          </div>
-        </section>
       </section>
 
       <section class="panel panel--quiet" aria-labelledby="privacy-heading">

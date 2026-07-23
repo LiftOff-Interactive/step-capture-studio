@@ -298,3 +298,54 @@ test('a capture with no title still translates everything else', async () => {
   assert.ok(!items.some((item) => item.id === 'title'), 'nothing to translate, nothing offered')
   assert.ok(items.length > 0, 'the steps are still there')
 })
+
+// ------------------------------------------------ worked-example scenario ---
+
+test('the worked-example scenario is offered for translation', async () => {
+  const { setScenario } = await import('../src/lib/case-study.js')
+  let capture = await fullyConfirmed()
+  capture = setScenario(capture, 'audience', 'en', 'Staff joining their first meeting')
+  capture = setScenario(capture, 'context', 'en', 'Run before a meeting')
+
+  const items = collectTranslatable(capture, 'en')
+  const ids = items.map((i) => i.id)
+  assert.ok(ids.includes('about-audience'), 'audience must be in the prompt')
+  assert.ok(ids.includes('about-context'), 'context must be in the prompt')
+  assert.ok(!ids.includes('about-outcome'), 'an empty scenario field is not offered')
+
+  const prompt = buildTranslationPrompt(capture)
+  assert.ok(prompt.includes('about-audience ||| Staff joining their first meeting'))
+})
+
+test('a translated scenario field lands in the target language, source untouched', async () => {
+  const { setScenario } = await import('../src/lib/case-study.js')
+  let capture = await fullyConfirmed()
+  capture = setScenario(capture, 'audience', 'en', 'Staff joining their first meeting')
+
+  const { capture: next, applied } = applyTranslation(
+    capture,
+    new Map([['about-audience', 'Personnel à sa première réunion']]),
+    'fr',
+    'en'
+  )
+
+  assert.equal(next.scenario.audience.fr, 'Personnel à sa première réunion')
+  assert.equal(next.scenario.audience.en, 'Staff joining their first meeting', 'source untouched')
+  assert.ok(applied >= 1)
+})
+
+test('worked-example details and alt text ride the same round trip', async () => {
+  // The user's requirement: one translation pass covers the scenario, the
+  // step narrative, and the alt text — not step text alone.
+  const { setScenario, setNarrative } = await import('../src/lib/case-study.js')
+  const { setAltText, confirmAltText } = await import('../src/lib/authoring.js')
+  let capture = await fullyConfirmed()
+  capture = setScenario(capture, 'audience', 'en', 'New staff')
+  capture = setNarrative(capture, 1, 'why', 'en', 'It anchors the sequence')
+
+  const kinds = new Set(collectTranslatable(capture, 'en').map((i) => i.kind))
+  assert.ok(kinds.has('scenario'), 'scenario included')
+  assert.ok(kinds.has('narrative'), 'narrative included')
+  assert.ok(kinds.has('alt'), 'alt text included')
+  assert.ok(kinds.has('step'), 'step text included')
+})

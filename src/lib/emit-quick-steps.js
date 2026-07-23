@@ -75,7 +75,13 @@ export function emitQuickSteps(capture, { languages = capture.languages ?? ['en'
 
   const title = captureTitle(capture, primary)
   const titles = Object.fromEntries(languages.map((code) => [code, captureTitle(capture, code)]))
-  const meta = { author: capture.author, date: capture.date, stepCount: capture.steps.length }
+  // An author may have overridden the displayed count (declaredStepCount);
+  // fall back to the real number of steps when they have not.
+  const meta = {
+    author: capture.author,
+    date: capture.date,
+    stepCount: capture.declaredStepCount ?? capture.steps.length,
+  }
 
   const body = `${documentHeader({ title, titles, meta, languages })}
 <main>

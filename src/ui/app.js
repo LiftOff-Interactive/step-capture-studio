@@ -18,6 +18,7 @@ import { t, LANGUAGES, LOCALES } from '../lib/i18n.js'
 import {
   setStepText,
   setTitle,
+  setCaptureMeta,
   setAltText,
   setDecorative,
   mergeStepIntoPrevious,
@@ -50,7 +51,7 @@ import {
   applyCaseStudyResponse,
   SCENARIO_FIELDS,
 } from '../lib/case-study.js'
-import { applyStaticStrings, buildMeta, buildWarnings } from './render.js'
+import { applyStaticStrings, buildEditableMeta, buildWarnings } from './render.js'
 import {
   buildEditableSteps,
   buildTitleFields,
@@ -112,7 +113,6 @@ const els = {
   downloadWalkthrough: exportPair('download-walkthrough'),
   downloadCaseStudy: exportPair('download-case-study'),
   downloadDocx: exportPair('download-docx'),
-  exportFooter: document.getElementById('export-footer'),
   caseStudy: document.getElementById('case-study'),
   casePrompt: document.getElementById('case-prompt'),
   casePromptOutput: document.getElementById('case-prompt-output'),
@@ -259,12 +259,6 @@ function renderReadiness({ announce = true } = {}) {
   )
   els.exportHint.hidden = readiness.ready
 
-  // The footer copy is hidden until the gate opens, rather than shown disabled
-  // like the panel above. The panel's job is to explain what is still missing;
-  // repeating that explanation at the bottom would just be noise, and an
-  // author who has not finished has no reason to see a second set of buttons.
-  els.exportFooter.hidden = !readiness.ready
-
   show(els.readiness)
 }
 
@@ -307,7 +301,12 @@ function renderAll({ announceReadiness = true } = {}) {
 
   if (!state.capture) return
 
-  els.captureMeta.replaceChildren(...buildMeta(document, state.capture, state.lang))
+  els.captureMeta.replaceChildren(
+    ...buildEditableMeta(document, state.capture, state.lang, (field, value) => {
+      // In place, like the title/alt fields — rebuilding would drop focus mid-edit.
+      editInPlace(setCaptureMeta(state.capture, field, value))
+    })
+  )
   renderTitleFields()
 
   if (state.capture.warnings.length) {
@@ -718,7 +717,7 @@ function onExportClick(pair, handler) {
 }
 
 onExportClick(els.downloadQuickSteps, () => exportArtifact(emitQuickSteps, 'QuickStep'))
-onExportClick(els.downloadCaseStudy, () => exportArtifact(emitCaseStudy, 'CaseStudy'))
+onExportClick(els.downloadCaseStudy, () => exportArtifact(emitCaseStudy, 'WorkedExample'))
 
 onExportClick(els.downloadDocx, async () => {
   clearError()

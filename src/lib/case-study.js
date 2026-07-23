@@ -212,7 +212,7 @@ export function buildCaseStudyPrompt(capture, lang = capture.sourceLang) {
   )
 
   return [
-    'You are helping write a training case study for a software procedure.',
+    'You are helping write a training worked example for a software procedure.',
     '',
     scenarioLines.length ? 'What the author has told you about this procedure:' : '',
     ...scenarioLines,

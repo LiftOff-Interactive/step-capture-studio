@@ -29,7 +29,7 @@ const STRINGS = {
     'lang.switchTo': 'Français',
     'lang.changed': 'Language changed to English.',
 
-    'load.heading': 'Load a capture',
+    'load.heading': 'Load a file',
     'load.label': 'Choose a Snagit .docx file',
     'load.hint': 'Or drag a file onto this area. Nothing is uploaded — parsing happens on your device.',
     'load.dropActive': 'Release to load this file',
@@ -53,7 +53,7 @@ const STRINGS = {
     'lang.name.fr': 'French',
 
 
-    'caseStudy.heading': 'Case study',
+    'caseStudy.heading': 'Worked example',
     'caseStudy.audience': 'Who is this for',
     'caseStudy.context': 'What this procedure is for',
     'caseStudy.outcome': 'What success looks like',
@@ -62,18 +62,18 @@ const STRINGS = {
     'caseStudy.scenarioHeading': 'About this procedure',
     'caseStudy.unreviewed': 'Drafted, not yet reviewed',
     'caseStudy.confirm': 'I have reviewed this',
-    'caseStudy.copyPrompt': 'Build and copy the case-study prompt',
+    'caseStudy.copyPrompt': 'Build and copy the worked-example prompt',
     'caseStudy.applyDraft': 'Apply drafted explanations',
     'caseStudy.drafted': '{count} explanations drafted. Review and confirm each one before exporting.',
     'caseStudy.declined': '{count} were returned as NEEDS AUTHOR — write those yourself.',
     'caseStudy.blocked': '{count} drafted explanations still need your review.',
-    'export.downloadCaseStudy': 'Download case study',
+    'export.downloadCaseStudy': 'Download worked example',
     'export.downloadDocx': 'Download Word document ({lang})',
     'blocker.NARRATIVE_UNREVIEWED': 'Step {index}: drafted explanation not yet reviewed.',
     'error.NOTHING_TO_DRAFT': 'Every explanation is already written. Nothing to draft.',
-    'error.NO_NARRATIVE': 'The case study has no explanations yet. Write some, or draft them with the prompt.',
+    'error.NO_NARRATIVE': 'The worked example has no explanations yet. Write some, or draft them with the prompt.',
 
-    'translate.heading': 'Translate',
+    'translate.heading': 'Translation phase',
     'translate.intro':
       'This tool never sends your capture anywhere. It builds a prompt you run in your own assistant, then takes the answer back. Confirm your English alt text first — only confirmed text is included.',
     'translate.copyPrompt': 'Build and copy the prompt',
@@ -96,7 +96,8 @@ const STRINGS = {
     'error.NOTHING_TO_TRANSLATE':
       'There is nothing to translate yet. Add step text, or confirm some alt text first.',
 
-    'editor.heading': 'Edit steps',
+    'editor.heading': 'Edit phase',
+    'phase.workedExample': 'Worked example phase',
     'editor.intro':
       'Snagit writes step text automatically, so it often repeats itself and never includes alt text. Fix both here before exporting.',
     'editor.title': 'Guide title ({lang})',
@@ -193,7 +194,7 @@ const STRINGS = {
     'lang.switchTo': 'English',
     'lang.changed': 'La langue a été changée pour le français.',
 
-    'load.heading': 'Charger une capture',
+    'load.heading': 'Charger un fichier',
     'load.label': 'Choisissez un fichier .docx de Snagit',
     'load.hint':
       'Ou glissez un fichier dans cette zone. Rien n’est téléversé — l’analyse se fait sur votre appareil.',
@@ -218,7 +219,7 @@ const STRINGS = {
     'lang.name.fr': 'français',
 
 
-    'caseStudy.heading': 'Étude de cas',
+    'caseStudy.heading': 'Exemple pratique',
     'caseStudy.audience': 'À qui cela s’adresse',
     'caseStudy.context': 'À quoi sert cette procédure',
     'caseStudy.outcome': 'À quoi ressemble la réussite',
@@ -227,18 +228,18 @@ const STRINGS = {
     'caseStudy.scenarioHeading': 'À propos de cette procédure',
     'caseStudy.unreviewed': 'Ébauche, pas encore révisée',
     'caseStudy.confirm': 'J’ai révisé ce texte',
-    'caseStudy.copyPrompt': 'Créer et copier la consigne d’étude de cas',
+    'caseStudy.copyPrompt': 'Créer et copier la consigne d’exemple pratique',
     'caseStudy.applyDraft': 'Appliquer les explications rédigées',
     'caseStudy.drafted': '{count} explications rédigées. Révisez et confirmez chacune avant d’exporter.',
     'caseStudy.declined': '{count} ont été retournées comme NEEDS AUTHOR — rédigez-les vous-même.',
     'caseStudy.blocked': '{count} explications rédigées attendent encore votre révision.',
-    'export.downloadCaseStudy': 'Télécharger l’étude de cas',
+    'export.downloadCaseStudy': 'Télécharger l’exemple pratique',
     'export.downloadDocx': 'Télécharger le document Word ({lang})',
     'blocker.NARRATIVE_UNREVIEWED': 'Étape {index} : explication rédigée non encore révisée.',
     'error.NOTHING_TO_DRAFT': 'Toutes les explications sont déjà rédigées. Rien à rédiger.',
-    'error.NO_NARRATIVE': 'L’étude de cas n’a pas encore d’explications. Rédigez-en ou utilisez la consigne.',
+    'error.NO_NARRATIVE': 'L’exemple pratique n’a pas encore d’explications. Rédigez-en ou utilisez la consigne.',
 
-    'translate.heading': 'Traduire',
+    'translate.heading': 'Phase de traduction',
     'translate.intro':
       'Cet outil n’envoie jamais votre capture ailleurs. Il crée une consigne que vous exécutez dans votre propre assistant, puis récupère la réponse. Confirmez d’abord le texte de remplacement en anglais : seul le texte confirmé est inclus.',
     'translate.copyPrompt': 'Créer et copier la consigne',
@@ -266,7 +267,8 @@ const STRINGS = {
     'error.NOTHING_TO_TRANSLATE':
       'Il n’y a rien à traduire pour l’instant. Ajoutez du texte d’étape ou confirmez un texte de remplacement.',
 
-    'editor.heading': 'Modifier les étapes',
+    'editor.heading': 'Phase de modification',
+    'phase.workedExample': 'Phase de l’exemple pratique',
     'editor.intro':
       'Snagit rédige le texte des étapes automatiquement : il se répète souvent et n’inclut jamais de texte de remplacement. Corrigez les deux ici avant d’exporter.',
     'editor.title': 'Titre du guide ({lang})',

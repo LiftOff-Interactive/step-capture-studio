@@ -23,6 +23,13 @@ const ALT_ID = (index, position) => `s${index}a${position}`
 /** Narrative ids match the case-study prompt's, so authors see one scheme. */
 const NARRATIVE_ID = (index, field) => `s${index}${field === 'why' ? 'w' : 'b'}`
 const NARRATIVE_FIELDS = ['why', 'ifSkipped']
+/**
+ * Worked-example scenario ids. Defined here, not imported from case-study.js,
+ * to avoid a circular import (case-study.js already imports from this file) —
+ * the same reason NARRATIVE_FIELDS is duplicated above.
+ */
+const SCENARIO_FIELDS = ['audience', 'context', 'outcome']
+const SCENARIO_ID = (field) => `about-${field}`
 
 const DELIMITER = '|||'
 
@@ -50,6 +57,17 @@ export function collectTranslatable(capture, from = capture.sourceLang) {
   const title = typeof capture.title === 'string' ? capture.title : capture.title?.[from]
   if (title?.trim()) {
     items.push({ id: TITLE_ID, text: title.trim(), kind: 'title' })
+  }
+
+  // Worked-example scenario — the "about this procedure" details. Authored
+  // directly (never drafted), so any non-empty field is the author's own words
+  // and safe to translate.
+  const scenario = capture.scenario ?? {}
+  for (const field of SCENARIO_FIELDS) {
+    const value = scenario[field]?.[from]
+    if (value?.trim()) {
+      items.push({ id: SCENARIO_ID(field), text: value.trim(), kind: 'scenario', field })
+    }
   }
 
   for (const step of capture.steps) {
@@ -119,10 +137,11 @@ export function buildTranslationPrompt(capture, { from, to } = {}) {
   return [
     `Translate the following software training strings from ${sourceLabel} to ${targetLabel}.`,
     '',
-    'Context: these are steps from a click-by-click software guide, plus alt text describing',
-    'screenshots. The line with the id "title" is the title of the whole guide. Lines beginning',
-    'with an id like s3 are the instruction for that step. Lines with an id like s3a1 describe the',
-    'screenshot for that step.',
+    'Context: these are strings from a click-by-click software guide. The line with the id "title"',
+    'is the title of the whole guide. Lines with an id like about-audience describe the procedure',
+    'as a whole (who it is for, what it is for, what success looks like). Lines beginning with an id',
+    'like s3 are the instruction for that step; s3a1 describes that step\'s screenshot; s3w and s3b',
+    'are the worked-example explanations of why the step matters and what breaks if it is skipped.',
     '',
     'Rules:',
     `- Translate into ${targetLabel}, not European French.`,
@@ -252,6 +271,19 @@ export function applyTranslation(capture, entries, target, from = capture.source
     applied++
   }
 
+  // Scenario, likewise capture-level. The author authored the source language;
+  // the translation lands in the target without disturbing it.
+  let scenario = capture.scenario ?? {}
+  for (const field of SCENARIO_FIELDS) {
+    const value = entries.get(SCENARIO_ID(field))
+    if (!value) continue
+    scenario = {
+      ...scenario,
+      [field]: { ...scenario[field], [target]: value },
+    }
+    applied++
+  }
+
   const steps = capture.steps.map((step) => {
     let stepChanged = false
     let text = step.text
@@ -300,5 +332,5 @@ export function applyTranslation(capture, entries, target, from = capture.source
     .filter((item) => !entries.has(item.id))
     .map(({ id, kind, stepIndex }) => ({ id, kind, stepIndex }))
 
-  return { capture: { ...capture, title, steps }, applied, missing }
+  return { capture: { ...capture, title, scenario, steps }, applied, missing }
 }

@@ -23,7 +23,7 @@ import { dirname, resolve } from 'node:path'
 import { JSDOM } from 'jsdom'
 import axe from 'axe-core'
 
-import { applyStaticStrings, buildMeta, buildWarnings, buildSteps } from '../src/ui/render.js'
+import { applyStaticStrings, buildEditableMeta, buildWarnings, buildSteps } from '../src/ui/render.js'
 import { parseSnagitDocx } from '../src/lib/parse-snagit.js'
 import { makeCapture, ENGLISH_STEPS } from './helpers/synthetic.mjs'
 
@@ -115,7 +115,9 @@ function assertAxeClean(results, label) {
 function renderInto(dom, capture, lang) {
   const { document } = dom.window
   applyStaticStrings(document, lang)
-  document.getElementById('capture-meta').replaceChildren(...buildMeta(document, capture, lang))
+  document
+    .getElementById('capture-meta')
+    .replaceChildren(...buildEditableMeta(document, capture, lang, () => {}))
   document
     .getElementById('warnings-list')
     .replaceChildren(...buildWarnings(document, capture, lang))

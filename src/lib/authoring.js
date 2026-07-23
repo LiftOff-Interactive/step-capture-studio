@@ -160,6 +160,25 @@ export function setTitle(capture, lang, text) {
   return { ...capture, title: { ...current, [lang]: text?.trim() ? text : null } }
 }
 
+/**
+ * Set an editable capture-level metadata field.
+ *
+ * `author`, `duration` and `date` are free-text and language-neutral. `steps`
+ * writes `declaredStepCount` — the count shown in the metadata and the
+ * quick-steps subtitle. It is deliberately independent of `steps.length`
+ * (which is the real, structural number of steps); an author may want the
+ * displayed count to read differently, and clearing the field falls back to
+ * the actual count.
+ */
+export function setCaptureMeta(capture, field, value) {
+  if (field === 'steps') {
+    const n = String(value ?? '').trim()
+    return { ...capture, declaredStepCount: n === '' ? null : Number(n) }
+  }
+  const text = String(value ?? '')
+  return { ...capture, [field]: text.trim() === '' ? null : text }
+}
+
 /** Set alt text. Any edit resets confirmation — the author must re-affirm. */
 export function setAltText(capture, stepIndex, imageId, lang, text) {
   return mapImage(capture, stepIndex, imageId, (image) => ({

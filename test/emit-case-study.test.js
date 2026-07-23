@@ -225,7 +225,7 @@ test('headings and labels are translated, not just step text', async () => {
       el.textContent.includes(text)
     )
 
-  assert.ok(inFrench('Étude de cas'), 'the case-study heading needs a French block')
+  assert.ok(inFrench('Exemple pratique'), 'the worked-example heading needs a French block')
   assert.ok(inFrench('À propos de cette procédure'), 'the scenario heading needs a French block')
 
   // Chrome must be symmetric. Content deliberately is not — an unwritten
@@ -266,7 +266,7 @@ test('the document title carries the artifact name, so print files correctly', a
   c.title = 'Testing Windows Audio'
   const dom = open(emitCaseStudy(c))
 
-  assert.equal(dom.window.document.title, 'TestingWindowsAudio_CaseStudy')
+  assert.equal(dom.window.document.title, 'TestingWindowsAudio_WorkedExample')
   // The visible heading stays prose — only <title> carries the file name.
   assert.equal(dom.window.document.querySelector('h1').textContent, 'Testing Windows Audio')
   dom.window.close()

@@ -119,7 +119,7 @@ export function emitCaseStudy(capture, { languages = capture.languages ?? ['en']
     throw new Error(`refusing to emit unreviewed drafted narrative: ${where}`)
   }
   if (!hasNarrative(capture, languages)) {
-    throw new Error('refusing to emit a case study with no explanations')
+    throw new Error('refusing to emit a worked example with no explanations')
   }
 
   const scenario = capture.scenario ?? {}
@@ -216,7 +216,7 @@ ${steps}
 
   return renderDocument({
     title,
-    docTitle: artifactName(title, 'CaseStudy'),
+    docTitle: artifactName(title, 'WorkedExample'),
     languages,
     body,
     css: CASE_STUDY_CSS,

@@ -20,22 +20,45 @@ import { t, LOCALES } from '../lib/i18n.js'
 export const objectUrlFactory = (bytes) =>
   URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))
 
-/** <dt>/<dd> pairs describing the capture. Rows with no value are omitted. */
-export function buildMeta(document, capture, lang) {
-  return [
-    ['capture.author', capture.author],
-    ['capture.duration', capture.duration],
-    ['capture.date', capture.date],
-    ['capture.stepCount', String(capture.steps.length)],
+/**
+ * Editable capture metadata: author, duration, recorded date, step count.
+ *
+ * Every row is shown even when empty, so an author can *add* a missing value
+ * rather than only edit an existing one. `onField(field, value)` reports each
+ * edit; the caller updates the model in place (no re-render) so typing keeps
+ * focus, exactly as the title and alt fields do.
+ *
+ * The step count shows `declaredStepCount` when the author has set one, else
+ * the real number of steps — see `setCaptureMeta`.
+ */
+export function buildEditableMeta(document, capture, lang, onField) {
+  const rows = [
+    ['author', 'capture.author', capture.author ?? '', 'text'],
+    ['duration', 'capture.duration', capture.duration ?? '', 'text'],
+    ['date', 'capture.date', capture.date ?? '', 'text'],
+    ['steps', 'capture.stepCount', String(capture.declaredStepCount ?? capture.steps.length), 'number'],
   ]
-    .filter(([, value]) => value)
-    .flatMap(([key, value]) => {
-      const dt = document.createElement('dt')
-      dt.textContent = t(key, lang)
-      const dd = document.createElement('dd')
-      dd.textContent = value
-      return [dt, dd]
-    })
+
+  return rows.map(([field, labelKey, value, type]) => {
+    const id = `f-meta-${field}`
+    const wrap = document.createElement('div')
+    wrap.className = 'field'
+
+    const label = document.createElement('label')
+    label.className = 'field-label'
+    label.htmlFor = id
+    label.textContent = t(labelKey, lang)
+
+    const input = document.createElement('input')
+    input.type = type
+    if (type === 'number') input.min = '0'
+    input.id = id
+    input.value = value
+    input.addEventListener('input', () => onField(field, input.value))
+
+    wrap.append(label, input)
+    return wrap
+  })
 }
 
 /** <li> per parser warning, as a translated sentence. */
