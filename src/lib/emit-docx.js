@@ -22,7 +22,7 @@
  */
 
 import { writeZip } from './zip-write.js'
-import { altFor, captureTitle } from './emit-common.js'
+import { altFor, captureTitle, imageType } from './emit-common.js'
 import { t } from './i18n.js'
 
 /** English Metric Units: 914400 per inch, 9525 per pixel at 96 dpi. */
@@ -140,6 +140,9 @@ export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = 
   const media = []
   const rels = []
   const body = []
+  // Image extensions actually used, so [Content_Types].xml declares a Default
+  // for each and no more. An undeclared extension is a part Word cannot type.
+  const mediaExts = new Set()
   let relIndex = 0
   let docPrId = 1
 
@@ -154,7 +157,13 @@ export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = 
     for (const image of step.images) {
       relIndex++
       const relId = `rId${relIndex}`
-      const name = `media/image${relIndex}.png`
+      // The extension must match the actual bytes. Word keys the part's content
+      // type off it via the Default entry in [Content_Types].xml, and a JPEG
+      // named .png is exactly the kind of internally-consistent-but-wrong file
+      // Word offers to "repair".
+      const { ext } = imageType(image.bytes)
+      const name = `media/image${relIndex}.${ext}`
+      mediaExts.add(ext)
       media.push({ name: `word/${name}`, data: image.bytes })
       rels.push(
         `<Relationship Id="${relId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="${name}"/>`
@@ -252,12 +261,22 @@ export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = 
     `</w:compat>` +
     `</w:settings>`
 
+  // One Default per image extension actually embedded. `image/jpeg` uses the
+  // `.jpeg` extension to match the part names written above; `.jpg` is a
+  // separate token to OPC and would need its own Default.
+  const IMAGE_CONTENT_TYPES = {
+    png: 'image/png', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp',
+  }
+  const imageDefaults = [...mediaExts]
+    .map((ext) => `<Default Extension="${ext}" ContentType="${IMAGE_CONTENT_TYPES[ext]}"/>`)
+    .join('')
+
   const contentTypes =
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
     `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
     `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
     `<Default Extension="xml" ContentType="application/xml"/>` +
-    `<Default Extension="png" ContentType="image/png"/>` +
+    imageDefaults +
     `<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>` +
     `<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>` +
     `<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>` +

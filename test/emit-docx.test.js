@@ -332,3 +332,86 @@ test('images are scaled to fit the page, keeping aspect ratio', async () => {
   assert.ok(cx <= 6.5 * 914400, 'never wider than the text column')
   assert.ok(Math.abs(cx / cy - 200 / 120) < 0.01, 'aspect ratio preserved')
 })
+
+// ----------------------------------------------------- image type detection ---
+
+/** The 6-byte core signature each format is recognised by. */
+const SIG = {
+  png: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a],
+  jpeg: [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10],
+  gif: [0x47, 0x49, 0x46, 0x38, 0x39, 0x61],
+}
+const bytesWith = (sig, len = 64) => {
+  const b = new Uint8Array(len)
+  b.set(sig)
+  return b
+}
+
+test('imageType reads the format from the bytes, never a filename', async () => {
+  const { imageType } = await import('../src/lib/emit-common.js')
+
+  assert.equal(imageType(bytesWith(SIG.png)).ext, 'png')
+  assert.equal(imageType(bytesWith(SIG.jpeg)).mime, 'image/jpeg')
+  assert.equal(imageType(bytesWith(SIG.gif)).ext, 'gif')
+
+  const webp = new Uint8Array(16)
+  webp.set([0x52, 0x49, 0x46, 0x46]) // RIFF
+  webp.set([0x57, 0x45, 0x42, 0x50], 8) // WEBP
+  assert.equal(imageType(webp).mime, 'image/webp')
+
+  // Unknown bytes fall back to PNG rather than throwing — the parser vets input.
+  assert.equal(imageType(new Uint8Array([1, 2, 3, 4])).ext, 'png')
+})
+
+test('a JPEG image is embedded as .jpeg with the right content type, not mislabelled png', async () => {
+  // Regression: everything used to hardcode PNG — part name, data URI, and the
+  // [Content_Types] Default. A JPEG in a capture then produced a package whose
+  // bytes and labels disagreed, which is the shape of file Word offers to repair.
+  let c = await authored()
+  // Swap the first image's bytes for a JPEG; keep everything else identical.
+  const jpeg = bytesWith(SIG.jpeg, 128)
+  c = {
+    ...c,
+    steps: c.steps.map((step, i) =>
+      i === 0
+        ? { ...step, images: step.images.map((img, j) => (j === 0 ? { ...img, bytes: jpeg } : img)) }
+        : step
+    ),
+  }
+
+  const entries = await readDocx(await emitDocx(c, { lang: 'en' }))
+  const names = [...entries.keys()]
+  const ct = decodeText(entries.get('[Content_Types].xml'))
+
+  assert.ok(names.includes('word/media/image1.jpeg'), 'the JPEG is stored with a .jpeg extension')
+  assert.ok(
+    names.some((n) => n.endsWith('.png')),
+    'the remaining PNG screenshots keep their .png extension'
+  )
+  assert.match(ct, /Extension="jpeg" ContentType="image\/jpeg"/, 'jpeg content type declared')
+  assert.match(ct, /Extension="png" ContentType="image\/png"/, 'png content type still declared')
+
+  // Every image part must have a content type Word can resolve — no undeclared
+  // extension, which is an untyped part.
+  const declared = new Set([...ct.matchAll(/Extension="([^"]+)"/g)].map((m) => m[1]))
+  for (const name of names.filter((n) => n.startsWith('word/media/'))) {
+    const ext = name.split('.').pop()
+    assert.ok(declared.has(ext), `extension ${ext} must be declared in [Content_Types].xml`)
+  }
+})
+
+test('the emitter embeds screenshots byte-identically regardless of format', async () => {
+  // The byte-identical guarantee must not depend on the format being PNG.
+  let c = await authored()
+  const jpeg = bytesWith(SIG.jpeg, 200)
+  c = {
+    ...c,
+    steps: c.steps.map((step, i) =>
+      i === 0
+        ? { ...step, images: step.images.map((img, j) => (j === 0 ? { ...img, bytes: jpeg } : img)) }
+        : step
+    ),
+  }
+  const entries = await readDocx(await emitDocx(c, { lang: 'en' }))
+  assert.deepEqual([...entries.get('word/media/image1.jpeg')], [...jpeg], 'JPEG not re-encoded')
+})

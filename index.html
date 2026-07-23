@@ -71,6 +71,23 @@
         </div>
 
         <!--
+          The demo is a project file like any other — it just ships with the
+          site. That means no separate code path to keep working: it goes
+          through the same importer as a file the user picks.
+
+          It fetches one asset from this same site. Nothing is uploaded, and the
+          privacy claim below is unaffected.
+        -->
+        <div class="toolbar">
+          <button type="button" id="load-demo" class="button button--quiet" data-i18n="demo.load">
+            Try it with a sample capture
+          </button>
+          <p class="hint" data-i18n="demo.hint">
+            No file needed — loads a short, public example (changing the audio device in Windows).
+          </p>
+        </div>
+
+        <!--
           Polite, matching the implicit value of role="status". Success does not
           need to interrupt. Errors get their own role="alert" region below,
           which is the pattern screen readers handle most predictably.

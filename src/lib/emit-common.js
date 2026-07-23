@@ -23,13 +23,53 @@ export function escapeHtml(value) {
 }
 
 /**
+ * The image format of a byte array, from its signature — never its filename.
+ *
+ * Everything downstream used to assume PNG: `data:image/png`, `image{n}.png`,
+ * `ContentType="image/png"`. Snagit usually emits PNG, but a capture with a
+ * JPEG in it would then produce broken data URIs and a `.docx` Word could
+ * reject, because the bytes and the label disagreed. The consumer is the spec,
+ * so read what the bytes actually are.
+ *
+ * @returns {{mime: string, ext: string}}
+ */
+export function imageType(bytes) {
+  if (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+  ) {
+    return { mime: 'image/png', ext: 'png' }
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return { mime: 'image/jpeg', ext: 'jpeg' }
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return { mime: 'image/webp', ext: 'webp' }
+  }
+  if (bytes.length >= 6 && bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
+    return { mime: 'image/gif', ext: 'gif' }
+  }
+  // Fall back to PNG rather than throw: the parser already vets what it accepts,
+  // and a wrong-but-plausible label is what this function exists to prevent, not
+  // to reintroduce at the boundary.
+  return { mime: 'image/png', ext: 'png' }
+}
+
+/**
  * Bytes -> data URI.
+ *
+ * The MIME type is detected from the bytes when not given, so a JPEG is never
+ * served as `data:image/png` (which some engines refuse to decode).
  *
  * Chunked deliberately: `String.fromCharCode(...bytes)` overflows the argument
  * limit and throws on anything above a few hundred kilobytes, and these are
  * full-resolution screenshots.
  */
-export function toDataUri(bytes, mime = 'image/png') {
+export function toDataUri(bytes, mime = imageType(bytes).mime) {
   let binary = ''
   const CHUNK = 0x8000
   for (let i = 0; i < bytes.length; i += CHUNK) {

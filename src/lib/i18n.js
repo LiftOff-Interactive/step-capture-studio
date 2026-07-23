@@ -128,6 +128,12 @@ const STRINGS = {
     'project.importHint':
       'The .html project file you exported earlier. Screenshots travel inside it, so there is nothing else to re-attach.',
     'project.imported': 'Project restored: {count} steps.',
+    'demo.load': 'Try it with a sample capture',
+    'demo.hint':
+      'No file needed — loads a short, public example (changing the audio device in Windows).',
+    'demo.loaded': 'Sample capture loaded: {count} steps. Everything is editable.',
+    'error.DEMO_UNAVAILABLE':
+      'The sample capture could not be loaded. Check your connection, or load a Snagit .docx file instead.',
     'error.PROJECT_NOT_RECOGNISED':
       'That file is not a Step Capture Studio project file. Export one with “Export project file”, then load that.',
     'error.PROJECT_NO_STEPS': 'That project file has no steps in it.',
@@ -296,6 +302,12 @@ const STRINGS = {
     'project.importHint':
       'Le fichier de projet .html que vous avez exporté. Les captures d’écran y sont incluses; rien d’autre à joindre.',
     'project.imported': 'Projet restauré : {count} étapes.',
+    'demo.load': 'Essayer avec un exemple',
+    'demo.hint':
+      'Aucun fichier requis — charge un court exemple public (changer le périphérique audio dans Windows).',
+    'demo.loaded': 'Exemple chargé : {count} étapes. Tout est modifiable.',
+    'error.DEMO_UNAVAILABLE':
+      'Impossible de charger l’exemple. Vérifiez votre connexion ou chargez un fichier Snagit .docx.',
     'error.PROJECT_NOT_RECOGNISED':
       'Ce fichier n’est pas un fichier de projet Step Capture Studio. Exportez-en un avec « Exporter le fichier de projet », puis chargez-le.',
     'error.PROJECT_NO_STEPS': 'Ce fichier de projet ne contient aucune étape.',

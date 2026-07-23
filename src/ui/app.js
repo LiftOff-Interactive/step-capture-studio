@@ -40,7 +40,7 @@ import { emitCaseStudy } from '../lib/emit-case-study.js'
 import { emitDocx } from '../lib/emit-docx.js'
 import { emitProject } from '../lib/emit-project.js'
 import { parseProject, ProjectError } from '../lib/parse-project.js'
-import { artifactName, captureTitle } from '../lib/emit-common.js'
+import { artifactName, captureTitle, imageType } from '../lib/emit-common.js'
 import {
   setNarrative,
   setScenario,
@@ -81,6 +81,7 @@ const els = {
   dropzone: document.getElementById('dropzone'),
   fileInput: document.getElementById('file-input'),
   projectInput: document.getElementById('project-input'),
+  loadDemo: document.getElementById('load-demo'),
   exportProject: document.getElementById('export-project'),
   status: document.getElementById('status'),
   error: document.getElementById('error'),
@@ -178,7 +179,10 @@ function releaseObjectUrls() {
 }
 
 function trackedImageUrl(bytes) {
-  const url = URL.createObjectURL(new Blob([bytes], { type: 'image/png' }))
+  // Label the blob with the format the bytes actually are, not a hardcoded PNG.
+  // Browsers sniff and display either way, but a JPEG served as image/png is the
+  // same bytes-vs-label mismatch the emitters were just fixed for.
+  const url = URL.createObjectURL(new Blob([bytes], { type: imageType(bytes).mime }))
   state.objectUrls.push(url)
   return url
 }
@@ -555,7 +559,16 @@ async function loadFile(file) {
  */
 async function loadProjectFile(file) {
   if (!file) return
+  try {
+    await loadProjectText(await file.text())
+    announce('project.imported', { count: state.capture.steps.length })
+  } catch (error) {
+    reportProjectFailure(error)
+  }
+}
 
+/** Parse project HTML and adopt it. Throws; callers report. */
+async function loadProjectText(html) {
   releaseObjectUrls()
   clearError()
   hide(els.capture)
@@ -566,22 +579,20 @@ async function loadProjectFile(file) {
   hide(els.caseStudy)
   setStatus('status.reading')
 
-  try {
-    const restored = parseProject(await file.text())
+  const restored = parseProject(html)
+  state.capture = restored
+  state.history = []
+  state.lastBlockerCount = null
+  renderAll()
+}
 
-    state.capture = restored
-    state.history = []
-    state.lastBlockerCount = null
-    renderAll()
-    announce('project.imported', { count: restored.steps.length })
-  } catch (error) {
-    state.capture = null
-    if (error instanceof ProjectError) {
-      showError(error.code, { detail: error.detail ?? '' })
-    } else {
-      console.error(error)
-      showError('UNKNOWN')
-    }
+function reportProjectFailure(error) {
+  state.capture = null
+  if (error instanceof ProjectError) {
+    showError(error.code, { detail: error.detail ?? '' })
+  } else {
+    console.error(error)
+    showError('UNKNOWN')
   }
 }
 
@@ -589,6 +600,31 @@ async function loadProjectFile(file) {
 
 els.fileInput.addEventListener('change', (event) => loadFile(event.target.files[0]))
 els.projectInput.addEventListener('change', (event) => loadProjectFile(event.target.files[0]))
+
+/**
+ * The bundled sample.
+ *
+ * It is an ordinary project file that happens to ship with the site, so it goes
+ * through the very same importer as one the user picks — there is no second
+ * code path to keep working, and the demo cannot quietly rot while imports
+ * still pass.
+ *
+ * This is the one fetch the app makes, and it is for an asset of this same
+ * site. No capture leaves the browser; the privacy claim is unchanged.
+ */
+els.loadDemo.addEventListener('click', async () => {
+  clearError()
+  setStatus('status.reading')
+  try {
+    const response = await fetch('assets/demo/testing-windows-audio.project.html')
+    if (!response.ok) throw new Error(`demo fetch failed: ${response.status}`)
+    await loadProjectText(await response.text())
+    announce('demo.loaded', { count: state.capture.steps.length })
+  } catch (error) {
+    console.error(error)
+    showError('DEMO_UNAVAILABLE')
+  }
+})
 
 els.exportProject.addEventListener('click', () => {
   if (!state.capture) return

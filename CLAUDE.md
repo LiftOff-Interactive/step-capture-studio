@@ -56,6 +56,10 @@ structural test passed. Where another program consumes our output, that program 
 - **Never commit a real capture.** No `.docx`, `.mht`, `.snagx`, `.pdf`, or screenshot of an internal
   system, ever. The repo is public and the source captures are internal government systems. A pre-commit
   hook in `.githooks/pre-commit` enforces this — never bypass it with `--no-verify`.
+  **This includes generated files.** Artifacts and project files inline every screenshot as base64,
+  so an export built from an internal capture is a `.html` full of internal imagery. The hook checks
+  file *contents* for embedded images, not just names. Only `assets/demo/` and `docs/assets/` are
+  exempt, and only genuinely synthetic material belongs there.
 - **Accessibility is built in, not retrofitted.** Every UI change ships keyboard-operable and
   AA-contrast from the first commit.
 - **Bilingual by construction.** No user-facing string is hardcoded; everything resolves through the

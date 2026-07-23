@@ -39,6 +39,29 @@ if [ -n "$images" ]; then
   fail=1
 fi
 
+# --- 4. Screenshots embedded INSIDE a text file ---------------------------------
+# Checks 1-3 judge a file by its name. That was sufficient until this tool began
+# emitting self-contained HTML with every screenshot inlined as a base64 data
+# URI: a project file or artifact built from an internal capture is a `.html`
+# full of internal screenshots, and every check above waves it through.
+#
+# Matched on a long base64 payload rather than the string "data:image", so the
+# emitter and its tests — which mention data URIs but never contain one — are
+# not caught. A real screenshot runs to tens of thousands of characters.
+embedded=""
+for file in $(printf '%s\n' "$staged" | grep -Ev '^(assets/demo/|docs/assets/)'); do
+  git show ":$file" 2>/dev/null \
+    | grep -qEi 'data:image/[a-z]+;base64,[A-Za-z0-9+/=]{200,}' && embedded="$embedded $file"
+done
+if [ -n "$embedded" ]; then
+  echo "BLOCKED: these files contain embedded screenshots (base64 image data):"
+  printf '  %s\n' $embedded
+  echo "  Generated artifacts and project files inline every screenshot. If this was built"
+  echo "  from an internal capture it must never be committed. Only a genuinely synthetic"
+  echo "  demo belongs in assets/demo/."
+  fail=1
+fi
+
 if [ "$fail" -ne 0 ]; then
   echo ""
   echo "Nothing was committed. Unstage the files above with: git restore --staged <file>"
