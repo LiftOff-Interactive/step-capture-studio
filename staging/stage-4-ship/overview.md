@@ -9,8 +9,8 @@ use the tool without knowing anything about it.
 ## Features
 - [x] `feature-docx-writer` — zero-dependency accessible OOXML export — **built, awaiting verification**
 - [x] `feature-project-file` — portable save/resume, replacing autosave — **built, awaiting verification**
-- [ ] `feature-demo-capture` — a synthetic, publicly-safe sample capture
-- [ ] `feature-public-polish` — README, screenshots, licence, contribution notes
+- [x] `feature-demo-capture` — ships as a loadable project file — **built, awaiting verification**
+- [ ] `feature-public-polish` — README, screenshots, contribution notes — **not started**
 
 ## Definition of done — testable checklist
 - [x] Exported `.docx` opens in Word with no repair prompt. — **verified, Word 16.0**
@@ -21,7 +21,8 @@ use the tool without knowing anything about it.
       first, so it graded a converted copy. Re-run needed — `help.md` 3b.*
 - [x] Every image carries alt text (`wp:docPr/@descr`); headings use real heading styles; `w:lang` is
       set per run; the document has a title in its core properties. — **all four verified in Word**
-- [ ] A synthetic demo capture ships in the repo and contains **no internal system imagery**.
+- [x] A synthetic demo ships in the repo and contains **no internal system imagery**. — a project
+      file at `assets/demo/`, loaded by the ordinary importer; content reviewed 2026-07-22.
 - [ ] A stranger completes the full flow from the live URL using only the README and the demo.
 - [x] Licensing is resolved and a `LICENSE` file exists. — MIT, 2026-07-21
 - [x] `git log --all --diff-filter=A --name-only` confirms no capture file ever entered history.
@@ -38,7 +39,7 @@ the fallback options are: ship HTML-only for v1 and defer `.docx`; or accept a s
 dependency for this one emitter and document the exception in `docs/decisions.md`.
 
 
-## Status - 2026-07-22 (second pass)
+## Status - 2026-07-22 (third pass)
 `feature-docx-writer` is verified against Word 16.0: no repair prompt, real heading styles, alt
 text on every image, correct language EN/FR, title and author surviving a re-save, and
 `CompatibilityMode=15`. **224/224 tests.**
@@ -48,8 +49,9 @@ done and found a real print-sizing defect, now fixed. The demo capture exists an
 the first attempt**, which retires the master plan's risk #1 for English.
 
 What remains:
-- **The Accessibility Checker still has not run.** The first attempt graded a Word-converted copy
-  because our file opened in Compatibility Mode. Cause fixed; re-run needed.
-- **`feature-demo-capture` and `feature-public-polish` have no feature files** — they are checklist
-  lines here and nothing more. Writing them is the next structural step.
-- A capture's **French title** is a genuine model gap, not a bug — `help.md` 9.
+- **The Accessibility Checker still has not run.** Two attempts both graded pre-fix files — the
+  first a Word-converted copy, the second exported from the live site before the fix was pushed.
+  Cause fixed and deployed; re-run needed on a hard-refreshed page.
+- **`feature-public-polish` is not started.** README, screenshots, contribution notes.
+- **Nobody has yet done the thing the demo exists for**: a stranger completing the flow from the
+  live URL using only the README and the sample.

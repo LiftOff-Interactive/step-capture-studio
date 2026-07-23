@@ -174,6 +174,43 @@ chrome only. ·
 it. The tests counted lang-blocks and found them; they never asked whether the *labels* were among
 them.
 
+## 2026-07-22 — Assuming every embedded image is a PNG
+**Why it failed:** the whole pipeline hardcoded PNG — `toDataUri` defaulted to `data:image/png`, the
+`.docx` emitter wrote `image{n}.png` with `ContentType="image/png"`, and the editor's blob URL used
+`image/png`. Snagit emits PNG, so nothing broke in practice, but the assumption was a latent defect:
+a capture containing a JPEG would produce a data URI some engines refuse to decode and a `.docx`
+whose bytes and content type disagree — exactly the internally-consistent-but-wrong package Word
+offers to "repair". It surfaced not from a bug report but from wanting to ship the demo as JPEG (11×
+smaller for these screenshots), which the pipeline could not honestly represent. ·
+**Do instead:** detect the format from the magic bytes (`imageType` in `emit-common.js`) and thread
+the real mime and extension through every consumer — data URI, `.docx` part name, the
+`[Content_Types].xml` Default per extension used, and the editor blob. Verified the JPEG-backed
+`.docx` against Word 16.0 via COM: `CompatibilityMode=15`, opens with no repair prompt, six images
+all with alt text and dimensions. ·
+**Wider lesson:** "it happens to always be X" is a defect waiting for the first non-X input.
+Detecting beats assuming, and the cost of detecting was one small function. Third instance this
+session of the same shape — the leak guard keyed on filename, the checkbox stored its own truth,
+and here the format was assumed; each looked fine until the case it did not cover arrived.
+
+## 2026-07-22 — A leak guard that judged files by their name
+**Why it failed:** the pre-commit hook blocked `.docx`, `.pdf`, anything under `captures/`, and
+loose image files outside two allow-listed folders. All of it keyed on the **filename**. That held
+until this tool began emitting self-contained HTML with every screenshot inlined as a base64 data
+URI: a project file or artifact built from the *internal* capture is a `.html` full of internal
+screenshots, and every check waved it through — into a public repo, where git history is permanent. ·
+**How it was found:** by asking what the demo capture could actually ship as, and noticing that the
+answer — a `.html` with embedded images — was a format the guard could not see into. Nothing had
+leaked; the hole was found before it was used. ·
+**Do instead:** check staged file *contents*, not just names. Match a long base64 image payload
+(`data:image/…;base64,` followed by 200+ base64 characters) rather than the string `data:image`, so
+the emitters and their tests — which mention data URIs but never contain one — are not caught;
+verified zero false positives across the tree. Tested in both directions: blocked from the repo
+root, allowed under `assets/demo/`. ·
+**Wider lesson:** a guard is only as good as its model of what it is guarding. This one encoded
+"dangerous content arrives in dangerous file types", which stopped being true the moment the project
+started generating self-contained files. **When you add an output format, re-ask what the safety
+checks assume.**
+
 ## 2026-07-22 — A control whose `disabled` state only updates on re-render
 **Why it failed:** the new per-step verification checkbox is disabled while any alt text in the step
 is empty, because the model refuses to confirm empty alt text and offering the control would be

@@ -267,3 +267,39 @@ on every image, correct language in both EN and FR — plus the `dc:language` di
 structural test could have surfaced. ·
 **Revisit if:** Word ever rejects a package in a way that is not diagnosable this way. The fallback
 remains a single dev-time dependency for this one emitter, documented as an exception.
+
+## 2026-07-22 — Project state lives in visible markup, not a hidden JSON blob
+**Chose:** the portable project file keeps confirmation flags, decorative markers and
+drafted-vs-authored state in `data-` attributes on the elements they describe. ·
+**Because:** the author asked to be able to hand-edit the exported file and have the edits come
+back. A JSON state block would round-trip more reliably and be far less code, but it makes the
+visible document a lie — you edit the prose and nothing happens on import. Here the prose *is* the
+data. ·
+**Rejected:** a JSON block (exact, but hand-edits silently discarded); parsing the rendered HTML
+with no state at all (hand-edits work, but every import loses confirmations and reopens the
+accessibility gate — and the tempting fix, marking everything confirmed on import, would gut it). ·
+**Cost:** `emit-project.js` and `parse-project.js` are a matched pair with nothing but tests keeping
+them in step.
+
+## 2026-07-22 — The guide title is localized like every other string
+**Chose:** `capture.title` is `{en, fr}`, editable per language and carried by the translation
+round trip as the id `title`. ·
+**Because:** the title is the most visible string in every artifact and was the last thing still
+reading in English in the French output. Unlike the other six reports that day it was not a bug — no
+French title existed anywhere in the model. ·
+**Rejected:** leaving it single-language (free, and what had been happening); hand-entry only (the
+author would retype something the round trip can draft). ·
+**Note:** artifacts fall back to the language that has a title rather than showing "Untitled
+capture", but the project file stores the untranslated language as genuinely empty — a title nobody
+wrote must not become one they apparently did.
+
+## 2026-07-22 — The demo ships as a project file, not a capture
+**Chose:** `assets/demo/testing-windows-audio.project.html`, loaded by the ordinary importer. ·
+**Because:** a `.docx` cannot live in this repo — `.gitignore` excludes it and the hook blocks it,
+both correctly. The demo never needed to be a *capture*; it only needed to be a *state*. Shipping a
+real project file means the demo exercises the same code path as any import and cannot rot
+silently. ·
+**Rejected:** a hardcoded sample capture object in the source (simpler, but drifts from the real
+format with nothing to catch it). ·
+**Consequence:** this exposed a hole in the leak guard — see `failed-approaches.md`.
+

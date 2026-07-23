@@ -83,9 +83,9 @@ author and date all correct. That is worth more than the demo itself: the parser
 turns "we assume the format is stable" into a tested fact for English (item 3 — a French capture —
 is still open and still the more valuable one).
 
-**Still to do before it ships:** the capture itself cannot go in the repo (`.docx` is blocked, and
-rightly). `feature-demo-capture` needs to decide what actually ships — most likely the three
-generated artifacts plus a small sample the app can load, not the source file.
+**Now shipped**, as a *project file* rather than a capture: `assets/demo/` holds a fully authored
+export the app loads with one click ("Try it with a sample capture"). The `.docx` itself stays out
+of the repo, correctly. Nothing further is needed from you on this item.
 
 ### [x] 5. ~~Confirm which browsers must be supported~~ — done 2026-07-21
 **Decided:** current Chrome/Edge only. `DecompressionStream('deflate-raw')` is confirmed working in

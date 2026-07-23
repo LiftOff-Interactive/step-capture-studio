@@ -51,7 +51,7 @@ any architecture involving a server is disqualified.
 - Copy-prompt export for case-study narrative and for FR translation
 - Portable project file: export the whole capture to one `.html`, import it back
   (replaced `localStorage` autosave, 2026-07-22 — see `docs/decisions.md`)
-- Live on GitHub Pages with a synthetic demo capture
+- Live on GitHub Pages with a synthetic demo, shipped as a loadable project file
 
 **Explicitly out (v1):**
 - `.pdf`, `.snagx`, and Windows Steps Recorder `.mht` input

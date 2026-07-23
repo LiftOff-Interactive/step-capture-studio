@@ -95,6 +95,19 @@ inert. Mutation-tested: removing the part fails the suite.
 **Criterion 8 remains unticked.** Making the checker reachable is not the same as passing it. It
 needs a re-run on a freshly exported file — back in `help.md` as item 3b.
 
+### 2026-07-22 — Image format detected, not assumed
+
+Every image part was hardcoded `.png` / `image/png`. A JPEG in a capture would have produced a
+package whose bytes and content type disagreed — Word's cue to offer a repair. The emitter now reads
+the format from the bytes (`imageType`), names each part with the real extension, and declares one
+`[Content_Types].xml` Default per extension actually embedded.
+
+Verified against Word 16.0 via COM on a JPEG-backed document (the downscaled demo): opens with no
+repair prompt, `CompatibilityMode=15`, six inline shapes all carrying alt text and dimensions,
+language 4105. Byte-identical embedding still holds — the JPEG is stored exactly as given, not
+re-encoded. Regression tests cover the extension, the content type, and the no-undeclared-extension
+invariant; both mutations (revert the extension, revert the content type) fail the suite.
+
 ## Open Questions
 - Should the `.docx` mirror the case study (narrative included) or the walkthrough (steps only)?
   Currently it includes authored narrative when present, and omits unreviewed drafts — consistent
