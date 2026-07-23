@@ -95,6 +95,15 @@ in — so it is pinned by a bespoke assertion, mutation-tested.
 **Naming:** `<title>` is now `TestingWindowsAudio_CaseStudy`, matching the download filename. The
 visible `<h1>` still reads as prose; only `<title>` carries the file name.
 
+### 2026-07-22 — Renamed "Worked example" in the UI and outputs
+
+Author request: everything the user sees now says **"Worked example"** (FR "Exemple pratique"), not
+"case study" — the on-page phase, the artifact `<h2>`, the download button, and the filename
+(`..._WorkedExample.html`). The internal identifiers in this feature (`emitCaseStudy`,
+`caseStudy.*` keys, `case-study.js`, the `#case-study` DOM id) are unchanged; only the visible
+strings and the filename suffix moved. This file keeps its name and "case study" wording as the
+historical record of how the artifact was built.
+
 ## Open Questions
 - ~~How strongly should unreviewed AI content be marked in the exported artifact?~~ **RESOLVED** - it
   is never in the artifact, because export is blocked until reviewed.

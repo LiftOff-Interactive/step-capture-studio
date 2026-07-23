@@ -314,3 +314,20 @@ before, help.md 2b), so recreation is the only reliable purge. ·
 blob SHA-fetchable); fix-forward only (original stays in history). ·
 **Residual:** copies fetched during the ~2-hour live window and any CDN cache cannot be recalled.
 
+## 2026-07-22 — Editor organised into phases; "Case study" renamed to "Worked example"
+**Chose:** present the editor as three ordered phases — Worked example → Edit → Translation — with
+the export panel last; make the capture metadata (author, duration, date, steps) editable; and
+rename "Case study" to "Worked example" everywhere the user sees it, including the exported
+artifact's heading and filename (`..._WorkedExample.html`). The translation prompt now carries the
+whole worked example (scenario + per-step narrative) and the alt text, not just step text. ·
+**Because:** author request. The phase framing matches the intended workflow (write the example,
+fix the steps, then translate the finished thing in one pass). ·
+**Scope line held:** only user-facing strings, the artifact heading, and the filename changed.
+Internal identifiers — `caseStudy.*` i18n keys, `emitCaseStudy`, `case-study.js`, DOM ids — were
+left as-is; renaming them is a large refactor with no user-visible effect and real regression risk.
+Historical dev docs keep the "case study" wording as a record of what was built. ·
+**On editable step count:** "Steps" writes `declaredStepCount`, which only affects the displayed
+count and the quick-steps subtitle — it is deliberately independent of the real number of steps,
+so it can be made to disagree with reality. That is inherent in making it editable; the author owns
+the value.
+

@@ -96,6 +96,16 @@ silently overwritten what had just arrived. `renderTitleFields()` is now called 
 sync defect. Anything rendered outside `rerenderSteps` needs its own refresh, and no test currently
 covers that seam.
 
+### 2026-07-22 — The round trip now carries the whole worked example
+
+Author request: one translation pass should cover everything, not step text alone. The prompt (and
+`applyTranslation`) now include the worked-example **scenario** (`about-audience/context/outcome`)
+alongside the step narrative, alt text and title that were already there. Scenario fields are
+authored, never drafted, so any non-empty one is the author's own words and safe to translate.
+`SCENARIO_FIELDS`/`SCENARIO_ID` are defined locally in `translate.js` — not imported from
+`case-study.js` — to avoid the circular import, matching how `NARRATIVE_FIELDS` is handled. Both
+halves (collect, apply) are mutation-tested.
+
 ## Open Questions
 - What return format survives copy-paste from a chat UI most reliably? Fenced JSON is
   machine-parseable but chat clients sometimes reformat it; a delimited `id ||| text` line format is
