@@ -48,7 +48,7 @@ prompt at all**. If it still asks you to convert, stop and tell me: the fix did 
 `Downloads\microsoft-edge-en.docx`, exported from the **live site** — which still runs the old code,
 because none of this session's work is committed or pushed. That file has no `settings.xml` and was
 always going to prompt. The old-style filename is the tell: anything named `something-en.docx`
-predates the fix. A fixed export is named `Something_Document_EN.docx`.
+predates the fix. A fixed export is named `Something_Steps_EN.docx`.
 
 **What to report back:** whether the conversion prompt appeared, then the checker's verdict —
 *errors* specifically, since warnings and tips do not fail this criterion.

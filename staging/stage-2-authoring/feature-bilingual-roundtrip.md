@@ -106,6 +106,15 @@ authored, never drafted, so any non-empty one is the author's own words and safe
 `case-study.js` — to avoid the circular import, matching how `NARRATIVE_FIELDS` is handled. Both
 halves (collect, apply) are mutation-tested.
 
+### 2026-07-23 — Every populated field is now offered (gates dropped)
+
+Following the scenario addition, the prompt now offers **all populated fields** — dropping the two
+remaining gates: unconfirmed alt text and drafted narrative are included. The earlier rule excluded
+them to avoid translating unreviewed content, but the export gates already prevent unreviewed
+content from shipping (a translated alt returns unconfirmed; a translated narrative returns drafted),
+so the exclusion only forced the author to translate the rest by hand. Author-requested. The
+"arrives unconfirmed / arrives drafted" properties are pinned so the export guard is not weakened.
+
 ## Open Questions
 - What return format survives copy-paste from a chat UI most reliably? Fenced JSON is
   machine-parseable but chat clients sometimes reformat it; a delimited `id ||| text` line format is

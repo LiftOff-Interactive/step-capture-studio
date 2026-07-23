@@ -1,5 +1,5 @@
 # Handoff — step-capture-studio
-_Last updated: 2026-07-22 · Current stage: stage-4-ship_
+_Last updated: 2026-07-23 · Current stage: stage-4-ship_
 
 ## 🎯 Goals
 Finish Stage 4: a shippable demo capture and public polish, so a stranger can use the live site.
@@ -28,13 +28,13 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7).
 
 ## ✅ Things I've Changed
+- 2026-07-23 — **Merge collapses a duplicate to ONE screenshot**; **translation offers every
+  populated field** (unconfirmed alt, drafted narrative) — export gates stay the guard.
+- 2026-07-23 — Two Word-doc buttons (English/French); docx filenames are now `..._Steps_EN/FR.docx`.
 - 2026-07-22 — **UI restructured into phases** (Worked example → Edit → Translation), editable
-  capture metadata, "Load a file", export panel moved to the bottom, "Case study" → "Worked example".
-- 2026-07-22 — **Translation prompt now covers the whole worked example** — scenario + narrative +
-  alt text + title, not step text alone.
+  capture metadata, "Load a file", export panel at the bottom, "Case study" → "Worked example".
 - 2026-07-22 — Bilingual guide title: editable field per language, plus the translation round trip.
 - 2026-07-22 — Portable project file replaces autosave; state rides visible `data-` attributes.
-- 2026-07-22 — Image format detected from bytes, not assumed PNG; demo downscaled 2.9→0.27 MB.
 
 ## ❌ Watch Out
 - **A correct model is not a correct UI, and valid markup is not accepted markup.** Every session

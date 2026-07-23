@@ -331,3 +331,24 @@ count and the quick-steps subtitle — it is deliberately independent of the rea
 so it can be made to disagree with reality. That is inherent in making it editable; the author owns
 the value.
 
+## 2026-07-23 — Merge keeps one image; translation offers every populated field
+**Merge:** merging a duplicate step into the one before it now keeps the survivor's single
+screenshot and discards the absorbed step's, instead of keeping both. A merged step with two
+near-identical images (in the HTML and the .docx) was the redundancy the author merges to remove.
+This *drops* the absorbed image — acceptable because merge is only for true duplicates; genuinely
+different frames should not be merged. (Author confirmed: leave this as the behaviour.)
+
+**Translation scope:** `collectTranslatable` now offers **every populated field** — title,
+scenario, step text, alt text, and both worked-example fields — regardless of whether the alt is
+confirmed or the narrative is drafted. This reverses the earlier, more cautious rule (exclude
+unconfirmed alt and drafted narrative to avoid "laundering" unreviewed content into a second
+language). ·
+**Why the reversal is safe:** the *export* gates are unchanged and are the real guard. A translated
+alt arrives unconfirmed; a translated narrative arrives drafted. The accessibility gate needs
+confirmation in every language and the worked-example gate blocks any drafted passage, so nothing
+unreviewed can reach a deliverable. Offering more to translate only saves the author a manual pass.
+Author-requested; supersedes the "deliberately excludes drafted" note in `feature-case-study.md`.
+
+**Word-doc naming/buttons:** two explicit buttons (English/French) so the French doc needs no UI
+toggle; the filename is now `Title_Steps_LANG.docx` (was `Title_Document_LANG.docx`).
+

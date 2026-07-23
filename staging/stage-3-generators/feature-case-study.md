@@ -104,6 +104,14 @@ Author request: everything the user sees now says **"Worked example"** (FR "Exem
 strings and the filename suffix moved. This file keeps its name and "case study" wording as the
 historical record of how the artifact was built.
 
+### 2026-07-23 — Superseded: drafted narrative IS now translated
+
+The 2026-07-21 log above says `collectTranslatable` "deliberately excludes drafted passages." That
+is no longer true. On author request, the translation prompt now offers every populated field,
+drafted narrative included. It is safe because the worked-example export gate still blocks any
+drafted passage: a translated draft returns drafted and cannot ship until reviewed. See
+`docs/decisions.md`, 2026-07-23.
+
 ## Open Questions
 - ~~How strongly should unreviewed AI content be marked in the exported artifact?~~ **RESOLVED** - it
   is never in the artifact, because export is blocked until reviewed.
