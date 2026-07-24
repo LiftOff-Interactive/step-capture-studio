@@ -6,8 +6,8 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 
 ## 📍 Current State
 - **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT (repo recreated
-  2026-07-22). **270/270 tests.** Autosave, replace-image, and the all-in-one dashboard all shipped
-  and **verified on the live site 2026-07-24**.
+  2026-07-22). **272/272 tests.** Autosave, replace-image, and the all-in-one dashboard shipped and
+  verified live 2026-07-24; **the all-in-one 4-card redesign is local — not yet pushed.**
 - **Editor is three Phases** — Worked example → Edit → Translation — export panel last; capture
   metadata (author/duration/date/steps) editable; "Case study" → **"Worked example"** everywhere.
 - **Stages 1–3 complete.** Three HTML artifacts: self-contained, bilingual, readable with JS off,
@@ -27,9 +27,9 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7).
 
 ## ✅ Things I've Changed
-- 2026-07-24 — **"All-in-one" dashboard export**: one self-contained page bundling all three HTML
-  artifacts (each in an isolated `<iframe srcdoc>`) plus Word EN/FR downloads. CSS-only `:target`
-  reveal, bilingual, gated like the worked example. `feature-all-in-one.md`.
+- 2026-07-24 — **"All-in-one" dashboard**: one self-contained page — 3 HTML artifacts in isolated
+  `<iframe srcdoc>` + a download-only **Step Guide** card (Word EN/FR). One language control drives
+  the whole page; a Print button per sub-page. `feature-all-in-one.md`.
 - 2026-07-24 — **Per-image "Replace image"**: swap a bad screenshot in place (PNG/JPEG, dims
   re-measured), resetting that step's confirmation. `feature-replace-image.md`.
 - 2026-07-24 — **Autosave restored** on the project file + close-tab warning. `help.md` 10 done.

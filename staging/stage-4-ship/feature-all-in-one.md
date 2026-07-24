@@ -24,9 +24,13 @@ destination" without juggling separate files. Requested with a mockup 2026-07-24
 ## Success Criteria
 - [x] A single self-contained HTML file — no external files, links, or fetches.
 - [x] Same header as the other artifacts (title, author, date, language toggle), reused verbatim.
-- [x] A card per artifact; each opens the artifact in-page, isolated, fully functional.
-- [x] The Word document is included as EN/FR base64 downloads, under the Worked Example card.
-- [x] Bilingual chrome that follows the dashboard's own toggle, independent of the embedded artifacts.
+- [x] Four cards (2026-07-24 redesign): three open an artifact in-page, isolated and fully
+      functional; **Step Guide is download-only** (the Word EN/FR links, no panel), visually flat
+      while the "open" cards carry the light panel.
+- [x] **One language control** (2026-07-24): the single top-right toggle drives the dashboard AND the
+      embedded artifacts; each artifact's own toggle is hidden.
+- [x] **A Print button** on each sub-page (2026-07-24) that prints just that artifact, with its own
+      print styling.
 - [x] Works with JavaScript disabled (CSS-only reveal; cards jump to stacked panels).
 - [x] Gated exactly like the Worked Example — the strictest input — so everything it bundles is
       guaranteed exportable.
@@ -41,6 +45,38 @@ destination" without juggling separate files. Requested with a mockup 2026-07-24
    the Word links and the export gate.
 
 ## Verification Log
+
+### 2026-07-24 (later) — Redesign: 4 cards, one language control, print buttons
+
+On a revised mockup: a fourth **Step Guide** card that is **download-only** (the Word EN/FR links move
+here from the Worked Example, no panel to reveal), a **single** language control that drives the whole
+page, and a **Print** button on each sub-page.
+
+**Design.** The Word links now live in a flat `.aio-card--download` card; the three artifact cards
+keep the light `.aio-card--panel`. A small controller script (passed as `renderDocument`'s `script`,
+after the shared toggle) does what needs JavaScript: on every `artifact:langchange` the dashboard
+announces, it sets `data-lang`/`lang` on each same-origin srcdoc iframe and re-dispatches the event
+inside it (so per-language alt text follows), and it hides each artifact's own `#lang-toggle` — so one
+control drives everything. Each panel gained a bar with Back + a Print button that calls the iframe's
+own `contentWindow.print()`, giving the artifact's real print styling rather than the dashboard's.
+
+**Automated: 272/272** (was 270). `emit-all-in-one.test.js` updated to the new shape: four cards
+(three open a panel, Step Guide is download-only with no panel), the Word links now assert *inside*
+the Step Guide card and *absent* from the Worked Example, exactly one dashboard `#lang-toggle`, and a
+Print button per panel wired to its own iframe.
+
+**In-browser (dev server, real demo, ~1.1 MB):**
+- Renders to the new mockup: Interactive Walkthrough / Step Guide (flat, Word EN/FR) / Worked Example
+  (no Word links) / Quick Reference; the three panel cards carry the light background, Step Guide is
+  flat.
+- Open a panel → a Back + **Print** bar; the Print button calls the iframe's own `print()` (verified
+  by stubbing it), and the embedded artifact's **own toggle is hidden**.
+- **One control:** toggling the single top-right button switched the dashboard header, the Back/Print
+  bar ("Retour au menu" / "Imprimer"), AND the open walkthrough (steps, viewer, buttons) to French,
+  and back — every iframe followed, including closed panels.
+- axe in the real browser (contrast): dashboard **0/0**; open panel **0 violations**, one incomplete
+  `frame-tested` — axe cannot cross into the srcdoc iframe, so it flags the embedding, not a defect;
+  the embedded artifact is axe-clean on its own (its emitter's tests). Expected for iframe embedding.
 
 ### 2026-07-24 — Built; automated PASS, browser PASS
 

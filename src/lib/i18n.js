@@ -74,7 +74,12 @@ const STRINGS = {
     'allInOne.chooseFormat': 'Choose a format',
     'allInOne.useWhen': 'Use when:',
     'allInOne.back': 'Back to menu',
+    'allInOne.print': 'Print',
     'allInOne.downloadWord': 'Download Word file:',
+    'allInOne.stepGuide.title': 'Step Guide',
+    'allInOne.stepGuide.desc': 'Detailed instructions combining clear actions with screenshots.',
+    'allInOne.stepGuide.useWhen':
+      'You are doing a task for the first time or one you rarely perform.',
     'allInOne.walkthrough.title': 'Interactive Walkthrough',
     'allInOne.walkthrough.desc': 'A self-paced visual guide.',
     'allInOne.walkthrough.useWhen':
@@ -275,7 +280,13 @@ const STRINGS = {
     'allInOne.chooseFormat': 'Choisir un format',
     'allInOne.useWhen': 'À utiliser quand :',
     'allInOne.back': 'Retour au menu',
+    'allInOne.print': 'Imprimer',
     'allInOne.downloadWord': 'Télécharger le fichier Word :',
+    'allInOne.stepGuide.title': 'Guide des étapes',
+    'allInOne.stepGuide.desc':
+      'Des instructions détaillées combinant des actions claires et des captures d’écran.',
+    'allInOne.stepGuide.useWhen':
+      'Vous effectuez une tâche pour la première fois ou que vous faites rarement.',
     'allInOne.walkthrough.title': 'Visite interactive',
     'allInOne.walkthrough.desc': 'Un guide visuel à votre rythme.',
     'allInOne.walkthrough.useWhen':

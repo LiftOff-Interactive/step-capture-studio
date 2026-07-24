@@ -63,16 +63,24 @@ test('the header carries the capture title', async () => {
   )
 })
 
-test('three cards link to three panels that exist', async () => {
+test('four cards: three open a panel, Step Guide is download-only', async () => {
   const doc = open(await build()).window.document
 
+  assert.equal(doc.querySelectorAll('.aio-card').length, 4, 'four cards')
+
+  // The three "open" cards link to panels that exist.
   for (const id of ['walkthrough', 'worked-example', 'quick-reference']) {
     const link = doc.querySelector(`.aio-card__open[href="#panel-${id}"]`)
     assert.ok(link, `a card links to #panel-${id}`)
-    const panel = doc.getElementById(`panel-${id}`)
-    assert.ok(panel, `#panel-${id} exists`)
-    assert.equal(panel.classList.contains('aio-panel'), true)
+    assert.ok(doc.getElementById(`panel-${id}`), `#panel-${id} exists`)
   }
+
+  // Step Guide is a download card: no panel link, no panel of its own.
+  const stepGuide = doc.querySelector('.aio-card--download')
+  assert.ok(stepGuide, 'the Step Guide card exists')
+  assert.equal(stepGuide.querySelector('.aio-card__open'), null, 'it does not link to a panel')
+  assert.ok(!doc.getElementById('panel-step-guide'), 'and has no panel to reveal')
+  assert.equal(doc.querySelectorAll('.aio-panel').length, 3, 'only three panels')
 })
 
 test('each panel embeds its artifact, whole, in a titled iframe', async () => {
@@ -104,14 +112,34 @@ test('the Word document rides along as two base64 download links', async () => {
   assert.ok(names.some((n) => n.endsWith('_FR.docx')), 'a French .docx')
 })
 
-test('the Word links sit inside the worked-example card, not their own', async () => {
+test('the Word links live in the Step Guide (download) card', async () => {
   const doc = open(await build()).window.document
-  const cards = [...doc.querySelectorAll('.aio-card')]
-  assert.equal(cards.length, 3, 'three cards, not four')
 
   const wordCard = doc.querySelector('.aio-word').closest('.aio-card')
-  const openLink = wordCard.querySelector('.aio-card__open').getAttribute('href')
-  assert.equal(openLink, '#panel-worked-example', 'the Word links live under the worked example')
+  assert.ok(wordCard.classList.contains('aio-card--download'), 'the Word links are the Step Guide card')
+  assert.ok(
+    wordCard.textContent.includes('Step Guide') && wordCard.textContent.includes('Guide des étapes'),
+    'and it is titled Step Guide'
+  )
+  // They must not have leaked back onto the worked-example card.
+  const workedExample = doc.querySelector('.aio-card__open[href="#panel-worked-example"]').closest('.aio-card')
+  assert.equal(workedExample.querySelector('.aio-word'), null, 'no Word links on the worked example')
+})
+
+test('one language control drives the whole page — a single dashboard toggle', async () => {
+  const doc = open(await build()).window.document
+  // The iframes carry their own toggles inside srcdoc (not in this DOM); at the
+  // dashboard level there must be exactly one.
+  assert.equal(doc.querySelectorAll('#lang-toggle').length, 1, 'exactly one dashboard toggle')
+})
+
+test('each open panel has a Print button targeting its own iframe', async () => {
+  const doc = open(await build()).window.document
+  for (const id of ['walkthrough', 'worked-example', 'quick-reference']) {
+    const btn = doc.querySelector(`#panel-${id} .aio-print`)
+    assert.ok(btn, `panel ${id} has a Print button`)
+    assert.equal(btn.getAttribute('data-panel'), `panel-${id}`, 'wired to its own panel')
+  }
 })
 
 test('chrome is bilingual — card titles carry both languages', async () => {
