@@ -6,8 +6,8 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 
 ## 📍 Current State
 - **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT (repo recreated
-  2026-07-22). **270/270 tests.** Autosave verified live 2026-07-24; **replace-image and the
-  all-in-one dashboard built and browser-verified 2026-07-24 (local — not yet pushed).**
+  2026-07-22). **270/270 tests.** Autosave, replace-image, and the all-in-one dashboard all shipped
+  and **verified on the live site 2026-07-24**.
 - **Editor is three Phases** — Worked example → Edit → Translation — export panel last; capture
   metadata (author/duration/date/steps) editable; "Case study" → **"Worked example"** everywhere.
 - **Stages 1–3 complete.** Three HTML artifacts: self-contained, bilingual, readable with JS off,

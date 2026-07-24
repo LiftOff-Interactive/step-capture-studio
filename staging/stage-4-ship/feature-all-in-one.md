@@ -70,6 +70,14 @@ expected and acceptable for a bundle) and rendered it.
 - Export gate: the button is disabled until the capture is worked-example-ready, then enabled — the
   same gate as the Worked Example, because the all-in-one contains it.
 
+**Re-verified on the live site (2026-07-24), after push.** `a42a03f` deployed to Pages; the app was
+loaded fresh (cache-busted) and the dashboard built from the *deployed* `emit-all-in-one.js` against
+the live demo. Same cycle passed: renders to the mockup; the export button is enabled once the demo
+loads; a card reveals its artifact in the iframe and back-to-menu returns; both Word links are base64
+`.docx` named `TestingWindowsAudio_Steps_EN.docx` and `TestDuSonDeWindows_Steps_FR.docx` (the FR name
+correctly uses the French title); the toggle swaps all chrome to French. axe was local-only (dev-only
+axe-core is not deployed) but on assets byte-identical to the live build.
+
 **Outstanding:** no screen-reader pass (`help.md` 6). Status stays **awaiting verification**.
 
 ## Notes & Decisions
