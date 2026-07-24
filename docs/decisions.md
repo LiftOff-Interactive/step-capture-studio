@@ -352,3 +352,43 @@ Author-requested; supersedes the "deliberately excludes drafted" note in `featur
 **Word-doc naming/buttons:** two explicit buttons (English/French) so the French doc needs no UI
 toggle; the filename is now `Title_Steps_LANG.docx` (was `Title_Document_LANG.docx`).
 
+
+## 2026-07-24 — Autosave restored; replace-image; the all-in-one dashboard
+
+**Autosave restored, rebuilt on the project file (reverses the 2026-07-22 removal).** On the author's
+instruction, autosave is back — but not the old text-only `draft.js`. The removed draft stored text
+only and needed the `.docx` re-dropped to restore screenshots, which could never work for a session
+begun from the demo or an imported project file. The restored autosave is a thin `localStorage`
+envelope over the exact HTML `emitProject` produces (`src/lib/autosave.js`); restore hands it to
+`parseProject`. So screenshots are saved and restored, and there is no second serializer to drift
+from the format the round-trip tests already guard. **Rejected:** reviving the text-only draft (can't
+restore a demo/imported session) and IndexedDB for image bytes (more code; the ~5 MB quota is enough
+for the demo, and a quota failure is surfaced, not swallowed). ·
+**Also:** a generic `beforeunload` "Leave site?" prompt fires when there are edits not yet exported
+to a project file. Browsers forbid custom text or an "update export" button on `beforeunload`, so the
+standard dialog is the ceiling; autosave is the real recovery net, the prompt only a nudge.
+
+**Replace-image resets the step's confirmation.** A per-image "Replace image" control swaps a bad
+screenshot's bytes (PNG/JPEG, validated by signature — not the forgiving `imageType`, which falls
+back to PNG). Dimensions are decoded in the UI with `createImageBitmap` so `authoring.js` stays free
+of browser APIs and jsdom-testable. Replacing **resets that step's alt confirmation** (author's
+choice), consistent with `setAltText` unconfirming on every edit: the picture the alt describes has
+changed, so it must be re-verified. **Rejected:** carrying the confirmed alt over untouched (lower
+friction, but risks shipping a different screenshot with author-"confirmed" alt that no longer
+matches it).
+
+**The all-in-one dashboard (`feature-all-in-one`).** One self-contained page bundling every artifact,
+composed from the other emitters. **Embedding via `<iframe srcdoc>`, not inlined sections:** each
+artifact is a finished, self-contained document; embedding whole preserves its styling, its toggle
+and its interactivity and sidesteps every CSS/id/script collision. `escapeHtml` already escapes `"`,
+so a full document drops safely into the attribute. **Gated on the worked example** (the strictest
+input), so "all in one" always means *all* — no card is ever missing, and no per-card conditional
+logic. **Redesign the same day (revised mockup):** four cards, with **Step Guide as a download-only
+card** carrying the Word EN/FR links (moved off the worked example, no panel to reveal, rendered flat
+so the two behaviours read differently); **one language control** — a controller script mirrors every
+dashboard language change into each same-origin srcdoc iframe and hides the artifacts' own toggles,
+so the single top-right button drives the whole page; and a **Print button per sub-page** that calls
+the iframe's own `contentWindow.print()`, printing that artifact with its own print styling.
+**Rejected for print:** printing the dashboard itself (iframes are hidden in print on purpose) and
+intercepting Ctrl+P to resize the iframe (less predictable across browsers) — the author chose the
+explicit button.

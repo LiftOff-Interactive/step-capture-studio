@@ -8,9 +8,14 @@ use the tool without knowing anything about it.
 
 ## Features
 - [x] `feature-docx-writer` — zero-dependency accessible OOXML export — **built, awaiting verification**
-- [x] `feature-project-file` — portable save/resume, replacing autosave — **built, awaiting verification**
+- [x] `feature-project-file` — portable save/resume — **built, awaiting verification**
 - [x] `feature-demo-capture` — ships as a loadable project file — **built, awaiting verification**
+- [x] `feature-all-in-one` — one dashboard bundling every artifact + Word downloads — **built,
+      awaiting verification** (added 2026-07-24)
 - [ ] `feature-public-polish` — README done; screenshot + stranger-flow remain — **in progress**
+
+_Note: `feature-project-file` no longer "replaces autosave" — autosave was restored 2026-07-24, rebuilt
+on the project file. See `staging/stage-2-authoring/feature-autosave.md`._
 
 ## Definition of done — testable checklist
 - [x] Exported `.docx` opens in Word with no repair prompt. — **verified, Word 16.0**
@@ -56,3 +61,13 @@ What remains:
   in `docs/assets/` and a stranger completing the flow remain.
 - **Nobody has yet done the thing the demo exists for**: a stranger completing the flow from the
   live URL using only the README and the sample.
+
+## Status — 2026-07-24 (feature additions)
+Three features shipped and verified against the live site this day, all `awaiting verification` only
+for the screen-reader pass (`help.md` 6): **autosave restored** on the project file + close-tab
+warning (stage 2); **per-image "Replace image"** (stage 2); and **`feature-all-in-one`** — a single
+self-contained dashboard bundling the three HTML artifacts (each in an isolated `<iframe srcdoc>`)
+with a download-only Step Guide card (Word EN/FR), one language control driving the whole page, and a
+Print button per sub-page. **272/272 tests.** The stage's own definition of done is unchanged — the
+Accessibility Checker re-run (`help.md` 3b) and the stranger-completes-the-flow test still stand
+between the tool and done.

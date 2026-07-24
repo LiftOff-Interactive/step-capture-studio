@@ -254,3 +254,9 @@ kill leftover invisible instances afterwards (`MainWindowTitle` empty identifies
 instances; never kill one with a title, which would be the user's own session). Check
 `%APPDATA%\Microsoft\Word\*.asd` afterwards so a killed instance does not leave recovery prompts
 behind for the user.
+
+## 2026-07-24 — `deepStrictEqual` on arrays returned by `axe.run` inside jsdom
+**Why it failed:** the new `emit-all-in-one.test.js` asserted `assert.deepEqual(results.violations.map(v => v.id), [], ...)`. It failed even when there were **zero** violations — reporting `actual: []`, `expected: []`. `dom.window.eval(axe.source)` runs axe **inside the jsdom window's realm**, so the arrays it returns (and anything `.map` derives from them) have that realm's `Array.prototype`, not Node's. `deepStrictEqual` compares prototypes, so it faults two empty arrays for coming from different realms. ·
+**How it was found:** the value was obviously empty yet the assertion threw; a direct debug run showed axe genuinely clean. ·
+**Do instead:** assert on `.length` (and build any message with `.map(...).join(', ')`), exactly as the older a11y helpers already do — method *calls* work across realms, only the identity/prototype check does not. Never `deepEqual` a cross-realm array against a Node-realm literal. ·
+**Wider lesson:** anything crossing the jsdom boundary — return values from `window.eval`, `contentDocument` objects, arrays built inside the frame — is a foreign-realm object; compare it by value or length, never by identity or prototype.
