@@ -119,6 +119,14 @@ reading `defaultPrevented`, and directly: a reload while dirty popped the native
    "24 juill." because a pre-formatted string was stored. Now the raw ISO is kept and formatted at
    render time, so the date follows the toggle like the banner's already did.
 
+**Re-verified on the live site (2026-07-24), after push.** `9e1bbde` deployed to Pages;
+`https://mbubyn.github.io/step-capture-studio/` was loaded fresh (cache-busted). Same cycle passed
+against the deployed build: demo → edit → autosave (273 KB, edit stored, v1), reload → restore banner
+(no doubled period) → **6 steps, the edit, and 6 screenshots back**, discard clears storage and
+announces it, and `beforeunload` is prevented after a restore but not after an export. axe was run
+only locally — the dev-only `node_modules` axe-core is not deployed to Pages — but on markup and CSS
+byte-identical to the live build.
+
 **Still outstanding (same as the rest of the project):** no screen-reader pass (`help.md` 6) — the
 restore banner and autosave line have not been heard, only measured. Status therefore stays
 **awaiting verification**, not done.
