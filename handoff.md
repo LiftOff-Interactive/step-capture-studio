@@ -1,5 +1,5 @@
 # Handoff — step-capture-studio
-_Last updated: 2026-07-23 · Current stage: stage-4-ship_
+_Last updated: 2026-07-24 · Current stage: stage-4-ship_
 
 ## 🎯 Goals
 Finish Stage 4: a shippable demo capture and public polish, so a stranger can use the live site.
@@ -51,9 +51,9 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## ➡️ Next Up
 1. **Re-run Word's Accessibility Checker** (`help.md` 3b) — hard-refresh the live site first; both
    previous attempts graded pre-fix files. Last unticked `.docx` criterion.
-2. `feature-demo-capture` — capture parses clean; ships as a project file the app can load.
-3. `feature-public-polish` — README screenshots and contribution notes.
-4. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.
+2. `feature-public-polish` — README rewritten with a landing-page screenshot; only **a stranger
+   completing the flow** remains (the project's definition of done).
+3. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.
 
 ## 🔗 Pointer
 → Current stage folder: `staging/stage-4-ship/` · Active feature file:

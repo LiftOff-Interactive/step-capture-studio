@@ -10,7 +10,7 @@ use the tool without knowing anything about it.
 - [x] `feature-docx-writer` — zero-dependency accessible OOXML export — **built, awaiting verification**
 - [x] `feature-project-file` — portable save/resume, replacing autosave — **built, awaiting verification**
 - [x] `feature-demo-capture` — ships as a loadable project file — **built, awaiting verification**
-- [ ] `feature-public-polish` — README, screenshots, contribution notes — **not started**
+- [ ] `feature-public-polish` — README done; screenshot + stranger-flow remain — **in progress**
 
 ## Definition of done — testable checklist
 - [x] Exported `.docx` opens in Word with no repair prompt. — **verified, Word 16.0**
@@ -52,6 +52,7 @@ What remains:
 - **The Accessibility Checker still has not run.** Two attempts both graded pre-fix files — the
   first a Word-converted copy, the second exported from the live site before the fix was pushed.
   Cause fixed and deployed; re-run needed on a hard-refreshed page.
-- **`feature-public-polish` is not started.** README, screenshots, contribution notes.
+- **`feature-public-polish` in progress.** README rewritten to match the shipped tool; a screenshot
+  in `docs/assets/` and a stranger completing the flow remain.
 - **Nobody has yet done the thing the demo exists for**: a stranger completing the flow from the
   live URL using only the README and the sample.
