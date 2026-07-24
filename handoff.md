@@ -6,8 +6,8 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 
 ## 📍 Current State
 - **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT (repo recreated
-  2026-07-22). **262/262 tests.** Autosave verified on the live site 2026-07-24; **replace-image
-  built and browser-verified 2026-07-24 (local — not yet pushed).**
+  2026-07-22). **270/270 tests.** Autosave verified live 2026-07-24; **replace-image and the
+  all-in-one dashboard built and browser-verified 2026-07-24 (local — not yet pushed).**
 - **Editor is three Phases** — Worked example → Edit → Translation — export panel last; capture
   metadata (author/duration/date/steps) editable; "Case study" → **"Worked example"** everywhere.
 - **Stages 1–3 complete.** Three HTML artifacts: self-contained, bilingual, readable with JS off,
@@ -16,33 +16,25 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
   image, correct language EN/FR, title surviving a re-save, `CompatibilityMode=15`.
 - **Bilingual throughout at last**: chrome, alt text, and the guide title all follow the toggle. The
   title is editable per language and rides the translation round trip.
-- **Autosave is back (2026-07-24), rebuilt on the project file** — it saves the whole session
-  (screenshots included) to `localStorage` and offers to restore it on the next visit. Exporting a
-  project file is still the portable copy; a generic "Leave site?" prompt now fires on close when
-  there are edits not yet exported. See `feature-autosave.md`.
-- **A second, independent capture parses clean** — retires the master plan's risk #1 for English.
-- Everything sits at `awaiting verification` because of human-only checks, not unfinished work.
-  Exceptions: `docx-reader`, `snagit-parser`, `pages-deploy` are `verified done`.
+- **Autosave (2026-07-24) saves the whole session to `localStorage`** and offers to restore it next
+  visit; a "Leave site?" prompt fires on close with unexported edits. See `feature-autosave.md`.
+- Everything sits at `awaiting verification` (human-only checks, not unfinished work); exceptions
+  `docx-reader`, `snagit-parser`, `pages-deploy` are `verified done`. (2nd capture parses clean too.)
 
 ## 📂 Files I'm Working On
-- `src/lib/autosave.js` (+ `test/autosave.test.js`) — storage envelope over the project-file HTML;
-  wired into `src/ui/app.js` (autosave, restore banner, `beforeunload`).
-- `src/lib/emit-project.js` + `parse-project.js` — the pair autosave reuses; round-trip tests keep
-  them honest.
+- `src/lib/emit-all-in-one.js` (+ test) — composes the other emitters into one dashboard; each
+  artifact embedded whole in an `<iframe srcdoc>`.
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7).
 
 ## ✅ Things I've Changed
-- 2026-07-24 — **Per-image "Replace image"** button: swap a bad screenshot in place (PNG/JPEG,
-  dimensions re-measured), keeping alt/decorative but **resetting that step's confirmation**.
-  Browser-verified, axe-clean, bilingual. See `feature-replace-image.md`.
-- 2026-07-24 — **Autosave restored, rebuilt on the project file** (screenshots included), plus a
-  generic close-tab warning for unexported changes. Browser-verified save/restore/discard, bilingual,
-  axe-clean. `help.md` 10 done.
-- 2026-07-23 — **Merge collapses a duplicate to ONE screenshot**; **translation offers every
-  populated field** (unconfirmed alt, drafted narrative) — export gates stay the guard.
-- 2026-07-23 — Two Word-doc buttons (English/French); docx filenames are now `..._Steps_EN/FR.docx`.
-- 2026-07-22 — **UI restructured into phases** (Worked example → Edit → Translation), editable
-  capture metadata, bilingual guide title, portable project file, "Case study" → "Worked example".
+- 2026-07-24 — **"All-in-one" dashboard export**: one self-contained page bundling all three HTML
+  artifacts (each in an isolated `<iframe srcdoc>`) plus Word EN/FR downloads. CSS-only `:target`
+  reveal, bilingual, gated like the worked example. `feature-all-in-one.md`.
+- 2026-07-24 — **Per-image "Replace image"**: swap a bad screenshot in place (PNG/JPEG, dims
+  re-measured), resetting that step's confirmation. `feature-replace-image.md`.
+- 2026-07-24 — **Autosave restored** on the project file + close-tab warning. `help.md` 10 done.
+- Earlier (07-22/23): phases UI, editable metadata, bilingual title, portable project file, merge
+  keeps one image, EN/FR Word buttons, "Case study" → "Worked example".
 
 ## ❌ Watch Out
 - **A correct model is not a correct UI, and valid markup is not accepted markup.** Every session

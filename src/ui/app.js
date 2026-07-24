@@ -41,6 +41,7 @@ import { emitWalkthrough } from '../lib/emit-walkthrough.js'
 import { emitCaseStudy } from '../lib/emit-case-study.js'
 import { emitDocx } from '../lib/emit-docx.js'
 import { emitProject } from '../lib/emit-project.js'
+import { emitAllInOne } from '../lib/emit-all-in-one.js'
 import { parseProject, ProjectError } from '../lib/parse-project.js'
 import { saveAutosave, loadAutosave, clearAutosave, AutosaveError } from '../lib/autosave.js'
 import { artifactName, captureTitle, imageType } from '../lib/emit-common.js'
@@ -121,6 +122,7 @@ const els = {
   downloadCaseStudy: exportPair('download-case-study'),
   downloadDocxEn: document.getElementById('download-docx-en'),
   downloadDocxFr: document.getElementById('download-docx-fr'),
+  downloadAllInOne: document.getElementById('download-all-in-one'),
   caseStudy: document.getElementById('case-study'),
   casePrompt: document.getElementById('case-prompt'),
   casePromptOutput: document.getElementById('case-prompt-output'),
@@ -384,11 +386,12 @@ function renderReadiness({ announce = true } = {}) {
   // and something to actually say. Its own gate, because an unreviewed
   // explanation must not block the other two artifacts.
   const narrative = caseStudyReadiness(state.capture, state.capture.languages)
-  setOnPair(
-    els.downloadCaseStudy,
-    'disabled',
+  const caseStudyBlocked =
     !readiness.ready || !narrative.ready || !hasNarrative(state.capture, state.capture.languages)
-  )
+  setOnPair(els.downloadCaseStudy, 'disabled', caseStudyBlocked)
+  // The all-in-one bundles the worked example, so it carries the same gate — its
+  // strictest input decides. Never exportable when the worked example is not.
+  els.downloadAllInOne.disabled = caseStudyBlocked
   els.exportHint.hidden = readiness.ready
 
   show(els.readiness)
@@ -932,6 +935,25 @@ async function exportDocx(lang) {
 
 els.downloadDocxEn.addEventListener('click', () => exportDocx('en'))
 els.downloadDocxFr.addEventListener('click', () => exportDocx('fr'))
+
+/**
+ * The all-in-one dashboard: every artifact bundled into one self-contained
+ * page. Async because it builds the Word documents (a zip) as well as the three
+ * HTML artifacts it embeds.
+ */
+els.downloadAllInOne.addEventListener('click', async () => {
+  if (!state.capture) return
+  clearError()
+  const name = `${artifactName(captureTitle(state.capture, state.lang), 'AllInOne')}.html`
+  try {
+    const html = await emitAllInOne(state.capture, { languages: state.capture.languages })
+    downloadHtml(html, name)
+    announce('export.downloaded', { name })
+  } catch (error) {
+    console.error(error)
+    showError('EXPORT_FAILED', { reason: error.message })
+  }
+})
 
 for (const field of SCENARIO_FIELDS) {
   els.scenario[field].addEventListener('input', () => {

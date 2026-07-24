@@ -70,6 +70,24 @@ const STRINGS = {
     'export.downloadCaseStudy': 'Download worked example',
     'export.downloadDocxEn': 'Download Word document (English)',
     'export.downloadDocxFr': 'Download Word document (French)',
+    'export.downloadAllInOne': 'Download all-in-one dashboard',
+    'allInOne.chooseFormat': 'Choose a format',
+    'allInOne.useWhen': 'Use when:',
+    'allInOne.back': 'Back to menu',
+    'allInOne.downloadWord': 'Download Word file:',
+    'allInOne.walkthrough.title': 'Interactive Walkthrough',
+    'allInOne.walkthrough.desc': 'A self-paced visual guide.',
+    'allInOne.walkthrough.useWhen':
+      'You want to click through instructions and screenshots at your own speed.',
+    'allInOne.workedExample.title': 'Worked Example',
+    'allInOne.workedExample.desc':
+      'Detailed instructions combining clear actions with screenshots and the reasoning behind each step.',
+    'allInOne.workedExample.useWhen':
+      'You are doing a task for the first time or one you rarely perform.',
+    'allInOne.quickReference.title': 'Quick Reference',
+    'allInOne.quickReference.desc': 'A fast, text-only summary of essential steps.',
+    'allInOne.quickReference.useWhen':
+      'You already know the task but need a quick memory refresher.',
     'blocker.NARRATIVE_UNREVIEWED': 'Step {index}: drafted explanation not yet reviewed.',
     'error.NOTHING_TO_DRAFT': 'Every explanation is already written. Nothing to draft.',
     'error.NO_NARRATIVE': 'The worked example has no explanations yet. Write some, or draft them with the prompt.',
@@ -253,6 +271,24 @@ const STRINGS = {
     'export.downloadCaseStudy': 'Télécharger l’exemple pratique',
     'export.downloadDocxEn': 'Télécharger le document Word (anglais)',
     'export.downloadDocxFr': 'Télécharger le document Word (français)',
+    'export.downloadAllInOne': 'Télécharger le tableau de bord tout-en-un',
+    'allInOne.chooseFormat': 'Choisir un format',
+    'allInOne.useWhen': 'À utiliser quand :',
+    'allInOne.back': 'Retour au menu',
+    'allInOne.downloadWord': 'Télécharger le fichier Word :',
+    'allInOne.walkthrough.title': 'Visite interactive',
+    'allInOne.walkthrough.desc': 'Un guide visuel à votre rythme.',
+    'allInOne.walkthrough.useWhen':
+      'Vous voulez parcourir les instructions et les captures d’écran à votre propre rythme.',
+    'allInOne.workedExample.title': 'Exemple pratique',
+    'allInOne.workedExample.desc':
+      'Des instructions détaillées combinant des actions claires, des captures d’écran et la raison de chaque étape.',
+    'allInOne.workedExample.useWhen':
+      'Vous effectuez une tâche pour la première fois ou que vous faites rarement.',
+    'allInOne.quickReference.title': 'Référence rapide',
+    'allInOne.quickReference.desc': 'Un résumé rapide, en texte seulement, des étapes essentielles.',
+    'allInOne.quickReference.useWhen':
+      'Vous connaissez déjà la tâche, mais vous avez besoin d’un rappel rapide.',
     'blocker.NARRATIVE_UNREVIEWED': 'Étape {index} : explication rédigée non encore révisée.',
     'error.NOTHING_TO_DRAFT': 'Toutes les explications sont déjà rédigées. Rien à rédiger.',
     'error.NO_NARRATIVE': 'L’exemple pratique n’a pas encore d’explications. Rédigez-en ou utilisez la consigne.',
