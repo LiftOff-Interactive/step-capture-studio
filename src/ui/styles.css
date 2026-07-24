@@ -321,6 +321,26 @@ input[type="file"] {
   margin: 0;
 }
 
+/* Each image and its "Replace image" control, stacked. */
+.step__image {
+  margin-bottom: 0.75rem;
+}
+
+.step__image:last-child {
+  margin-bottom: 0;
+}
+
+.step__replace {
+  margin-top: 0.35rem;
+}
+
+/* The file input is visually hidden but focusable; surface its focus on the
+   label styled as a button, so keyboard focus is never invisible. */
+.step__replace:focus-within .button {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .step img {
   display: block;
   width: 100%;

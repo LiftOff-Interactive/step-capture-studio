@@ -113,7 +113,7 @@ export function buildTitleFields(document, capture, lang, onTitle) {
  * @param {Document} document
  * @param {object} capture
  * @param {string} lang            page language, for chrome strings
- * @param {object} handlers        { onStepText, onAlt, onVerifyStep, onDecorative, onMerge, onDelete }
+ * @param {object} handlers        { onStepText, onAlt, onVerifyStep, onDecorative, onReplaceImage, onMerge, onDelete }
  * @param {(bytes: Uint8Array) => string} imageUrl
  */
 export function buildEditableSteps(document, capture, lang, handlers, imageUrl) {
@@ -157,6 +157,9 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
       const figure = document.createElement('figure')
       figure.className = 'step__figure'
       for (const image of step.images) {
+        const wrap = document.createElement('div')
+        wrap.className = 'step__image'
+
         const img = document.createElement('img')
         img.src = imageUrl(image.bytes)
         // In the editor the image is described by the adjacent alt-text field,
@@ -166,7 +169,39 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
           img.width = image.width
           img.height = image.height
         }
-        figure.append(img)
+        wrap.append(img)
+
+        // Swap the file behind this slot when a screenshot came out wrong.
+        // The canonical accessible file-button pattern: a real <label> styled as
+        // a button, and a visually-hidden but still focusable <input>. Keyboard
+        // users tab to the input and press Enter/Space; the label lights up via
+        // :focus-within so the focus stays visible. PNG/JPEG only — the two
+        // formats the tool round-trips and Word embeds.
+        const replace = document.createElement('div')
+        replace.className = 'step__replace'
+
+        const fileId = fieldId('replacefile', step.index, image.id)
+
+        const label = document.createElement('label')
+        label.className = 'button button--quiet'
+        label.htmlFor = fileId
+        label.textContent = t('editor.replaceImage', lang)
+
+        const file = document.createElement('input')
+        file.type = 'file'
+        file.id = fileId
+        file.className = 'visually-hidden'
+        file.accept = 'image/png,image/jpeg'
+        file.addEventListener('change', () => {
+          const picked = file.files?.[0]
+          if (picked) handlers.onReplaceImage(step.index, image.id, picked)
+          // Clear, so picking the same filename again still fires `change`.
+          file.value = ''
+        })
+
+        replace.append(label, file)
+        wrap.append(replace)
+        figure.append(wrap)
       }
       fieldset.append(figure)
     }

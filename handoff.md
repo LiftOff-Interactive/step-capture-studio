@@ -6,8 +6,8 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 
 ## 📍 Current State
 - **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT (repo recreated
-  2026-07-22). **255/255 tests.** Autosave pushed and **re-verified on the live site 2026-07-24**
-  (save, restore-with-screenshots, close-warning, discard).
+  2026-07-22). **262/262 tests.** Autosave verified on the live site 2026-07-24; **replace-image
+  built and browser-verified 2026-07-24 (local — not yet pushed).**
 - **Editor is three Phases** — Worked example → Edit → Translation — export panel last; capture
   metadata (author/duration/date/steps) editable; "Case study" → **"Worked example"** everywhere.
 - **Stages 1–3 complete.** Three HTML artifacts: self-contained, bilingual, readable with JS off,
@@ -32,6 +32,9 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7).
 
 ## ✅ Things I've Changed
+- 2026-07-24 — **Per-image "Replace image"** button: swap a bad screenshot in place (PNG/JPEG,
+  dimensions re-measured), keeping alt/decorative but **resetting that step's confirmation**.
+  Browser-verified, axe-clean, bilingual. See `feature-replace-image.md`.
 - 2026-07-24 — **Autosave restored, rebuilt on the project file** (screenshots included), plus a
   generic close-tab warning for unexported changes. Browser-verified save/restore/discard, bilingual,
   axe-clean. `help.md` 10 done.

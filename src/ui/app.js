@@ -23,6 +23,7 @@ import {
   setDecorative,
   mergeStepIntoPrevious,
   deleteStep,
+  replaceImage,
   seedAltText,
   exportReadiness,
   verifyStep,
@@ -271,6 +272,46 @@ function markClean() {
 function releaseObjectUrls() {
   for (const url of state.objectUrls) URL.revokeObjectURL(url)
   state.objectUrls = []
+}
+
+/**
+ * Strict PNG/JPEG check for a replacement file.
+ *
+ * `imageType` falls back to PNG for bytes it does not recognise — right for the
+ * emitters (the parser already vetted the input) but wrong here, where the
+ * bytes are whatever the author just picked. A garbage file must be refused,
+ * not relabelled, so this reads the signatures directly.
+ */
+function pngOrJpegMime(bytes) {
+  if (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+  ) {
+    return 'image/png'
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return 'image/jpeg'
+  }
+  return null
+}
+
+/**
+ * Measure a replacement image in the browser.
+ *
+ * Only PNG has a byte-level size reader in this codebase, and a replacement may
+ * be a JPEG, so the browser decodes it. Dimensions are optional — the emitters
+ * fall back (the .docx to a default box, HTML to natural size) — so a decode
+ * failure returns nulls rather than blocking the swap.
+ */
+async function decodeImageSize(bytes, mime) {
+  try {
+    const bitmap = await createImageBitmap(new Blob([bytes], { type: mime }))
+    const size = { width: bitmap.width, height: bitmap.height }
+    bitmap.close?.()
+    return size
+  } catch {
+    return { width: null, height: null }
+  }
 }
 
 function trackedImageUrl(bytes) {
@@ -587,6 +628,33 @@ const handlers = {
     // Changes which fields exist, so the list must be rebuilt.
     commit(setDecorative(state.capture, stepIndex, imageId, decorative))
     rerenderSteps({ focusId: document.activeElement?.id })
+  },
+
+  /**
+   * Swap the file behind one image slot.
+   *
+   * PNG/JPEG only, checked by signature (not the forgiving `imageType`). The new
+   * file is measured in the browser so the .docx keeps the right aspect ratio.
+   * `replaceImage` resets this step's alt confirmation — the picture the alt
+   * describes just changed — so the announcement tells the author to re-check it.
+   */
+  async onReplaceImage(stepIndex, imageId, file) {
+    clearError()
+    let bytes
+    try {
+      bytes = new Uint8Array(await file.arrayBuffer())
+    } catch (error) {
+      console.error(error)
+      return showError('UNKNOWN')
+    }
+
+    const mime = pngOrJpegMime(bytes)
+    if (!mime) return showError('NOT_AN_IMAGE')
+
+    const { width, height } = await decodeImageSize(bytes, mime)
+    commit(replaceImage(state.capture, stepIndex, imageId, { bytes, width, height }))
+    rerenderSteps({ fallbackStepIndex: stepIndex })
+    announce('editor.imageReplaced', { index: stepIndex })
   },
 
   onMerge(stepIndex) {

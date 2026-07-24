@@ -111,6 +111,8 @@ const STRINGS = {
       'Confirms the alt text for every image in this step, in each language, and marks any drafted explanation as reviewed.',
     'editor.verifyStepBlocked': 'Fill in the empty alt text above before this step can be checked.',
     'editor.decorative': 'Decorative image — no alt text needed',
+    'editor.replaceImage': 'Replace image',
+    'editor.imageReplaced': 'Screenshot replaced in step {index}. Re-check its alt text before export.',
     'editor.delete': 'Delete step {index}',
     'editor.merge': 'Merge into step {previous}',
     'editor.duplicateNotice': 'Repeats step {previous}.',
@@ -163,6 +165,7 @@ const STRINGS = {
     'export.blockedHint': 'Exports unlock once everything above is resolved.',
     'export.downloaded': '{name} downloaded.',
     'error.EXPORT_FAILED': 'The artifact could not be generated: {reason}',
+    'error.NOT_AN_IMAGE': 'That file is not a PNG or JPEG image. Choose a .png or .jpg screenshot.',
     'export.blocked': '{count} items still need attention before export.',
     'export.ready': 'Ready to export.',
     'blocker.ALT_UNCONFIRMED': 'Step {index}: alt text not confirmed ({lang}).',
@@ -298,6 +301,9 @@ const STRINGS = {
     'editor.verifyStepBlocked':
       'Remplissez le texte de remplacement manquant ci-dessus avant de pouvoir vérifier cette étape.',
     'editor.decorative': 'Image décorative — aucun texte de remplacement requis',
+    'editor.replaceImage': 'Remplacer l’image',
+    'editor.imageReplaced':
+      'Capture d’écran remplacée à l’étape {index}. Revérifiez son texte de remplacement avant l’exportation.',
     'editor.delete': 'Supprimer l’étape {index}',
     'editor.merge': 'Fusionner avec l’étape {previous}',
     'editor.duplicateNotice': 'Reprend l’étape {previous}.',
@@ -353,6 +359,7 @@ const STRINGS = {
     'export.blockedHint': 'Les exportations se débloquent une fois tout ce qui précède réglé.',
     'export.downloaded': '{name} téléchargé.',
     'error.EXPORT_FAILED': 'L’artefact n’a pas pu être généré : {reason}',
+    'error.NOT_AN_IMAGE': 'Ce fichier n’est pas une image PNG ou JPEG. Choisissez une capture .png ou .jpg.',
     'export.blocked': '{count} éléments nécessitent votre attention avant l’exportation.',
     'export.ready': 'Prêt à exporter.',
     'blocker.ALT_UNCONFIRMED':

@@ -20,6 +20,7 @@ import {
   setAltText,
   confirmAltText,
   setDecorative,
+  replaceImage,
   exportReadiness,
   stepVerification,
   verifyStep,
@@ -385,4 +386,89 @@ test('a step with nothing to confirm reports itself as not applicable', async ()
   // Nothing to confirm is NOT the same as confirmed — the UI shows no control
   // rather than a ticked box asserting something that was never checked.
   assert.equal(state.verified, false)
+})
+
+// ------------------------------------------------------------ replaceImage ---
+
+const NEW_BYTES = new Uint8Array([1, 2, 3, 4])
+
+test('replaceImage swaps the bytes and dimensions', async () => {
+  const capture = await load()
+  const id = firstImageId(capture)
+
+  const next = replaceImage(capture, 1, id, { bytes: NEW_BYTES, width: 800, height: 600 })
+  const image = next.steps[0].images[0]
+
+  assert.equal(image.bytes, NEW_BYTES)
+  assert.equal(image.width, 800)
+  assert.equal(image.height, 600)
+})
+
+test('replaceImage keeps the alt text, decorative flag, id and source path', async () => {
+  let capture = await load()
+  const id = firstImageId(capture)
+  const originalPath = capture.steps[0].images[0].path
+  capture = setAltText(capture, 1, id, 'en', 'The Start menu, open')
+
+  const next = replaceImage(capture, 1, id, { bytes: NEW_BYTES, width: 10, height: 10 })
+  const image = next.steps[0].images[0]
+
+  assert.equal(image.alt.en, 'The Start menu, open', 'alt text survives the swap')
+  assert.equal(image.id, id, 'the slot keeps its id')
+  assert.equal(image.path, originalPath, 'and its source path')
+  assert.equal(image.decorative, false)
+})
+
+test('replaceImage RESETS confirmation — the picture the alt described has changed', async () => {
+  let capture = seedAltText(await load())
+  const id = firstImageId(capture)
+  capture = confirmAltText(capture, 1, id, 'en')
+  assert.equal(capture.steps[0].images[0].altConfirmed.en, true, 'precondition: confirmed')
+
+  const next = replaceImage(capture, 1, id, { bytes: NEW_BYTES, width: 10, height: 10 })
+
+  assert.equal(
+    next.steps[0].images[0].altConfirmed.en,
+    false,
+    'a replaced image must have its alt re-affirmed before export'
+  )
+})
+
+test('replaceImage re-opens the export gate it had passed', async () => {
+  let capture = await altFilled()
+  capture = verifyStep(capture, 1, ['en', 'fr'])
+  assert.equal(stepVerification(capture, 1, ['en', 'fr']).verified, true, 'precondition')
+
+  const id = firstImageId(capture)
+  capture = replaceImage(capture, 1, id, { bytes: NEW_BYTES, width: 10, height: 10 })
+
+  assert.equal(
+    stepVerification(capture, 1, ['en', 'fr']).verified,
+    false,
+    'the step is no longer verified after its image changed'
+  )
+})
+
+test('replaceImage does not mutate the capture it was given', async () => {
+  const capture = await load()
+  const id = firstImageId(capture)
+  const before = capture.steps[0].images[0].bytes
+
+  replaceImage(capture, 1, id, { bytes: NEW_BYTES, width: 10, height: 10 })
+
+  assert.equal(capture.steps[0].images[0].bytes, before, 'input bytes untouched')
+})
+
+test('replaceImage refuses an unknown image id', async () => {
+  const capture = await load()
+  assert.throws(
+    () => replaceImage(capture, 1, 'rIdNope', { bytes: NEW_BYTES }),
+    RangeError
+  )
+})
+
+test('replaceImage refuses empty bytes', async () => {
+  const capture = await load()
+  const id = firstImageId(capture)
+  assert.throws(() => replaceImage(capture, 1, id, { bytes: new Uint8Array() }), /no bytes/)
 })

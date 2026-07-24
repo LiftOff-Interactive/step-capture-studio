@@ -218,6 +218,37 @@ export function setDecorative(capture, stepIndex, imageId, decorative) {
   return mapImage(capture, stepIndex, imageId, (image) => ({ ...image, decorative: Boolean(decorative) }))
 }
 
+/**
+ * Swap an image's file, for when a screenshot came out wrong.
+ *
+ * `bytes` and the pixel dimensions are replaced; everything the author already
+ * decided about this slot is kept — the step it belongs to (`id`), its source
+ * `path`, the alt text, and the decorative flag. The dimensions are supplied by
+ * the caller rather than read here: only PNG has a byte reader in this codebase,
+ * and the app can decode any format the browser can, so `app.js` measures the
+ * new file and passes width/height in.
+ *
+ * **Confirmation is reset.** The alt text describes a picture that has just
+ * changed, so any prior "confirmed" no longer holds — the author must re-verify
+ * the alt still matches before this step can export. This mirrors `setAltText`,
+ * which unconfirms on every text edit for the same reason. Decorative images
+ * carry no alt to invalidate, so the reset is a no-op for them.
+ *
+ * @param {object} fields  { bytes: Uint8Array, width?: number, height?: number }
+ */
+export function replaceImage(capture, stepIndex, imageId, { bytes, width = null, height = null }) {
+  if (!bytes || bytes.length === 0) {
+    throw new Error(`replaceImage: no bytes for ${imageId}`)
+  }
+  return mapImage(capture, stepIndex, imageId, (image) => ({
+    ...image,
+    bytes,
+    width,
+    height,
+    altConfirmed: Object.fromEntries(Object.keys(image.altConfirmed).map((code) => [code, false])),
+  }))
+}
+
 // ---------------------------------------------------- per-step verification ---
 
 /**
