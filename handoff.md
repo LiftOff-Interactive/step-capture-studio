@@ -6,7 +6,8 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 
 ## 📍 Current State
 - **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT (repo recreated
-  2026-07-22). **240/240 tests.** Verified against the live site, not just locally.
+  2026-07-22). **255/255 tests.** Live-site verification predates the autosave work below (local only
+  so far — not yet pushed).
 - **Editor is three Phases** — Worked example → Edit → Translation — export panel last; capture
   metadata (author/duration/date/steps) editable; "Case study" → **"Worked example"** everywhere.
 - **Stages 1–3 complete.** Three HTML artifacts: self-contained, bilingual, readable with JS off,
@@ -15,26 +16,30 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
   image, correct language EN/FR, title surviving a re-save, `CompatibilityMode=15`.
 - **Bilingual throughout at last**: chrome, alt text, and the guide title all follow the toggle. The
   title is editable per language and rides the translation round trip.
-- **Work is saved by exporting a project file**, not autosave — deleted deliberately, see
-  `feature-autosave.md`. Closing the tab without exporting loses the session, with no warning.
+- **Autosave is back (2026-07-24), rebuilt on the project file** — it saves the whole session
+  (screenshots included) to `localStorage` and offers to restore it on the next visit. Exporting a
+  project file is still the portable copy; a generic "Leave site?" prompt now fires on close when
+  there are edits not yet exported. See `feature-autosave.md`.
 - **A second, independent capture parses clean** — retires the master plan's risk #1 for English.
 - Everything sits at `awaiting verification` because of human-only checks, not unfinished work.
   Exceptions: `docx-reader`, `snagit-parser`, `pages-deploy` are `verified done`.
 
 ## 📂 Files I'm Working On
-- `src/lib/emit-project.js` + `parse-project.js` — a matched pair; the round-trip tests are the only
-  thing keeping them honest.
-- `src/lib/emit-common.js` — `langLabel`, `captureTitle`, `documentHeader`; shared by five emitters.
+- `src/lib/autosave.js` (+ `test/autosave.test.js`) — storage envelope over the project-file HTML;
+  wired into `src/ui/app.js` (autosave, restore banner, `beforeunload`).
+- `src/lib/emit-project.js` + `parse-project.js` — the pair autosave reuses; round-trip tests keep
+  them honest.
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7).
 
 ## ✅ Things I've Changed
+- 2026-07-24 — **Autosave restored, rebuilt on the project file** (screenshots included), plus a
+  generic close-tab warning for unexported changes. Browser-verified save/restore/discard, bilingual,
+  axe-clean. `help.md` 10 done.
 - 2026-07-23 — **Merge collapses a duplicate to ONE screenshot**; **translation offers every
   populated field** (unconfirmed alt, drafted narrative) — export gates stay the guard.
 - 2026-07-23 — Two Word-doc buttons (English/French); docx filenames are now `..._Steps_EN/FR.docx`.
 - 2026-07-22 — **UI restructured into phases** (Worked example → Edit → Translation), editable
-  capture metadata, "Load a file", export panel at the bottom, "Case study" → "Worked example".
-- 2026-07-22 — Bilingual guide title: editable field per language, plus the translation round trip.
-- 2026-07-22 — Portable project file replaces autosave; state rides visible `data-` attributes.
+  capture metadata, bilingual guide title, portable project file, "Case study" → "Worked example".
 
 ## ❌ Watch Out
 - **A correct model is not a correct UI, and valid markup is not accepted markup.** Every session

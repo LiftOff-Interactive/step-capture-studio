@@ -35,6 +35,31 @@
         </p>
       </div>
 
+      <!--
+        Shown at startup when a previous session was left autosaved in this
+        browser. The body text carries a timestamp, so it is filled from JS and
+        re-translated on a language change rather than marked up with data-i18n —
+        applyStaticStrings rewrites every data-i18n node on each render and would
+        otherwise wipe the generated text.
+      -->
+      <section id="restore" class="panel panel--warn" hidden aria-labelledby="restore-heading">
+        <h2 id="restore-heading" data-i18n="autosave.restore.heading">Recover your last session?</h2>
+        <p id="restore-body"></p>
+        <div class="toolbar">
+          <button type="button" id="restore-accept" class="button" data-i18n="autosave.restore.accept">
+            Restore session
+          </button>
+          <button
+            type="button"
+            id="restore-discard"
+            class="button button--quiet"
+            data-i18n="autosave.restore.discard"
+          >
+            Discard
+          </button>
+        </div>
+      </section>
+
       <section id="loader" aria-labelledby="loader-heading" class="panel">
         <h2 id="loader-heading" data-i18n="load.heading">Load a file</h2>
 
@@ -196,6 +221,14 @@
             Export project file
           </button>
         </div>
+
+        <!--
+          Autosave state, in text — never a bare icon. Success is quiet; a
+          failed autosave (quota) says so, because that is the moment the
+          project file becomes the only copy. Carries a timestamp, so it is
+          set from JS and re-translated on a language change, not data-i18n.
+        -->
+        <p id="autosave-state" class="hint" role="status" aria-live="polite"></p>
 
         <ol id="steps-list" class="steps"></ol>
       </section>

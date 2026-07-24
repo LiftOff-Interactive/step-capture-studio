@@ -134,6 +134,19 @@ const STRINGS = {
     'demo.hint':
       'No file needed — loads a short, public example (changing the audio device in Windows).',
     'demo.loaded': 'Sample capture loaded: {count} steps. Everything is editable.',
+
+    'autosave.saved': 'Autosaved {when} — recoverable in this browser only.',
+    'autosave.failed':
+      'Could NOT autosave — export a project file, it is now your only copy of this work.',
+    'autosave.restore.heading': 'Recover your last session?',
+    'autosave.restore.body':
+      'An autosaved session from {when} is stored in this browser. Restore it, or discard it and start fresh.',
+    'autosave.restore.accept': 'Restore session',
+    'autosave.restore.discard': 'Discard',
+    'autosave.restored': 'Session restored from autosave: {count} steps. Everything is editable.',
+    'autosave.discarded': 'Autosaved session discarded.',
+    'unsaved.beforeUnload': 'You have changes that are not in an exported project file.',
+
     'error.DEMO_UNAVAILABLE':
       'The sample capture could not be loaded. Check your connection, or load a Snagit .docx file instead.',
     'error.PROJECT_NOT_RECOGNISED':
@@ -310,6 +323,20 @@ const STRINGS = {
     'demo.hint':
       'Aucun fichier requis — charge un court exemple public (changer le périphérique audio dans Windows).',
     'demo.loaded': 'Exemple chargé : {count} étapes. Tout est modifiable.',
+
+    'autosave.saved': 'Enregistré automatiquement {when} — récupérable dans ce navigateur seulement.',
+    'autosave.failed':
+      'Enregistrement automatique IMPOSSIBLE — exportez un fichier de projet, c’est maintenant votre seule copie.',
+    'autosave.restore.heading': 'Récupérer votre dernière session?',
+    'autosave.restore.body':
+      'Une session enregistrée automatiquement du {when} est stockée dans ce navigateur. Restaurez-la ou supprimez-la pour recommencer.',
+    'autosave.restore.accept': 'Restaurer la session',
+    'autosave.restore.discard': 'Supprimer',
+    'autosave.restored':
+      'Session restaurée depuis l’enregistrement automatique : {count} étapes. Tout est modifiable.',
+    'autosave.discarded': 'Session enregistrée automatiquement supprimée.',
+    'unsaved.beforeUnload': 'Vous avez des modifications qui ne sont pas dans un fichier de projet exporté.',
+
     'error.DEMO_UNAVAILABLE':
       'Impossible de charger l’exemple. Vérifiez votre connexion ou chargez un fichier Snagit .docx.',
     'error.PROJECT_NOT_RECOGNISED':

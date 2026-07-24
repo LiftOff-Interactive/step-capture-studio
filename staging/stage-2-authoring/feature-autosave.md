@@ -1,5 +1,35 @@
 # Feature: autosave
-_Stage: stage-2-authoring · Status: **REMOVED 2026-07-22** — superseded by `feature-project-file`_
+_Stage: stage-2-authoring · Status: **awaiting verification** — restored 2026-07-24, rebuilt on the
+project file. (Was: REMOVED 2026-07-22.)_
+
+## ⚠️ Restored 2026-07-24 — project-file-based, not the old text-only draft
+
+On the author's instruction, autosave is back — plus a warning when closing the tab with changes not
+yet in an exported project file. It was **not** brought back verbatim. The old `draft.js` stored text
+only and required re-dropping the `.docx` to restore screenshots; that design predated the project
+file and had a real hole today — a session begun from the demo or an imported project file has no
+`.docx` to re-drop, so its images could never be recovered.
+
+The restored autosave instead reuses the project file. `src/lib/autosave.js` is a thin storage
+envelope over the exact HTML `emitProject` produces; restore hands it back to `parseProject`. So
+there is no second serializer to keep in step (the round-trip tests already guard the format), images
+are stored and restored, and a demo/imported session recovers fully. The cost is size — a project
+file inlines screenshots as base64 — so a quota failure is surfaced in text, never swallowed: "the
+project file is now your only copy."
+
+The close warning is the generic browser dialog. Browsers do not allow custom text or an "update the
+export" button on `beforeunload`; the most this can be is the standard "Leave site?" prompt, shown
+only while there are edits not yet exported to a project file. Autosave runs underneath as the real
+recovery net; the prompt is the nudge to keep a portable copy.
+
+**What was NOT restored:** the old `draft.js`, its fingerprint / re-drop machinery, and
+`capture.fingerprint` in the parser. All obsolete — the project file carries images, so there is
+nothing to reunite by re-drop. See the 2026-07-24 Verification Log entry.
+
+---
+
+_The record below is the ORIGINAL text-only autosave, deleted 2026-07-22. Kept for history; the
+mechanism it describes (re-drop to restore images) no longer applies._
 
 ## ⚠️ This feature was built, worked, and was then deliberately deleted
 
@@ -51,6 +81,47 @@ hostile to use.
    on every keystroke.
 
 ## Verification Log
+
+### 2026-07-24 — Restored on the project file; automated PASS, browser PASS
+
+**Automated: 255/255** (was 240). 12 new in `test/autosave.test.js`, covering the storage envelope
+only — the capture round trip itself is proven in `project-roundtrip.test.js`, and autosave treats
+the payload as an opaque string, so the tests do too: verbatim round trip, versioned envelope,
+overwrite, quota reported as `QUOTA_EXCEEDED` (by name and by legacy code 22), other failures as
+`STORAGE_UNAVAILABLE`, a failed write leaving the previous autosave intact, version mismatch and
+corrupt/empty refused rather than half-loaded, and clear.
+
+**In-browser (dev server, real demo) — a genuine save/restore cycle:**
+- Loaded the demo (6 steps), edited step 1 → autosave fired; the line read "Autosaved …
+  — recoverable in this browser only." Stored envelope contained the edit; **273 KB**, well under the
+  ~5 MB quota, version 1.
+- **Reloaded.** Restore banner appeared: heading, timestamped body, Restore / Discard.
+- **Restore** brought the whole session back — 6 steps, the edit intact, **and the screenshots**
+  (the thing the old text-only draft could never do for a demo/imported session).
+- **Discard** cleared storage, hid the banner, announced it, and loaded nothing.
+- axe (real browser, `color-contrast` included) on both the editor+autosave-line and the restore
+  banner: **0 violations, 0 incomplete**. Restore buttons keyboard-focusable with a visible 2px
+  focus outline.
+- Language toggle: banner (heading, body, buttons) and the autosave line both follow it, timestamp
+  re-formatted to the Canadian-French locale (`24 juill. 2026, 08 h 46`) and back.
+
+**Close warning verified in the real browser.** `beforeunload` is prevented (dialog shown) after a
+restore or an edit, and NOT after exporting a project file — confirmed by dispatching the event and
+reading `defaultPrevented`, and directly: a reload while dirty popped the native "Leave site?" modal
+(it blocked a screenshot). As documented, the dialog is the browser's generic one; custom text / an
+"update export" button are not possible on `beforeunload`.
+
+**Two defects found in the browser and fixed — neither visible to the tests:**
+1. **Doubled period in the restore banner.** The body put a period right after `{when}`, and the
+   locale timestamp already ends in "a.m." → "8:42 a.m.. Restore". The exact trap the old draft hit
+   (see the 2026-07-21 note below). Reworded so `{when}` is mid-sentence.
+2. **The autosave line's date ignored the language toggle.** The words switched but the date stayed
+   "24 juill." because a pre-formatted string was stored. Now the raw ISO is kept and formatted at
+   render time, so the date follows the toggle like the banner's already did.
+
+**Still outstanding (same as the rest of the project):** no screen-reader pass (`help.md` 6) — the
+restore banner and autosave line have not been heard, only measured. Status therefore stays
+**awaiting verification**, not done.
 
 ### 2026-07-21 - Built as text-only + re-drop; automated PASS, browser PASS
 

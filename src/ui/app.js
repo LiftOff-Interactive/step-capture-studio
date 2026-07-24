@@ -41,6 +41,7 @@ import { emitCaseStudy } from '../lib/emit-case-study.js'
 import { emitDocx } from '../lib/emit-docx.js'
 import { emitProject } from '../lib/emit-project.js'
 import { parseProject, ProjectError } from '../lib/parse-project.js'
+import { saveAutosave, loadAutosave, clearAutosave, AutosaveError } from '../lib/autosave.js'
 import { artifactName, captureTitle, imageType } from '../lib/emit-common.js'
 import {
   setNarrative,
@@ -84,6 +85,11 @@ const els = {
   projectInput: document.getElementById('project-input'),
   loadDemo: document.getElementById('load-demo'),
   exportProject: document.getElementById('export-project'),
+  restore: document.getElementById('restore'),
+  restoreBody: document.getElementById('restore-body'),
+  restoreAccept: document.getElementById('restore-accept'),
+  restoreDiscard: document.getElementById('restore-discard'),
+  autosaveState: document.getElementById('autosave-state'),
   status: document.getElementById('status'),
   error: document.getElementById('error'),
   errorDetail: document.getElementById('error-detail'),
@@ -140,6 +146,12 @@ const state = {
    * reading an English error.
    */
   lastError: null,
+  /**
+   * Whether the session holds changes not yet written to an exported project
+   * FILE. Autosave to localStorage does not clear this — localStorage is not a
+   * portable copy — so the before-unload warning stays armed until an export.
+   */
+  dirty: false,
 }
 
 // --------------------------------------------------------------- helpers ---
@@ -172,6 +184,88 @@ function announce(key, vars) {
 /** Re-render the status in the current language, without re-announcing. */
 function retranslateStatus() {
   els.status.textContent = t(currentStatus.key, state.lang, currentStatus.vars)
+}
+
+// -------------------------------------------------------------- autosave ---
+
+/** Autosave found at startup, waiting to be restored or discarded. */
+let pendingAutosave = null
+let autosaveTimer = null
+/** The autosave-state line's key+vars, tracked so a language switch re-renders it. */
+let currentAutosaveState = null
+
+const formatWhen = (iso) => {
+  try {
+    return new Date(iso).toLocaleString(LOCALES[state.lang] ?? state.lang, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
+  } catch {
+    return iso
+  }
+}
+
+/**
+ * Set the autosave line. The raw ISO timestamp is kept, not a pre-formatted
+ * string, so a language switch re-formats the date too — otherwise the words
+ * would turn English while the date stayed "24 juill.".
+ */
+function setAutosaveState(key, savedAt = null) {
+  currentAutosaveState = { key, savedAt }
+  renderAutosaveLine()
+}
+
+function renderAutosaveLine() {
+  if (!currentAutosaveState) return
+  const { key, savedAt } = currentAutosaveState
+  els.autosaveState.textContent = t(key, state.lang, savedAt ? { when: formatWhen(savedAt) } : undefined)
+}
+
+/** Re-render the autosave line and restore banner in the current language. */
+function retranslateAutosave() {
+  renderAutosaveLine()
+  if (pendingAutosave) {
+    els.restoreBody.textContent = t('autosave.restore.body', state.lang, {
+      when: formatWhen(pendingAutosave.savedAt),
+    })
+  }
+}
+
+/**
+ * Persist the whole session after a short idle gap.
+ *
+ * Serializing re-inlines every screenshot as base64, so this is debounced hard:
+ * writing on each keystroke would thrash storage and stutter typing. It is
+ * independent of the dirty flag — autosave guards against a crash, so it runs
+ * even for a freshly loaded capture with no edits yet.
+ */
+function scheduleAutosave() {
+  if (!state.capture) return
+  clearTimeout(autosaveTimer)
+  autosaveTimer = setTimeout(runAutosave, 800)
+}
+
+function runAutosave() {
+  if (!state.capture) return
+  try {
+    const { savedAt } = saveAutosave(localStorage, emitProject(state.capture))
+    setAutosaveState('autosave.saved', savedAt)
+  } catch (error) {
+    // Surfaced in text, never swallowed: a failed autosave means the project
+    // file is now the only copy, and the author needs to know to make one.
+    setAutosaveState('autosave.failed')
+    if (!(error instanceof AutosaveError)) console.error(error)
+  }
+}
+
+/** Mark the session as holding changes not yet in an exported project file. */
+function markDirty() {
+  state.dirty = true
+}
+
+/** The exported project file is now current; nothing unsaved to warn about. */
+function markClean() {
+  state.dirty = false
 }
 
 function releaseObjectUrls() {
@@ -295,6 +389,7 @@ function renderAll({ announceReadiness = true } = {}) {
   }
 
   retranslateStatus()
+  retranslateAutosave()
 
   if (!state.capture) return
 
@@ -404,12 +499,16 @@ function clearError() {
 function commit(next) {
   state.history.push(state.capture)
   state.capture = next
+  markDirty()
+  scheduleAutosave()
 }
 
 /** Field edits: update the model, refresh readiness, do NOT re-render. */
 function editInPlace(next) {
   state.capture = next
+  markDirty()
   renderReadiness()
+  scheduleAutosave()
 }
 
 /**
@@ -513,6 +612,7 @@ async function loadFile(file) {
 
   releaseObjectUrls()
   clearError()
+  dismissRestoreBanner()
   hide(els.capture)
   hide(els.warnings)
   hide(els.steps)
@@ -530,6 +630,11 @@ async function loadFile(file) {
     // A new capture is a new baseline, so its outstanding count is announced.
     state.lastBlockerCount = null
     renderAll()
+
+    // A freshly parsed .docx has no exported project file yet, so it is dirty:
+    // closing the tab now loses the portable copy. Autosave still protects it.
+    markDirty()
+    scheduleAutosave()
 
     setStatus('status.parsed', {
       count: state.capture.steps.length,
@@ -557,6 +662,9 @@ async function loadProjectFile(file) {
   if (!file) return
   try {
     await loadProjectText(await file.text())
+    // An imported project file already exists on disk, so there is nothing
+    // unsaved to warn about until the first edit.
+    markClean()
     announce('project.imported', { count: state.capture.steps.length })
   } catch (error) {
     reportProjectFailure(error)
@@ -567,6 +675,7 @@ async function loadProjectFile(file) {
 async function loadProjectText(html) {
   releaseObjectUrls()
   clearError()
+  dismissRestoreBanner()
   hide(els.capture)
   hide(els.warnings)
   hide(els.steps)
@@ -580,6 +689,11 @@ async function loadProjectText(html) {
   state.history = []
   state.lastBlockerCount = null
   renderAll()
+
+  // Keep the localStorage copy in step with what is now on screen. The dirty
+  // flag is the callers' to set: an imported file mirrors a copy on disk (clean),
+  // an autosave restore does not (dirty).
+  scheduleAutosave()
 }
 
 function reportProjectFailure(error) {
@@ -615,6 +729,9 @@ els.loadDemo.addEventListener('click', async () => {
     const response = await fetch('assets/demo/testing-windows-audio.project.html')
     if (!response.ok) throw new Error(`demo fetch failed: ${response.status}`)
     await loadProjectText(await response.text())
+    // The demo can be reloaded from its button at any time, so an untouched
+    // demo is not "unsaved work" — the warning arms on the first edit.
+    markClean()
     announce('demo.loaded', { count: state.capture.steps.length })
   } catch (error) {
     console.error(error)
@@ -628,6 +745,9 @@ els.exportProject.addEventListener('click', () => {
   const name = `${artifactName(captureTitle(state.capture, state.lang), 'Project')}.html`
   try {
     downloadHtml(emitProject(state.capture), name)
+    // The exported file now holds this exact state, so the close warning can
+    // stand down until the next edit.
+    markClean()
     announce('project.exported', { name })
   } catch (error) {
     console.error(error)
@@ -666,6 +786,9 @@ els.seedAlt.addEventListener('click', () => {
 els.undo.addEventListener('click', () => {
   if (!state.history.length) return
   state.capture = state.history.pop()
+  // Undo changes the document, so the autosave and the dirty flag follow it.
+  markDirty()
+  scheduleAutosave()
   rerenderSteps()
   announce('editor.undone')
   if (els.undo.hidden) els.seedAlt.focus()
@@ -879,6 +1002,74 @@ function countUnseeded() {
     .filter((image) => !image.decorative && image.alt?.[lang] == null).length
 }
 
+// -------------------------------------------------------- session recovery ---
+
+/** Hide the restore offer and forget the autosave it pointed at. */
+function dismissRestoreBanner() {
+  pendingAutosave = null
+  hide(els.restore)
+}
+
+/** At startup, offer to recover a session a previous visit left behind. */
+function checkForAutosave() {
+  try {
+    pendingAutosave = loadAutosave(localStorage)
+  } catch (error) {
+    // An unreadable or outdated autosave is cleared, not offered — never
+    // restore into a shape this code no longer understands.
+    clearAutosave(localStorage)
+    pendingAutosave = null
+    if (!(error instanceof AutosaveError)) console.error(error)
+    return
+  }
+  if (!pendingAutosave) return
+  // Body text carries a timestamp, so it is generated, not data-i18n. The
+  // heading and buttons are data-i18n and follow the toggle on their own.
+  els.restoreBody.textContent = t('autosave.restore.body', state.lang, {
+    when: formatWhen(pendingAutosave.savedAt),
+  })
+  show(els.restore)
+}
+
+els.restoreAccept.addEventListener('click', async () => {
+  if (!pendingAutosave) return
+  const html = pendingAutosave.html
+  try {
+    // loadProjectText dismisses the banner (clearing pendingAutosave) itself.
+    await loadProjectText(html)
+    // Restored from localStorage, not a file on disk — the portable copy is
+    // still missing, so the close warning stays armed until an export.
+    markDirty()
+    announce('autosave.restored', { count: state.capture.steps.length })
+  } catch (error) {
+    // The stored session could not be parsed; drop it so the offer does not
+    // resurface on every visit, and report why.
+    clearAutosave(localStorage)
+    reportProjectFailure(error)
+  }
+})
+
+els.restoreDiscard.addEventListener('click', () => {
+  clearAutosave(localStorage)
+  dismissRestoreBanner()
+  announce('autosave.discarded')
+})
+
+/**
+ * Warn before leaving with changes not yet in an exported project file.
+ *
+ * Browsers show their own generic "Leave site?" dialog and ignore any custom
+ * text, but a prevented default with a returnValue is still required to trigger
+ * the prompt at all. Autosave runs underneath as the actual recovery net; this
+ * is only the nudge to keep a portable copy.
+ */
+window.addEventListener('beforeunload', (event) => {
+  if (!state.dirty) return
+  event.preventDefault()
+  event.returnValue = t('unsaved.beforeUnload', state.lang)
+  return event.returnValue
+})
+
 // ------------------------------------------------------------------ init ---
 
 if (typeof DecompressionStream === 'undefined') {
@@ -888,3 +1079,4 @@ if (typeof DecompressionStream === 'undefined') {
 
 applyStaticStrings(document, state.lang)
 setStatus('status.empty')
+checkForAutosave()

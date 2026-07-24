@@ -126,16 +126,16 @@ back to the one that exists rather than showing "Untitled capture" — and the h
 rendered **once**, not twice. Emitting both blocks would print the same words twice in a row with
 JavaScript disabled, which is also the print view.
 
-### [ ] 10. Export before you close the tab — autosave is gone
-**What:** Get into the habit of clicking **Export project file** before closing the browser.
-**Why it's needed:** you asked for autosave to be replaced by import/export on 2026-07-22, and it
-has been deleted. There is no longer any automatic recovery: closing the tab, a crash, or an
-accidental refresh loses the session outright, with no warning and nothing in `localStorage`.
-The project file is the only copy of your work.
-**If that turns out to be uncomfortable in practice**, two things would soften it without bringing
-autosave back: a prompt when leaving the page with unsaved changes, or restoring autosave alongside
-the project file. Say the word — `staging/stage-2-authoring/feature-autosave.md` records exactly
-what was removed, and it is all recoverable from git.
+### [x] 10. ~~Export before you close the tab — autosave is gone~~ — reversed 2026-07-24
+**Done:** you asked for both softening options, and both are built. Autosave is back — rebuilt on the
+project file, so it now saves screenshots too and restores a demo/imported session (the old text-only
+draft could not). And a generic browser "Leave site?" prompt fires on close when there are edits not
+yet exported to a project file.
+**Still worth the habit:** autosave lives in `localStorage` — this browser, this machine only. The
+exported **project file** is still the portable, durable copy; export it to move work between
+machines or to survive clearing site data. Details in `staging/stage-2-authoring/feature-autosave.md`.
+**One thing only you can do:** a screen-reader pass over the restore banner and autosave line
+(`help.md` 6) — it is measured and keyboard-tested, but not yet heard.
 
 ### [ ] 8. Consider moving the project off OneDrive
 **What:** The project lives in `OneDrive\Documents\.ClaudeProjects\`. Git repositories in synced
