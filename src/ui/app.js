@@ -57,6 +57,7 @@ import {
 import { applyStaticStrings, buildEditableMeta, buildWarnings } from './render.js'
 import {
   buildEditableSteps,
+  buildStepChips,
   buildTitleFields,
   buildBlockerList,
   readinessSummaryText,
@@ -132,7 +133,19 @@ const els = {
     ['audience', 'context', 'outcome'].map((f) => [f, document.getElementById(`scenario-${f}`)])
   ),
   exportHint: document.getElementById('export-hint'),
+  headerExport: document.getElementById('header-export'),
+  viewTabbed: document.getElementById('view-tabbed'),
+  viewLinear: document.getElementById('view-linear'),
+  stepChips: document.getElementById('step-chips'),
+  instructions: document.getElementById('instructions'),
+  instructionsBody: document.getElementById('instructions-body'),
 }
+
+/** The six phase buttons, in workflow order. */
+const phaseButtons = [...document.querySelectorAll('.phase-nav__btn')]
+
+/** localStorage key for the layout choice — a preference, not session data. */
+const VIEW_STORAGE_KEY = 'step-capture-studio.view'
 
 const state = {
   lang: LANGUAGES[0],
@@ -155,6 +168,15 @@ const state = {
    * portable copy — so the before-unload warning stays armed until an export.
    */
   dirty: false,
+  /**
+   * 'tabbed' shows one phase at a time behind the phase nav; 'linear' is the
+   * classic single scroll. A preference, remembered across sessions.
+   */
+  view: 'tabbed',
+  /** The phase the tabbed layout is showing. */
+  phase: 'start',
+  /** 1-based step the tabbed editor is showing; the chips select it. */
+  activeStep: 1,
 }
 
 // --------------------------------------------------------------- helpers ---
@@ -274,6 +296,128 @@ function markClean() {
 function releaseObjectUrls() {
   for (const url of state.objectUrls) URL.revokeObjectURL(url)
   state.objectUrls = []
+}
+
+// --------------------------------------------------------- phases & layout ---
+
+/*
+ * The tabbed layout is applied entirely at runtime. The markup ships fully
+ * linear — every section visible where its own `hidden` allows — so the page
+ * degrades to today's single scroll without JavaScript, and the jsdom tests
+ * (which do not run modules) keep auditing the whole document, not one tab.
+ *
+ * Two independent switches decide whether a section is on screen:
+ *   `hidden`      — this content does not exist yet (no capture loaded);
+ *   `.phase-off`  — it exists, but belongs to a phase that is not showing.
+ * Sections without data-phase (errors, the restore offer) are global and
+ * follow only their own `hidden`.
+ */
+
+/** Re-derive everything the view/phase state touches. Idempotent, cheap. */
+function syncView() {
+  document.body.dataset.view = state.view
+
+  for (const el of document.querySelectorAll('[data-phase]')) {
+    el.classList.toggle('phase-off', state.view === 'tabbed' && el.dataset.phase !== state.phase)
+  }
+
+  for (const btn of phaseButtons) {
+    if (state.view === 'tabbed' && btn.dataset.phaseTarget === state.phase) {
+      btn.setAttribute('aria-current', 'true')
+    } else {
+      btn.removeAttribute('aria-current')
+    }
+  }
+
+  els.viewTabbed.setAttribute('aria-pressed', String(state.view === 'tabbed'))
+  els.viewLinear.setAttribute('aria-pressed', String(state.view === 'linear'))
+
+  // The guidance panel is a tabbed-layout companion; linear pages explain
+  // themselves in sequence. Its body is generated text (it carries no
+  // data-i18n), so a language switch re-renders it through here.
+  els.instructions.hidden = state.view !== 'tabbed'
+  els.instructionsBody.textContent = t(`instructions.${state.phase}`, state.lang)
+
+  syncActiveStep()
+}
+
+function setPhase(phase) {
+  state.phase = phase
+  syncView()
+}
+
+function setView(view) {
+  state.view = view
+  try {
+    localStorage.setItem(VIEW_STORAGE_KEY, view)
+  } catch {
+    // Storage full or blocked — the preference just does not persist.
+  }
+  syncView()
+}
+
+/** The saved layout preference, defaulting to tabbed. */
+function storedView() {
+  try {
+    return localStorage.getItem(VIEW_STORAGE_KEY) === 'linear' ? 'linear' : 'tabbed'
+  } catch {
+    return 'tabbed'
+  }
+}
+
+/**
+ * Every phase past "Start here" is meaningless without a capture, so the
+ * buttons are disabled — not hidden — until one loads. Disabled, so the
+ * workflow is visible from the first visit; the way in is stated by the
+ * start phase itself.
+ */
+function updatePhaseGate() {
+  const unlocked = Boolean(state.capture)
+  for (const btn of phaseButtons) {
+    if (btn.dataset.phaseTarget !== 'start') btn.disabled = !unlocked
+  }
+  els.headerExport.disabled = !unlocked
+}
+
+/**
+ * Mark the active step's list item and mode. All steps stay in the DOM —
+ * focus restore and the export gate depend on every control existing — the
+ * inactive ones are only not displayed, and only in the tabbed layout.
+ */
+function syncActiveStep() {
+  const total = state.capture?.steps.length ?? 0
+  if (total) state.activeStep = Math.min(Math.max(1, state.activeStep), total)
+
+  els.stepsList.classList.toggle('steps--single', state.view === 'tabbed')
+  for (const li of els.stepsList.children) {
+    li.classList.toggle('step--active', Number(li.dataset.stepIndex) === state.activeStep)
+  }
+}
+
+/** Move aria-current between existing chips without rebuilding them. */
+function syncChips() {
+  const chips = els.stepChips.querySelectorAll('.step-chip')
+  chips.forEach((chip, i) => {
+    if (i + 1 === state.activeStep) chip.setAttribute('aria-current', 'true')
+    else chip.removeAttribute('aria-current')
+  })
+}
+
+/**
+ * Rebuild the chip strip. Rebuilt only when the step list itself is rebuilt;
+ * a plain selection change goes through syncChips, which never destroys the
+ * button that was just clicked (rebuilding it would silently drop focus).
+ */
+function renderChips() {
+  const total = state.capture?.steps.length ?? 0
+  els.stepChips.hidden = total === 0
+  els.stepChips.replaceChildren(
+    ...buildStepChips(document, total, state.activeStep, state.lang, (index) => {
+      state.activeStep = index
+      syncActiveStep()
+      syncChips()
+    })
+  )
 }
 
 /**
@@ -421,6 +565,10 @@ function renderSteps() {
   els.stepsList.replaceChildren(
     ...buildEditableSteps(document, state.capture, state.lang, handlers, trackedImageUrl)
   )
+  // The list was just rebuilt, so the active-step marking and the chip strip
+  // (whose count may have changed with it) are re-derived together.
+  syncActiveStep()
+  renderChips()
 }
 
 function renderAll({ announceReadiness = true } = {}) {
@@ -434,6 +582,9 @@ function renderAll({ announceReadiness = true } = {}) {
 
   retranslateStatus()
   retranslateAutosave()
+  // Phase classes, aria-current, toggle labels and the instructions body all
+  // depend on language or state that may have just changed.
+  syncView()
 
   if (!state.capture) return
 
@@ -624,6 +775,7 @@ const handlers = {
         ? verifyStep(state.capture, stepIndex, state.capture.languages)
         : unverifyStep(state.capture, stepIndex, state.capture.languages)
     )
+    state.activeStep = stepIndex
     rerenderSteps({ fallbackStepIndex: stepIndex })
   },
 
@@ -656,6 +808,7 @@ const handlers = {
 
     const { width, height } = await decodeImageSize(bytes, mime)
     commit(replaceImage(state.capture, stepIndex, imageId, { bytes, width, height }))
+    state.activeStep = stepIndex
     rerenderSteps({ fallbackStepIndex: stepIndex })
     announce('editor.imageReplaced', { index: stepIndex })
   },
@@ -663,14 +816,19 @@ const handlers = {
   onMerge(stepIndex) {
     const previous = stepIndex - 1
     commit(mergeStepIntoPrevious(state.capture, stepIndex))
-    // The button that was pressed no longer exists; land on the merged step.
+    // The button that was pressed no longer exists; land on the merged step —
+    // and show it, or the tabbed editor would restore focus into a step that
+    // is not displayed.
+    state.activeStep = previous
     rerenderSteps({ preserveFocus: false, fallbackPosition: previous - 1 })
     announce('editor.merged', { previous })
   },
 
   onDelete(stepIndex) {
     commit(deleteStep(state.capture, stepIndex))
-    // Land on whichever step took the deleted one's place.
+    // Land on whichever step took the deleted one's place (syncActiveStep
+    // clamps when the last one went).
+    state.activeStep = stepIndex
     rerenderSteps({ preserveFocus: false, fallbackPosition: stepIndex - 1 })
     announce('editor.deleted', { index: stepIndex })
   },
@@ -700,7 +858,13 @@ async function loadFile(file) {
     state.history = []
     // A new capture is a new baseline, so its outstanding count is announced.
     state.lastBlockerCount = null
+    state.activeStep = 1
     renderAll()
+
+    // The workflow opens up, and the tabbed layout moves to the next phase —
+    // checking what Snagit recorded is the first thing to do with a capture.
+    updatePhaseGate()
+    setPhase('capture')
 
     // A freshly parsed .docx has no exported project file yet, so it is dirty:
     // closing the tab now loses the portable copy. Autosave still protects it.
@@ -713,6 +877,8 @@ async function loadFile(file) {
     })
   } catch (error) {
     state.capture = null
+    updatePhaseGate()
+    setPhase('start')
     if (error instanceof DocxError) {
       showError(error.code)
     } else {
@@ -759,7 +925,11 @@ async function loadProjectText(html) {
   state.capture = restored
   state.history = []
   state.lastBlockerCount = null
+  state.activeStep = 1
   renderAll()
+
+  updatePhaseGate()
+  setPhase('capture')
 
   // Keep the localStorage copy in step with what is now on screen. The dirty
   // flag is the callers' to set: an imported file mirrors a copy on disk (clean),
@@ -769,6 +939,8 @@ async function loadProjectText(html) {
 
 function reportProjectFailure(error) {
   state.capture = null
+  updatePhaseGate()
+  setPhase('start')
   if (error instanceof ProjectError) {
     showError(error.code, { detail: error.detail ?? '' })
   } else {
@@ -778,6 +950,31 @@ function reportProjectFailure(error) {
 }
 
 // ---------------------------------------------------------------- events ---
+
+/**
+ * The phase nav. In the tabbed layout a button shows its phase; in the linear
+ * layout the sections are all present already, so the same button scrolls to
+ * its first visible section instead of hiding everything else.
+ */
+for (const btn of phaseButtons) {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.phaseTarget
+    if (state.view === 'tabbed') return setPhase(target)
+    document.querySelector(`[data-phase="${target}"]:not([hidden])`)?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+  })
+}
+
+els.viewTabbed.addEventListener('click', () => setView('tabbed'))
+els.viewLinear.addEventListener('click', () => setView('linear'))
+
+// The header's Export shortcut — the same trip as the last phase button.
+els.headerExport.addEventListener('click', () => {
+  if (state.view === 'tabbed') return setPhase('export')
+  els.readiness.scrollIntoView({ behavior: 'smooth', block: 'start' })
+})
 
 els.fileInput.addEventListener('change', (event) => loadFile(event.target.files[0]))
 els.projectInput.addEventListener('change', (event) => loadProjectFile(event.target.files[0]))
@@ -1167,6 +1364,9 @@ if (typeof DecompressionStream === 'undefined') {
   els.fileInput.disabled = true
 }
 
+state.view = storedView()
 applyStaticStrings(document, state.lang)
 setStatus('status.empty')
+updatePhaseGate()
+syncView()
 checkForAutosave()

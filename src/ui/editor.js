@@ -108,7 +108,41 @@ export function buildTitleFields(document, capture, lang, onTitle) {
 }
 
 /**
+ * One numbered button per step, for the tabbed layout's step picker.
+ *
+ * The visible label is just the number — the accessible name is the full
+ * "Step {index} of {total}", so a screen reader listing the buttons hears
+ * position and extent, not thirteen bare digits. The active chip carries
+ * aria-current; app.js keeps that in sync without rebuilding, so focus is
+ * never destroyed under the finger that just clicked.
+ *
+ * @param {Document} document
+ * @param {number} total
+ * @param {number} activeIndex     1-based step currently shown
+ * @param {string} lang            page language, for the accessible names
+ * @param {(index: number) => void} onSelect
+ */
+export function buildStepChips(document, total, activeIndex, lang, onSelect) {
+  return Array.from({ length: total }, (_, i) => {
+    const index = i + 1
+    const chip = document.createElement('button')
+    chip.type = 'button'
+    chip.className = 'step-chip'
+    chip.textContent = String(index)
+    chip.setAttribute('aria-label', t('step.label', lang, { index, total }))
+    if (index === activeIndex) chip.setAttribute('aria-current', 'true')
+    chip.addEventListener('click', () => onSelect(index))
+    return chip
+  })
+}
+
+/**
  * Build the editable step list.
+ *
+ * Each step's fieldset is split into two halves (mock-up slide 7): the fields
+ * to fix — step text, alt text, explanations — in `.step__main`, and the
+ * screenshot with its check/delete/replace controls in `.step__side`. Pure
+ * structure; the two-column arrangement is CSS, and narrow screens stack.
  *
  * @param {Document} document
  * @param {object} capture
@@ -135,6 +169,11 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
     legend.textContent = t('step.label', lang, { index: step.index, total })
     fieldset.append(legend)
 
+    const main = document.createElement('div')
+    main.className = 'step__main'
+    const side = document.createElement('div')
+    side.className = 'step__side'
+
     // --- duplicate notice: stated in text, never colour alone -------------
     const duplicateOf = duplicates.get(step.index)
     if (duplicateOf) {
@@ -152,9 +191,10 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
       fieldset.append(notice)
     }
 
-    // --- screenshot -------------------------------------------------------
+    // --- screenshot (appended to the side column below, after the controls) ---
+    let figure = null
     if (step.images.length) {
-      const figure = document.createElement('figure')
+      figure = document.createElement('figure')
       figure.className = 'step__figure'
       for (const image of step.images) {
         const wrap = document.createElement('div')
@@ -203,7 +243,6 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
         wrap.append(replace)
         figure.append(wrap)
       }
-      fieldset.append(figure)
     }
 
     // --- step text, one field per language --------------------------------
@@ -216,7 +255,7 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
         handlers.onStepText(step.index, code, textarea.value)
       )
 
-      fieldset.append(
+      main.append(
         labelled(document, {
           id: fieldId('step', step.index, 'text', code),
           labelText: t('editor.stepText', lang, { lang: t(`lang.name.${code}`, lang) }),
@@ -263,7 +302,7 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
         }
       }
 
-      fieldset.append(group)
+      main.append(group)
     }
 
     // --- case-study narrative, source language only ----------------------
@@ -301,7 +340,7 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
         group.append(notice)
       }
 
-      fieldset.append(group)
+      main.append(group)
     }
 
     // --- one verification control for the whole step ----------------------
@@ -335,10 +374,10 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
       // control would be offering something that silently does nothing.
       if (verification.blocked.length) input.disabled = true
 
-      fieldset.append(box, hint)
+      side.append(box, hint)
     }
 
-    // --- destructive action, last ----------------------------------------
+    // --- destructive action, after the check ------------------------------
     const remove = document.createElement('button')
     remove.type = 'button'
     remove.className = 'button button--quiet'
@@ -346,8 +385,11 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
     // context, where a screen reader lists every button on the page.
     remove.textContent = t('editor.delete', lang, { index: step.index })
     remove.addEventListener('click', () => handlers.onDelete(step.index))
-    fieldset.append(remove)
+    side.append(remove)
 
+    if (figure) side.append(figure)
+
+    fieldset.append(main, side)
     li.append(fieldset)
     return li
   })

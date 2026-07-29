@@ -21,12 +21,119 @@
           browser.
         </p>
       </div>
-      <button type="button" id="lang-toggle" class="button button--quiet" data-i18n="lang.switchTo">
-        Français
-      </button>
+      <div class="site-header__controls">
+        <!--
+          Layout switch: tabbed (one phase at a time, the default) or linear
+          (the classic single scroll). Two aria-pressed buttons rather than a
+          tab widget — this changes how the page is arranged, not its content.
+        -->
+        <div class="view-toggle" role="group" data-i18n-aria="view.label">
+          <button
+            type="button"
+            id="view-tabbed"
+            class="button button--toggle"
+            aria-pressed="true"
+            data-i18n="view.tabbed"
+          >
+            Tabbed
+          </button>
+          <button
+            type="button"
+            id="view-linear"
+            class="button button--toggle"
+            aria-pressed="false"
+            data-i18n="view.linear"
+          >
+            Linear
+          </button>
+        </div>
+        <!-- Jumps to the export phase. Disabled until a capture is loaded,
+             like the phase buttons below — JS lifts the gate. -->
+        <button type="button" id="header-export" class="button button--brand" data-i18n="nav.export" disabled>
+          Export
+        </button>
+        <button type="button" id="lang-toggle" class="button button--quiet" data-i18n="lang.switchTo">
+          Français
+        </button>
+      </div>
     </header>
 
+    <!--
+      The workflow, one button per phase. Deliberately NOT an ARIA tab widget:
+      these are wizard stages over whole page regions, so each button simply
+      shows its phase and carries aria-current. In the linear layout the same
+      buttons scroll to their section instead. All of that is wired by app.js —
+      this static page stays fully linear so it works (and tests) without JS.
+    -->
+    <nav id="phase-nav" class="phase-nav" data-i18n-aria="nav.label">
+      <button type="button" class="phase-nav__btn" data-phase-target="start" data-i18n="nav.start">
+        Start here
+      </button>
+      <button
+        type="button"
+        class="phase-nav__btn"
+        data-phase-target="capture"
+        data-i18n="nav.capture"
+        disabled
+      >
+        Capture details
+      </button>
+      <button
+        type="button"
+        class="phase-nav__btn"
+        data-phase-target="worked"
+        data-i18n="nav.worked"
+        disabled
+      >
+        Worked example
+      </button>
+      <button type="button" class="phase-nav__btn" data-phase-target="edit" data-i18n="nav.edit" disabled>
+        Edit steps
+      </button>
+      <button
+        type="button"
+        class="phase-nav__btn"
+        data-phase-target="translate"
+        data-i18n="nav.translate"
+        disabled
+      >
+        Translate
+      </button>
+      <button
+        type="button"
+        class="phase-nav__btn"
+        data-phase-target="export"
+        data-i18n="nav.export"
+        disabled
+      >
+        Export
+      </button>
+    </nav>
+
+    <!-- One numbered button per step, filled by app.js. Tabbed layout only:
+         it selects which step the editor shows. -->
+    <nav id="step-chips" class="step-chips" data-phase="edit" data-i18n-aria="chips.label" hidden></nav>
+
+    <div class="layout">
     <main id="main">
+      <!--
+        Polite, matching the implicit value of role="status". Success does not
+        need to interrupt. Errors get their own role="alert" region below,
+        which is the pattern screen readers handle most predictably.
+
+        A direct child of <main>, NOT inside any phase section: the tabbed
+        layout hides inactive phases with display:none, and a live region
+        inside a hidden section announces nothing. This one must be audible
+        from every tab — "Prompt copied" fires from Translate, "downloaded"
+        from Export.
+      -->
+      <!--
+        NO data-i18n here, deliberately. applyStaticStrings rewrites every
+        data-i18n element on each render, which silently wiped announcements
+        made just before one. The initial text is set from JS instead, and
+        re-translated explicitly on a language change.
+      -->
+      <p id="status" class="status" role="status" aria-live="polite"></p>
       <!-- Shown only when the browser cannot do what this tool requires. -->
       <div id="unsupported" class="panel panel--error" hidden>
         <h2 data-i18n="error.heading">That file could not be read</h2>
@@ -60,7 +167,7 @@
         </div>
       </section>
 
-      <section id="loader" aria-labelledby="loader-heading" class="panel">
+      <section id="loader" aria-labelledby="loader-heading" class="panel" data-phase="start">
         <h2 id="loader-heading" data-i18n="load.heading">Load a file</h2>
 
         <div id="dropzone" class="dropzone">
@@ -112,18 +219,6 @@
           </p>
         </div>
 
-        <!--
-          Polite, matching the implicit value of role="status". Success does not
-          need to interrupt. Errors get their own role="alert" region below,
-          which is the pattern screen readers handle most predictably.
-        -->
-        <!--
-          NO data-i18n here, deliberately. applyStaticStrings rewrites every
-          data-i18n element on each render, which silently wiped announcements
-          made just before one. The initial text is set from JS instead, and
-          re-translated explicitly on a language change.
-        -->
-        <p id="status" class="status" role="status" aria-live="polite"></p>
       </section>
 
       <section id="error" class="panel panel--error" hidden aria-labelledby="error-heading">
@@ -131,7 +226,7 @@
         <p id="error-detail" role="alert"></p>
       </section>
 
-      <section id="capture" class="panel" hidden aria-labelledby="capture-heading">
+      <section id="capture" class="panel" hidden aria-labelledby="capture-heading" data-phase="capture">
         <h2 id="capture-heading" data-i18n="capture.heading">Capture</h2>
         <div id="capture-meta" class="meta"></div>
 
@@ -143,12 +238,18 @@
         <div id="title-fields"></div>
       </section>
 
-      <section id="warnings" class="panel panel--warn" hidden aria-labelledby="warnings-heading">
+      <section
+        id="warnings"
+        class="panel panel--warn"
+        hidden
+        aria-labelledby="warnings-heading"
+        data-phase="capture"
+      >
         <h2 id="warnings-heading" data-i18n="warnings.heading">Things to review</h2>
         <ul id="warnings-list"></ul>
       </section>
 
-      <section id="case-study" class="panel" hidden aria-labelledby="case-study-heading">
+      <section id="case-study" class="panel" hidden aria-labelledby="case-study-heading" data-phase="worked">
         <h2 id="case-study-heading" data-i18n="phase.workedExample">Worked example phase</h2>
         <p data-i18n="caseStudy.scenarioHeading">About this procedure</p>
 
@@ -198,7 +299,7 @@
         </div>
       </section>
 
-      <section id="steps" hidden aria-labelledby="steps-heading">
+      <section id="steps" hidden aria-labelledby="steps-heading" data-phase="edit">
         <h2 id="steps-heading" data-i18n="editor.heading">Edit phase</h2>
         <p data-i18n="editor.intro">
           Snagit writes step text automatically, so it often repeats itself and never includes alt
@@ -233,7 +334,7 @@
         <ol id="steps-list" class="steps"></ol>
       </section>
 
-      <section id="translate" class="panel" hidden aria-labelledby="translate-heading">
+      <section id="translate" class="panel" hidden aria-labelledby="translate-heading" data-phase="translate">
         <h2 id="translate-heading" data-i18n="translate.heading">Translation phase</h2>
         <p data-i18n="translate.intro">
           This tool never sends your capture anywhere. It builds a prompt you run in your own
@@ -267,7 +368,7 @@
         </div>
       </section>
 
-      <section id="readiness" class="panel" hidden aria-labelledby="readiness-heading">
+      <section id="readiness" class="panel" hidden aria-labelledby="readiness-heading" data-phase="export">
         <h2 id="readiness-heading" data-i18n="export.heading">Before you export</h2>
 
         <!--
@@ -334,7 +435,7 @@
         </p>
       </section>
 
-      <section class="panel panel--quiet" aria-labelledby="privacy-heading">
+      <section class="panel panel--quiet" aria-labelledby="privacy-heading" data-phase="start">
         <h2 id="privacy-heading" data-i18n="privacy.heading">Nothing is uploaded</h2>
         <p data-i18n="privacy.body">
           This page has no server. Your capture is read in your browser and never sent anywhere. You
@@ -342,6 +443,17 @@
         </p>
       </section>
     </main>
+
+    <!--
+      Per-phase guidance, shown beside the content in the tabbed layout only.
+      Body text is set from JS on every phase change and language switch, so it
+      carries no data-i18n of its own.
+    -->
+    <aside id="instructions" class="instructions" aria-labelledby="instructions-heading" hidden>
+      <h2 id="instructions-heading" data-i18n="instructions.heading">Page instructions</h2>
+      <p id="instructions-body"></p>
+    </aside>
+    </div>
 
     <script type="module" src="src/ui/app.js"></script>
   </body>

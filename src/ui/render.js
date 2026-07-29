@@ -142,4 +142,9 @@ export function applyStaticStrings(document, lang) {
   for (const el of document.querySelectorAll('[data-i18n]')) {
     el.textContent = t(el.dataset.i18n, lang)
   }
+  // Landmarks named by aria-label rather than visible text — the phase nav
+  // and the step chips — follow the language toggle the same way.
+  for (const el of document.querySelectorAll('[data-i18n-aria]')) {
+    el.setAttribute('aria-label', t(el.dataset.i18nAria, lang))
+  }
 }

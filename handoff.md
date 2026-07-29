@@ -1,5 +1,5 @@
 # Handoff — step-capture-studio
-_Last updated: 2026-07-24 · Current stage: stage-4-ship_
+_Last updated: 2026-07-29 · Current stage: stage-4-ship_
 
 ## 🎯 Goals
 Finish Stage 4: a shippable demo capture and public polish, so a stranger can use the live site.
@@ -7,7 +7,11 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## 📍 Current State
 - **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT (repo recreated
   2026-07-22). **272/272 tests.** Autosave, replace-image, and the all-in-one dashboard shipped and
-  verified live 2026-07-24; **the all-in-one 4-card redesign is local — not yet pushed.**
+  verified live 2026-07-24.
+- **2026-07-29: full UI redesign to the PowerPoint mock-ups** — teal shell, phase nav
+  (6 stages), per-phase instructions panel, step chips (one step at a time), header Export
+  shortcut, Tabbed/Linear toggle, all-in-one restyled. Local, not pushed; awaiting Cam's pass.
+  See `staging/stage-4-ship/feature-ui-redesign.md` for the decisions and measured contrast.
 - **Editor is three Phases** — Worked example → Edit → Translation — export panel last; capture
   metadata (author/duration/date/steps) editable; "Case study" → **"Worked example"** everywhere.
 - **Stages 1–3 complete.** Three HTML artifacts: self-contained, bilingual, readable with JS off,
@@ -49,12 +53,14 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
   surroundings". Once public, a crop does not undo it — history/CDN keep the original.
 
 ## ➡️ Next Up
-1. **Re-run Word's Accessibility Checker** (`help.md` 3b) — hard-refresh the live site first; both
+1. **Cam's human pass on the UI redesign** (`feature-ui-redesign.md`) — every phase, keyboard-only,
+   both languages; then push (push = deploy). The README screenshot will be stale after the push.
+2. **Re-run Word's Accessibility Checker** (`help.md` 3b) — hard-refresh the live site first; both
    previous attempts graded pre-fix files. Last unticked `.docx` criterion.
-2. `feature-public-polish` — README rewritten with a landing-page screenshot; only **a stranger
+3. `feature-public-polish` — README rewritten with a landing-page screenshot; only **a stranger
    completing the flow** remains (the project's definition of done).
-3. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.
+4. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.
 
 ## 🔗 Pointer
 → Current stage folder: `staging/stage-4-ship/` · Active feature file:
-`staging/stage-4-ship/feature-demo-capture.md`
+`staging/stage-4-ship/feature-ui-redesign.md`

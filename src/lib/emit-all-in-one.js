@@ -43,19 +43,28 @@ import { emitDocx } from './emit-docx.js'
 
 const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 
+/*
+ * Card look from the July 2026 dashboard mock-ups (slide 1): big soft-cornered
+ * cards whose backgrounds simply alternate — 1st and 3rd tinted pale blue, the
+ * others on the page background — with a large brand-teal tile as the icon.
+ */
 const AIO_CSS = `
+:root { --aio-tint: #dceaf7; --aio-brand: #155f82; --aio-outline: #10222b; }
+@media (prefers-color-scheme: dark) {
+  :root { --aio-tint: #10394d; --aio-outline: #06131a; }
+}
 .aio-menu { margin-top: 1.5rem; }
 .aio-grid {
   display: grid; gap: 1.5rem; margin: 0; padding: 0; list-style: none;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 .aio-card {
-  display: flex; flex-direction: column; gap: .5rem; padding: 1.25rem;
-  border-radius: 18px;
+  height: 100%;
+  display: flex; flex-direction: column; gap: .5rem; padding: 1.5rem 1.25rem 1.75rem;
+  border-radius: 28px;
 }
-/* Cards that open an artifact get the light panel; the download-only Step Guide
-   card stays flat, so the two behaviours read differently at a glance. */
-.aio-card--panel { background: var(--surface); }
+/* Backgrounds alternate by position, not by card kind. */
+.aio-grid > li:nth-child(odd) .aio-card { background: var(--aio-tint); }
 .aio-card > *, .aio-card p { max-width: none; }
 .aio-card__head {
   display: flex; flex-direction: column; align-items: center; gap: .85rem;
@@ -64,9 +73,10 @@ const AIO_CSS = `
 .aio-card__open:hover .aio-card__title,
 .aio-card__open:focus-visible .aio-card__title { text-decoration: underline; }
 .aio-card__icon {
-  width: 96px; height: 80px; border-radius: 14px; background: var(--accent);
+  width: 132px; height: 112px; border-radius: 22px;
+  background: var(--aio-brand); border: 2px solid var(--aio-outline);
 }
-.aio-card__title { font-size: 1.15rem; font-weight: 700; text-align: center; }
+.aio-card__title { font-size: 1.2rem; font-weight: 700; text-align: center; }
 .aio-card__desc, .aio-card__usewhen, .aio-word {
   text-align: center; margin: 0; font-size: .95rem;
 }

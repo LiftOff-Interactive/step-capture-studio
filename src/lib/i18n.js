@@ -29,6 +29,34 @@ const STRINGS = {
     'lang.switchTo': 'Français',
     'lang.changed': 'Language changed to English.',
 
+    'nav.label': 'Workflow phases',
+    'nav.start': 'Start here',
+    'nav.capture': 'Capture details',
+    'nav.worked': 'Worked example',
+    'nav.edit': 'Edit steps',
+    'nav.translate': 'Translate',
+    'nav.export': 'Export',
+
+    'view.label': 'Layout',
+    'view.tabbed': 'Tabbed',
+    'view.linear': 'Linear',
+
+    'chips.label': 'Choose a step to edit',
+
+    'instructions.heading': 'Page instructions',
+    'instructions.start':
+      'Load the Snagit .docx you exported, or resume a project file you saved earlier. Nothing is uploaded — everything happens in this browser. No file handy? Try the sample capture to see how the tool works.',
+    'instructions.capture':
+      'Check what Snagit recorded: author, duration, date and step count are all editable. Give the guide a title in each language — it becomes the heading of every export.',
+    'instructions.worked':
+      'Describe who this procedure is for, what it does, and what success looks like. Then build the prompt, run it in your own assistant, and paste the draft explanations back to review them step by step.',
+    'instructions.edit':
+      'Pick a step with the numbered buttons above. Tidy the step text, write alt text for each screenshot in both languages, and tick “I have checked this step” when it is right. Replace any screenshot that came out wrong.',
+    'instructions.translate':
+      'Build the translation prompt, run it in your own assistant, and paste the answer back. Every populated field rides along — step text, alt text and explanations — and the result comes back for your review.',
+    'instructions.export':
+      'Exports unlock once every step is checked. Download any of the guides, or the all-in-one dashboard that bundles them. Export a project file too — it is the only way to reopen this session on another day.',
+
     'load.heading': 'Load a file',
     'load.label': 'Choose a Snagit .docx file',
     'load.hint': 'Or drag a file onto this area. Nothing is uploaded — parsing happens on your device.',
@@ -233,6 +261,34 @@ const STRINGS = {
 
     'lang.switchTo': 'English',
     'lang.changed': 'La langue a été changée pour le français.',
+
+    'nav.label': 'Phases du flux de travail',
+    'nav.start': 'Commencer ici',
+    'nav.capture': 'Détails de la capture',
+    'nav.worked': 'Exemple pratique',
+    'nav.edit': 'Modifier les étapes',
+    'nav.translate': 'Traduire',
+    'nav.export': 'Exporter',
+
+    'view.label': 'Disposition',
+    'view.tabbed': 'Onglets',
+    'view.linear': 'Continu',
+
+    'chips.label': 'Choisir une étape à modifier',
+
+    'instructions.heading': 'Instructions de la page',
+    'instructions.start':
+      'Chargez le fichier .docx exporté de Snagit, ou reprenez un fichier de projet enregistré. Rien n’est téléversé — tout se passe dans ce navigateur. Aucun fichier sous la main? Essayez l’exemple pour découvrir l’outil.',
+    'instructions.capture':
+      'Vérifiez ce que Snagit a enregistré : l’auteur, la durée, la date et le nombre d’étapes sont modifiables. Donnez un titre au guide dans chaque langue — il devient l’en-tête de chaque exportation.',
+    'instructions.worked':
+      'Décrivez à qui s’adresse la procédure, à quoi elle sert et à quoi ressemble la réussite. Créez ensuite la consigne, exécutez-la dans votre propre assistant, puis collez les ébauches d’explications pour les réviser étape par étape.',
+    'instructions.edit':
+      'Choisissez une étape avec les boutons numérotés ci-dessus. Corrigez le texte, rédigez le texte de remplacement de chaque capture d’écran dans les deux langues, puis cochez « J’ai vérifié cette étape ». Remplacez toute capture ratée.',
+    'instructions.translate':
+      'Créez la consigne de traduction, exécutez-la dans votre propre assistant, puis collez la réponse. Tous les champs remplis sont inclus — texte des étapes, texte de remplacement et explications — et le résultat revient pour votre révision.',
+    'instructions.export':
+      'Les exportations se débloquent une fois chaque étape vérifiée. Téléchargez chacun des guides, ou le tableau de bord tout-en-un qui les regroupe. Exportez aussi un fichier de projet — c’est la seule façon de reprendre cette session un autre jour.',
 
     'load.heading': 'Charger un fichier',
     'load.label': 'Choisissez un fichier .docx de Snagit',
