@@ -67,6 +67,10 @@ dashboard export restyled to slide 1 (alternating card tint, large teal icon til
   split editor. Browser-verified per criteria above (light + dark, EN + FR, tabbed + linear);
   eleven screenshots captured via Playwright against the local server, all-in-one export opened
   and inspected. Status stays **awaiting verification** pending Cam's human pass on the live site.
+- 2026-07-29 — Cam approved the push after reviewing the screenshots. Deployed to main
+  (`e455852`); live page at https://liftoff-interactive.github.io/step-capture-studio/ confirmed
+  serving the redesign markup (curl found the 6 phase-nav buttons). Remaining human criterion —
+  the on-site keyboard walk and copy read — still open, so the status stands.
 
 ## Open edges
 - Slide 2 shows a 3-card all-in-one variant (no Step Guide card, Word links under Worked
