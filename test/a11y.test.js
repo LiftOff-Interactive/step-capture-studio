@@ -308,28 +308,31 @@ test('status is a polite live region and errors are a separate alert', async () 
   dom.window.close()
 })
 
-test('the header save button is labelled as a project-file save, not the Export phase', async () => {
-  // Regression test. The header button originally jumped to the Export phase
-  // and shared the phase tab's `nav.export` string, so the page carried two
-  // controls named "Export" that did different things. It is a save — the same
-  // action as the Edit toolbar's twin — and must say so in both languages.
+test('saving the project file is one control, and it is not the Export phase', async () => {
+  // Two regressions in one.
+  //
+  // The header button originally jumped to the Export phase and shared the
+  // phase tab's `nav.export` string, so the page carried two controls named
+  // "Export" that did different things.
+  //
+  // It was then wired to save the project file — but so was a second button in
+  // the Edit toolbar, which put two controls with the identical label on the
+  // same screen. The header is now the only one, reachable from every phase.
   const dom = await makeDom()
   const { document } = dom.window
 
   const header = document.getElementById('header-export')
-  const twin = document.getElementById('export-project')
   const phaseTab = document.querySelector('[data-phase-target="export"]')
 
-  assert.equal(
-    header.dataset.i18n,
-    twin.dataset.i18n,
-    'header button and toolbar twin are the same action, so the same string'
-  )
+  assert.equal(header.dataset.i18n, 'project.export', 'labelled as the save it is')
   assert.notEqual(
     header.dataset.i18n,
     phaseTab.dataset.i18n,
-    'header button must not reuse the phase tab string'
+    'and never reusing the phase tab string'
   )
+
+  const savers = [...document.querySelectorAll('[data-i18n="project.export"]')]
+  assert.deepEqual(savers, [header], 'exactly one control saves the project file')
 
   for (const lang of LANGUAGES) {
     applyStaticStrings(document, lang)

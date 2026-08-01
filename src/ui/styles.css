@@ -585,6 +585,20 @@ input[type="file"] {
   margin: 1rem 0;
 }
 
+/*
+ * The prose measure does not apply to a form.
+ *
+ * `p, li, dd { max-width: var(--measure) }` keeps reading lines short, and a
+ * step is an <li>, so every step in the editor was capped at 68ch — 585px
+ * inside an 869px column at 1280. That squeezed the two halves into roughly
+ * half the space available and made the fields far narrower than the screenshot
+ * beside them. The cap is right for prose and wrong here: these are labelled
+ * controls, not text to read across.
+ */
+.steps > .step {
+  max-width: none;
+}
+
 .step--editing {
   display: block;
   padding: 0;
@@ -614,8 +628,12 @@ input[type="file"] {
 }
 
 @media (min-width: 62rem) {
+  /* Equal halves. The fields side carries step text, alt text and the
+     explanations in both languages now, so the old 3:2 split in favour of the
+     fields no longer reflects what is in each column — and the screenshot reads
+     better with the extra room than it did cropped into two fifths. */
   .step--editing .step__fields {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
   }
 

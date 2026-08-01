@@ -30,6 +30,45 @@ merging the duplicate consecutive steps Snagit produces, and reordering or remov
 
 ## Verification Log
 
+### 2026-08-01 — Wider step pane, equal columns, bilingual explanations
+
+Four changes to the Edit steps phase, on Mike's instruction.
+
+**The step pane was capped at a reading width.** `p, li, dd { max-width: var(--measure) }` keeps
+prose lines short, and a step is an `<li>` — so every step in the editor was clamped to 68ch. At a
+1280 viewport that was **585px inside an 869px column**, with the two halves squeezed to 324/216.
+The cap is right for prose and wrong for a form of labelled controls. `.steps > .step` now opts out.
+
+**The two halves are equal**, `minmax(0, 1fr)` each rather than 3fr/2fr. The fields side now carries
+step text, alt text *and* the explanations in both languages, so the old split in favour of the
+fields no longer matched what is in each column.
+
+Measured after: 1280 → pane **867px**, columns **411/411**. 1600 → pane 1035px, columns 495/495 side
+by side. 900 (below the 62rem breakpoint) → stacked, full width, no horizontal overflow.
+
+**Explanations now have a field per language.** They were source-language only, on the reasoning that
+the French arrives through the translation round trip. That left no way to write or fix a French
+explanation by hand — and `emitCaseStudy` renders whichever languages carry narrative, so a capture
+whose round trip was never run shipped a French worked example with the explanations **silently
+missing**. Ids moved from `f-narr-{n}-{field}` to `f-narr-{n}-{field}-{code}`, and the drafted notice
+is now per language: a reviewed English passage says nothing about an unreviewed French one. The form
+is longer; the artifact is completable in both languages without leaving the app.
+
+**"Export project file" removed from the toolbar.** It lives only in the header now, where it is
+reachable from every phase — two buttons with the identical label on one screen read as two different
+saves. The a11y test that asserted the header button matched its toolbar twin was rewritten to assert
+there is exactly **one** control carrying `project.export`.
+
+**Automated: 304/304** (was 300). New editor tests cover the per-language fields and their labels,
+that editing the French field reports `fr` to the handler (reporting the source language there would
+file French as English — the bug `feature-source-language` exists to undo), that the explanations
+still vanish entirely when the worked example is off, and axe on the bilingual form.
+
+**In-browser:** only `header-export` remains; 24 narrative groups on the demo (6 steps × 2 fields ×
+2 languages) labelled "Why this step matters (English/French)" and the French equivalents; typing
+into `f-narr-1-why-fr` and exporting the project file put the text in `div.note > div[lang=fr-CA]`.
+No console errors.
+
 ### 2026-07-21 — Built; automated PASS, browser PASS
 **Automated:** 79/79. Merging keeps both screenshots and renumbers; a translation present only on the
 later step survives the merge; merging step 1 throws; deleting renumbers and leaves the original

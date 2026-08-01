@@ -384,13 +384,15 @@
             Undo
           </button>
           <!--
-            Deliberately NOT behind the export gate. This is a save, not a
-            deliverable: the moment it is most needed is when the work is
+            "Export project file" used to sit here as well. It now lives only in
+            the header, where it is reachable from every phase rather than just
+            this one — two buttons doing the identical thing on the same screen
+            read as two different saves.
+
+            It stays deliberately outside the export gate: this is a save, not a
+            deliverable, and the moment it is most needed is when the work is
             half-finished, which is exactly when the gate is closed.
           -->
-          <button type="button" id="export-project" class="button" data-i18n="project.export">
-            Export project file
-          </button>
         </div>
 
         <!--

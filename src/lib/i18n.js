@@ -94,6 +94,9 @@ const STRINGS = {
     'caseStudy.outcome': 'What success looks like',
     'caseStudy.why': 'Why this step matters',
     'caseStudy.ifSkipped': 'What breaks if it is skipped',
+    // The editor shows one field per language, so its labels carry which.
+    'caseStudy.whyIn': 'Why this step matters ({lang})',
+    'caseStudy.ifSkippedIn': 'What breaks if it is skipped ({lang})',
     'caseStudy.scenarioHeading': 'About this procedure',
     'caseStudy.include': 'Include a worked example in the output',
     'caseStudy.includeHint':
@@ -343,6 +346,8 @@ const STRINGS = {
     'caseStudy.outcome': 'À quoi ressemble la réussite',
     'caseStudy.why': 'Pourquoi cette étape est importante',
     'caseStudy.ifSkipped': 'Ce qui ne fonctionne plus si on l’omet',
+    'caseStudy.whyIn': 'Pourquoi cette étape est importante ({lang})',
+    'caseStudy.ifSkippedIn': 'Ce qui ne fonctionne plus si on l’omet ({lang})',
     'caseStudy.scenarioHeading': 'À propos de cette procédure',
     'caseStudy.include': 'Inclure un exemple pratique dans les fichiers produits',
     'caseStudy.includeHint':

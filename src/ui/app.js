@@ -90,7 +90,6 @@ const els = {
   fileInput: document.getElementById('file-input'),
   projectInput: document.getElementById('project-input'),
   loadDemo: document.getElementById('load-demo'),
-  exportProject: document.getElementById('export-project'),
   restore: document.getElementById('restore'),
   restoreBody: document.getElementById('restore-body'),
   restoreAccept: document.getElementById('restore-accept'),
@@ -1120,9 +1119,8 @@ els.loadDemo.addEventListener('click', async () => {
 
 /**
  * Save the whole project — steps, edits, and screenshots — as one
- * self-contained .html the user can reopen later. Wired to both the Edit
- * toolbar button and the header shortcut, so it must stay idempotent and
- * safe to call from any phase.
+ * self-contained .html the user can reopen later. Reachable from the header in
+ * every phase, so it must stay idempotent and safe to call at any point.
  */
 function exportProjectFile() {
   if (!state.capture) return
@@ -1140,10 +1138,9 @@ function exportProjectFile() {
   }
 }
 
-els.exportProject.addEventListener('click', exportProjectFile)
-// The header shortcut saves the project file too — the point of hoisting it
-// out of the Edit toolbar is that the save is reachable mid-edit, from any
-// phase. Navigating to the Export phase is the phase nav's job.
+// The header is the only place this lives. The point of hoisting it out of the
+// Edit toolbar is that the save is reachable mid-edit, from any phase.
+// Navigating to the Export phase is the phase nav's job.
 els.headerExport.addEventListener('click', exportProjectFile)
 
 // Drag and drop is an enhancement only — the file input alone is sufficient.

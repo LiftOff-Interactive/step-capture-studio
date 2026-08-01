@@ -22,6 +22,7 @@ import { parseSnagitDocx } from '../src/lib/parse-snagit.js'
 import { seedAltText, exportReadiness } from '../src/lib/authoring.js'
 import { applyStaticStrings } from '../src/ui/render.js'
 import { buildEditableSteps, buildBlockerList, readinessSummaryText } from '../src/ui/editor.js'
+import { setIncludeWorkedExample } from '../src/lib/case-study.js'
 import { makeCapture, ENGLISH_STEPS } from './helpers/synthetic.mjs'
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -434,5 +435,70 @@ test('editor screenshots are marked decorative — the alt field describes them'
   for (const img of images) {
     assert.equal(img.getAttribute('alt'), '', 'explicitly empty, not missing')
   }
+  dom.window.close()
+})
+
+test('the worked-example explanations have a field per language', async () => {
+  // They used to be source-language only, so a French artifact shipped with the
+  // explanations silently missing unless the translation round trip had been
+  // run. The worked example renders whichever languages carry narrative, so an
+  // author needs somewhere to write the French by hand.
+  const dom = await editorDom(await load())
+  const { document } = dom.window
+
+  for (const field of ['why', 'ifSkipped']) {
+    for (const code of ['en', 'fr']) {
+      const area = document.getElementById(`f-narr-1-${field}-${code}`)
+      assert.ok(area, `${field} has a ${code} field`)
+      assert.equal(area.tagName, 'TEXTAREA')
+      assert.equal(area.lang, code === 'fr' ? 'fr-CA' : 'en-CA', 'declares its own language')
+
+      const label = document.querySelector(`label[for="${area.id}"]`)
+      assert.ok(label, `${field} (${code}) is labelled`)
+      assert.match(label.textContent, /\((English|French)\)/, 'and the label says which language')
+    }
+  }
+  dom.window.close()
+})
+
+test('editing a French explanation reports French to the handler', async () => {
+  // The old single field always reported capture.sourceLang. Reporting the
+  // wrong language here would file the French passage as English — the same
+  // class of bug the source-language control exists to undo.
+  const seen = []
+  const dom = await editorDom(await load(), 'en', {
+    ...noopHandlers,
+    onNarrative: (index, field, code, value) => seen.push({ index, field, code, value }),
+  })
+  const { document, Event } = dom.window
+
+  const area = document.getElementById('f-narr-2-why-fr')
+  area.value = 'Parce que la barre des tâches est toujours là'
+  area.dispatchEvent(new Event('input', { bubbles: true }))
+
+  assert.deepEqual(seen, [
+    { index: 2, field: 'why', code: 'fr', value: 'Parce que la barre des tâches est toujours là' },
+  ])
+  dom.window.close()
+})
+
+test('the explanations disappear entirely when the worked example is off', async () => {
+  const off = setIncludeWorkedExample(await load(), false)
+  const dom = await editorDom(off)
+  const { document } = dom.window
+
+  assert.equal(document.querySelectorAll('.narrative-group').length, 0)
+  // The rest of the step form is untouched.
+  assert.ok(document.getElementById('f-step-1-text-en'), 'step text stays')
+  assert.ok(document.getElementById('f-step-1-text-fr'), 'in both languages')
+  dom.window.close()
+})
+
+test('the editor is axe clean with both languages of explanation present', async () => {
+  const dom = await editorDom(seedAltText(await load()), 'fr')
+  assertAxeClean(
+    await dom.window.axe.run(dom.window.document, AXE_OPTIONS),
+    'editor, bilingual explanations'
+  )
   dom.window.close()
 })

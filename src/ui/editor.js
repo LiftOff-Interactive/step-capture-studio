@@ -305,46 +305,55 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
       main.append(group)
     }
 
-    // --- case-study narrative, source language only ----------------------
-    // Only the source language is edited here. The French comes through the
-    // translation round trip, which already exists — duplicating 20 more
-    // fields would double the form for no gain.
+    // --- case-study narrative, one field per language ---------------------
+    // Both languages, like step text and alt text above.
     //
-    // Absent entirely when the worked example is switched off. Two fields per
-    // step is the bulk of this form, and they are the only ones that do not
-    // feed the artifacts an author who opted out is actually exporting.
+    // This used to be source-language only, on the reasoning that the French
+    // arrives through the translation round trip and duplicating the fields
+    // would double the form. That left no way to write or correct a French
+    // explanation by hand: the worked example renders whichever languages have
+    // narrative, so a capture whose round trip was never run shipped a French
+    // artifact with the explanations silently missing. The form is longer; the
+    // artifact is now completable in both languages without leaving the app.
+    //
+    // Absent entirely when the worked example is switched off — these are the
+    // only fields here that do not feed the artifacts an author who opted out
+    // is actually exporting.
     for (const field of includesWorkedExample(capture) ? NARRATIVE_FIELDS : []) {
-      const passage = step.narrative?.[field]?.[capture.sourceLang]
-      const group = document.createElement('div')
-      group.className = 'narrative-group'
+      for (const code of languages) {
+        const passage = step.narrative?.[field]?.[code]
+        const group = document.createElement('div')
+        group.className = 'narrative-group'
 
-      const area = document.createElement('textarea')
-      area.rows = 2
-      area.value = passage?.text ?? ''
-      area.lang = LOCALES[capture.sourceLang] ?? capture.sourceLang
-      area.addEventListener('input', () =>
-        handlers.onNarrative(step.index, field, capture.sourceLang, area.value)
-      )
+        const area = document.createElement('textarea')
+        area.rows = 2
+        area.value = passage?.text ?? ''
+        area.lang = LOCALES[code] ?? code
+        area.addEventListener('input', () =>
+          handlers.onNarrative(step.index, field, code, area.value)
+        )
 
-      group.append(
-        labelled(document, {
-          id: fieldId('narr', step.index, field),
-          labelText: t(`caseStudy.${field}`, lang),
-          control: area,
-        })
-      )
+        group.append(
+          labelled(document, {
+            id: fieldId('narr', step.index, field, code),
+            labelText: t(`caseStudy.${field}In`, lang, { lang: t(`lang.name.${code}`, lang) }),
+            control: area,
+          })
+        )
 
-      // The notice appears ONLY for drafted text. An authored passage has
-      // nothing to confirm. Reviewing it is now part of the single per-step
-      // check below, rather than its own control.
-      if (passage?.drafted && passage.text) {
-        const notice = document.createElement('p')
-        notice.className = 'narrative-drafted'
-        notice.textContent = t('caseStudy.unreviewed', lang)
-        group.append(notice)
+        // The notice appears ONLY for drafted text, and per language: a
+        // reviewed English passage says nothing about an unreviewed French one.
+        // An authored passage has nothing to confirm. Reviewing it is part of
+        // the single per-step check below, rather than its own control.
+        if (passage?.drafted && passage.text) {
+          const notice = document.createElement('p')
+          notice.className = 'narrative-drafted'
+          notice.textContent = t('caseStudy.unreviewed', lang)
+          group.append(notice)
+        }
+
+        main.append(group)
       }
-
-      main.append(group)
     }
 
     // --- one verification control for the whole step ----------------------

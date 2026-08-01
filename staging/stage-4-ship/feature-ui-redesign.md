@@ -33,6 +33,7 @@ dashboard export restyled to slide 1 (alternating card tint, large teal icon til
   first so focus restore never targets a hidden step.
 - **Editor fieldset split into `.step__main` / `.step__side`** (fields left; verify + delete +
   screenshot right, per slide 7). Pure structure in editor.js; the two columns are CSS ≥62rem.
+  Split **3:2 originally, equal since 2026-08-01** — see the log entry that day.
 - **Layout preference persists** (`step-capture-studio.view` in localStorage). Loading a capture
   advances the tabbed view to Capture details; a failed load returns to Start here and re-locks
   the nav (phases past Start are disabled until a capture exists).
