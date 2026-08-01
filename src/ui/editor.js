@@ -434,6 +434,11 @@ export function buildBlockerList(document, readiness, lang) {
     li.textContent = t(`blocker.${blocker.code}`, lang, {
       index: blocker.stepIndex,
       lang: t(`lang.name.${blocker.lang}`, lang),
+      // Branding blockers are about a colour rather than a step, and the
+      // measured ratio is the whole point: "fails contrast" sends an author
+      // hunting, "3.1:1 where 4.5 is needed" tells them how far off they are.
+      ratio: blocker.ratio,
+      field: blocker.field,
     })
     list.append(li)
   }

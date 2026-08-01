@@ -19,6 +19,7 @@
  */
 
 import { NARRATIVE_FIELDS, SCENARIO_FIELDS } from './case-study.js'
+import { ICON_SLOTS, FONT_KEYS, defaultBranding, isHexColour } from './branding.js'
 
 export class ProjectError extends Error {
   constructor(code, detail) {
@@ -174,6 +175,53 @@ export function parseProject(html, DOMParserImpl = globalThis.DOMParser) {
     ])
   )
 
+  /*
+   * Branding. Absent for any file written before it existed, in which case the
+   * defaults apply — and those defaults are deliberately the palette that
+   * already shipped, so an old project file renders exactly as it always did.
+   *
+   * A colour that is not a valid hex is dropped rather than carried: it would
+   * otherwise reach `brandingReadiness` as an export blocker the author could
+   * not see the cause of, on a file they may only have hand-edited slightly.
+   */
+  const brandingRoot = doc.querySelector('[data-branding]')
+  const branding = brandingRoot
+    ? (() => {
+        const battr = (name) => brandingRoot.getAttribute(name) || null
+        const colour = (name) => {
+          const value = battr(name)
+          return isHexColour(value) ? value.trim() : null
+        }
+        const bytesOf = (selector) => {
+          const img = brandingRoot.querySelector(selector)
+          const src = img?.getAttribute('src')
+          return src ? bytesFromDataUri(src) : null
+        }
+        const number = (name, fallback) => {
+          const value = Number(battr(name))
+          return Number.isFinite(value) ? value : fallback
+        }
+        const defaults = defaultBranding()
+        return {
+          fontBody: FONT_KEYS.includes(battr('data-font-body')) ? battr('data-font-body') : defaults.fontBody,
+          fontHeading: FONT_KEYS.includes(battr('data-font-heading'))
+            ? battr('data-font-heading')
+            : defaults.fontHeading,
+          baseSize: number('data-base-size', defaults.baseSize),
+          headingScale: number('data-heading-scale', defaults.headingScale),
+          gradientFrom: colour('data-gradient-from'),
+          gradientTo: colour('data-gradient-to'),
+          highlight: colour('data-highlight') ?? defaults.highlight,
+          logo: bytesOf('[data-brand="logo"]'),
+          logoAlt: byLanguage(brandingRoot, '[data-field="logo-alt"]', languages, textOrNull),
+          background: bytesOf('[data-brand="background"]'),
+          icons: Object.fromEntries(
+            ICON_SLOTS.map((slot) => [slot, bytesOf(`[data-brand="icon"][data-slot="${slot}"]`)])
+          ),
+        }
+      })()
+    : defaultBranding()
+
   return {
     title: Object.fromEntries(
       languages.map((code) => [code, attr(`data-title-${code}`)])
@@ -186,6 +234,7 @@ export function parseProject(html, DOMParserImpl = globalThis.DOMParser) {
     languages,
     declaredStepCount: declared ? Number(declared) : null,
     includeWorkedExample,
+    branding,
     scenario,
     steps: steps.map(({ declaredIndex, ...step }) => step),
     warnings: [],

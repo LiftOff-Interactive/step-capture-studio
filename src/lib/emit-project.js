@@ -28,6 +28,7 @@ import {
   LOCALE_TAGS,
 } from './emit-common.js'
 import { NARRATIVE_FIELDS, SCENARIO_FIELDS } from './case-study.js'
+import { brandingOf, ICON_SLOTS } from './branding.js'
 
 /** Bumped only when the shape changes incompatibly; the parser checks it. */
 export const PROJECT_FORMAT_VERSION = '1'
@@ -195,6 +196,36 @@ ${notes}
       capture.declaredStepCount == null ? '' : String(capture.declaredStepCount)
     )}">`
 
+  /*
+   * Branding.
+   *
+   * Scalars ride on data attributes; the three kinds of image are real <img>
+   * elements so a person opening the project file in a browser can SEE what
+   * their logo, background and card icons are, rather than squinting at a
+   * base64 attribute. That is the same reasoning as alt text being visible
+   * above rather than hidden in an attribute — this is a working file.
+   */
+  const b = brandingOf(capture)
+  const brandImg = (kind, bytes, extra = '') =>
+    bytes
+      ? `      <img data-brand="${kind}"${extra} src="${toDataUri(bytes)}" alt="${escapeHtml(kind)}">`
+      : ''
+  const brandingBlock = `  <section class="branding" data-branding
+    data-font-body="${escapeHtml(b.fontBody)}"
+    data-font-heading="${escapeHtml(b.fontHeading)}"
+    data-base-size="${escapeHtml(String(b.baseSize))}"
+    data-heading-scale="${escapeHtml(String(b.headingScale))}"
+    data-gradient-from="${escapeHtml(b.gradientFrom ?? '')}"
+    data-gradient-to="${escapeHtml(b.gradientTo ?? '')}"
+    data-highlight="${escapeHtml(b.highlight ?? '')}">
+    <h2>Branding</h2>
+${languages.map((code) => block(code, b.logoAlt?.[code], { 'data-field': 'logo-alt' })).join('')}
+${[brandImg('logo', b.logo), brandImg('background', b.background)]
+  .concat(ICON_SLOTS.map((slot) => brandImg('icon', b.icons?.[slot], ` data-slot="${slot}"`)))
+  .filter(Boolean)
+  .join('\n')}
+  </section>`
+
   return `<!doctype html>
 ${root}
 <head>
@@ -224,6 +255,8 @@ ${scenarioBlocks}
   <ol class="project-steps">
 ${steps}
   </ol>
+
+${brandingBlock}
 </main>
 </body>
 </html>

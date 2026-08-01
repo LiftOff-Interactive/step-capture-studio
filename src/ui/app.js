@@ -57,6 +57,17 @@ import {
   SCENARIO_FIELDS,
 } from '../lib/case-study.js'
 import { setSourceLang, sourceLangReadiness, SourceLangError } from '../lib/source-lang.js'
+import {
+  FONT_KEYS,
+  ICON_SLOTS,
+  SIZE_LIMITS,
+  SCALE_LIMITS,
+  bestOn,
+  brandingOf,
+  contrastRatio,
+  defaultBranding,
+  setBranding,
+} from '../lib/branding.js'
 import { applyStaticStrings, buildEditableMeta, buildWarnings } from './render.js'
 import {
   buildEditableSteps,
@@ -137,6 +148,28 @@ const els = {
   scenario: Object.fromEntries(
     ['audience', 'context', 'outcome'].map((f) => [f, document.getElementById(`scenario-${f}`)])
   ),
+  brandFontBody: document.getElementById('brand-font-body'),
+  brandFontHeading: document.getElementById('brand-font-heading'),
+  brandSize: document.getElementById('brand-size'),
+  brandSizeValue: document.getElementById('brand-size-value'),
+  brandScale: document.getElementById('brand-scale'),
+  brandScaleValue: document.getElementById('brand-scale-value'),
+  brandHighlight: document.getElementById('brand-highlight'),
+  brandHighlightValue: document.getElementById('brand-highlight-value'),
+  brandGradientOn: document.getElementById('brand-gradient-on'),
+  brandGradientFields: document.getElementById('brand-gradient-fields'),
+  brandGradientFrom: document.getElementById('brand-gradient-from'),
+  brandGradientTo: document.getElementById('brand-gradient-to'),
+  brandGradientValue: document.getElementById('brand-gradient-value'),
+  brandLogo: document.getElementById('brand-logo'),
+  brandLogoAltEn: document.getElementById('brand-logo-alt-en'),
+  brandLogoAltFr: document.getElementById('brand-logo-alt-fr'),
+  brandLogoClear: document.getElementById('brand-logo-clear'),
+  brandBackground: document.getElementById('brand-background'),
+  brandBackgroundClear: document.getElementById('brand-background-clear'),
+  brandIcons: document.getElementById('brand-icons'),
+  brandReset: document.getElementById('brand-reset'),
+  branding: document.getElementById('branding'),
   exportHint: document.getElementById('export-hint'),
   headerExport: document.getElementById('header-export'),
   viewTabbed: document.getElementById('view-tabbed'),
@@ -598,10 +631,161 @@ function syncSourceLang() {
  * title fields and the scenario inputs showing the state that was just undone.
  * That is the same render seam `failed-approaches.md` has caught twice before.
  */
+/*
+ * ------------------------------------------------------------- branding ---
+ *
+ * The controls are built here rather than in the markup for the two lists whose
+ * options are data: the font stacks and the AIO card slots. Hand-writing them
+ * in index.html would mean a new stack or a fifth card silently missing a
+ * control, and their labels are translated like everything else.
+ */
+
+/** Fill the two font selects once, in the current language. */
+function buildFontOptions() {
+  for (const select of [els.brandFontBody, els.brandFontHeading]) {
+    const chosen = select.value
+    select.replaceChildren(
+      ...FONT_KEYS.map((key) => {
+        const option = document.createElement('option')
+        option.value = key
+        option.textContent = t(`font.${key}`, state.lang)
+        return option
+      })
+    )
+    if (chosen) select.value = chosen
+  }
+}
+
+/** One file input plus a Remove button per dashboard card. */
+function buildIconRows() {
+  els.brandIcons.replaceChildren(
+    ...ICON_SLOTS.flatMap((slot) => {
+      const card = t(`card.${slot}`, state.lang)
+
+      const field = document.createElement('div')
+      field.className = 'field'
+
+      const label = document.createElement('label')
+      label.className = 'field-label'
+      label.htmlFor = `brand-icon-${slot}`
+      label.textContent = t('branding.iconFor', state.lang, { card })
+
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.id = `brand-icon-${slot}`
+      input.accept = 'image/png,image/jpeg,image/svg+xml'
+      input.addEventListener('change', () => readBrandImage(input, (bytes) => {
+        commitBranding({ icons: { [slot]: bytes } }, 'branding.imageSet', card)
+      }))
+
+      const clear = document.createElement('button')
+      clear.type = 'button'
+      clear.className = 'button button--quiet'
+      clear.textContent = t('branding.removeIcon', state.lang, { card })
+      clear.addEventListener('click', () =>
+        commitBranding({ icons: { [slot]: null } }, 'branding.imageCleared', card)
+      )
+
+      field.append(label, input, clear)
+      return [field]
+    })
+  )
+}
+
+/** Apply a branding patch: commit, re-render, announce. */
+function commitBranding(patch, announceKey, what) {
+  if (!state.capture) return
+  clearError()
+  commit(setBranding(state.capture, patch))
+  renderAll({ announceReadiness: false })
+  if (announceKey) announce(announceKey, what ? { what } : undefined)
+}
+
+/**
+ * Read an uploaded branding image.
+ *
+ * Signature-checked like a replaced screenshot, not trusted from the extension
+ * — with SVG allowed as well here, since a logo or an icon is exactly the case
+ * where a vector is the right file. The input is cleared either way so picking
+ * the same filename again still fires a change.
+ */
+async function readBrandImage(input, apply) {
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const head = new TextDecoder().decode(bytes.subarray(0, 200)).trimStart()
+    const isSvg = head.startsWith('<svg') || head.startsWith('<?xml')
+    if (!isSvg && !['image/png', 'image/jpeg'].includes(imageType(bytes).mime)) {
+      return showError('NOT_AN_IMAGE')
+    }
+    apply(bytes)
+  } catch (error) {
+    console.error(error)
+    showError('UNKNOWN')
+  }
+}
+
+/** Reflect the model onto every branding control, and show the measured ratios. */
+function syncBranding() {
+  if (!state.capture) return
+  const b = brandingOf(state.capture)
+
+  els.brandFontBody.value = b.fontBody
+  els.brandFontHeading.value = b.fontHeading
+
+  els.brandSize.min = String(SIZE_LIMITS.min)
+  els.brandSize.max = String(SIZE_LIMITS.max)
+  els.brandSize.value = String(b.baseSize)
+  els.brandSizeValue.textContent = t('branding.baseSizeValue', state.lang, {
+    size: b.baseSize,
+    percent: ((b.baseSize / 16) * 100).toFixed(1),
+  })
+
+  els.brandScale.min = String(SCALE_LIMITS.min)
+  els.brandScale.max = String(SCALE_LIMITS.max)
+  els.brandScale.value = String(b.headingScale)
+  els.brandScaleValue.textContent = t('branding.headingScaleValue', state.lang, {
+    scale: Number(b.headingScale).toFixed(2),
+  })
+
+  // The ratio is shown here as well as on the Export page, because this is
+  // where the author can actually do something about it.
+  els.brandHighlight.value = b.highlight
+  const ratio = contrastRatio(b.highlight, '#ffffff')
+  const rounded = ratio === null ? '?' : (Math.round(ratio * 100) / 100).toFixed(2)
+  els.brandHighlightValue.textContent = t(
+    ratio !== null && ratio >= 4.5 ? 'branding.contrastOk' : 'branding.contrastFail',
+    state.lang,
+    { hex: b.highlight, ratio: rounded }
+  )
+
+  const hasGradient = Boolean(b.gradientFrom && b.gradientTo)
+  els.brandGradientOn.checked = hasGradient
+  els.brandGradientFields.hidden = !hasGradient
+  if (hasGradient) {
+    els.brandGradientFrom.value = b.gradientFrom
+    els.brandGradientTo.value = b.gradientTo
+    els.brandGradientValue.textContent = t('branding.gradientValue', state.lang, {
+      from: b.gradientFrom,
+      to: b.gradientTo,
+      on: bestOn(b.gradientFrom),
+    })
+  }
+
+  els.brandLogoAltEn.value = b.logoAlt?.en ?? ''
+  els.brandLogoAltFr.value = b.logoAlt?.fr ?? ''
+  els.brandLogoClear.disabled = !b.logo
+  els.brandBackgroundClear.disabled = !b.background
+  buildIconRows()
+}
+
 function syncCaptureFields() {
   if (!state.capture) return
   syncSourceLang()
   syncWorkedExample()
+  syncBranding()
   renderTitleFields()
   for (const field of SCENARIO_FIELDS) {
     els.scenario[field].value = state.capture.scenario?.[field]?.[state.capture.sourceLang] ?? ''
@@ -635,6 +819,9 @@ function renderSteps() {
 
 function renderAll({ announceReadiness = true } = {}) {
   applyStaticStrings(document, state.lang)
+  // Option text is translated too, and applyStaticStrings only reaches
+  // data-i18n elements — these are generated.
+  buildFontOptions()
 
   // Error text is generated rather than marked up with data-i18n, so it has to
   // be regenerated by hand or it stays in the previous language.
@@ -669,6 +856,7 @@ function renderAll({ announceReadiness = true } = {}) {
   renderReadiness({ announce: announceReadiness })
 
   els.undo.hidden = state.history.length === 0
+  show(els.branding)
   show(els.capture)
   show(els.translate)
   show(els.caseStudy)
@@ -1027,6 +1215,105 @@ for (const btn of phaseButtons) {
 
 els.viewTabbed.addEventListener('click', () => setView('tabbed'))
 els.viewLinear.addEventListener('click', () => setView('linear'))
+
+/*
+ * Branding controls.
+ *
+ * Selects, ranges and colours commit on `change` rather than `input`: a colour
+ * picker fires `input` continuously while the author drags, and every one of
+ * those would be its own undo entry and its own full re-render. `change` fires
+ * once, when they settle on a value.
+ *
+ * The alt-text fields are the exception — they are text, so they go through
+ * editInPlace like every other text field, or rebuilding would pull focus out
+ * mid-word.
+ */
+els.brandFontBody.addEventListener('change', () =>
+  commitBranding({ fontBody: els.brandFontBody.value })
+)
+els.brandFontHeading.addEventListener('change', () =>
+  commitBranding({ fontHeading: els.brandFontHeading.value })
+)
+els.brandSize.addEventListener('change', () =>
+  commitBranding({ baseSize: Number(els.brandSize.value) })
+)
+els.brandScale.addEventListener('change', () =>
+  commitBranding({ headingScale: Number(els.brandScale.value) })
+)
+els.brandHighlight.addEventListener('change', () =>
+  commitBranding({ highlight: els.brandHighlight.value })
+)
+
+// Dragging a range or a colour should move its readout immediately, even though
+// the change is not committed until release.
+for (const [input, sync] of [
+  [els.brandSize, () => {
+    els.brandSizeValue.textContent = t('branding.baseSizeValue', state.lang, {
+      size: els.brandSize.value,
+      percent: ((Number(els.brandSize.value) / 16) * 100).toFixed(1),
+    })
+  }],
+  [els.brandScale, () => {
+    els.brandScaleValue.textContent = t('branding.headingScaleValue', state.lang, {
+      scale: Number(els.brandScale.value).toFixed(2),
+    })
+  }],
+]) {
+  input.addEventListener('input', sync)
+}
+
+els.brandGradientOn.addEventListener('change', () => {
+  // Switching it on needs two colours to be a gradient at all; seed both rather
+  // than leaving half of it unset, which would be an export blocker the author
+  // did not ask for.
+  //
+  // The seeds are the app shell's teal DARKENED. The shell's own #12839c
+  // measures 4.42:1 against the white the header text derives to — under AA,
+  // and the gate caught it the moment the box was ticked. A default that
+  // immediately blocks export is worse than no default, so these two clear it:
+  // 7.15:1 and 5.36:1.
+  const on = els.brandGradientOn.checked
+  commitBranding(on ? { gradientFrom: '#0f5f7a', gradientTo: '#0f7490' } : { gradientFrom: null, gradientTo: null })
+})
+els.brandGradientFrom.addEventListener('change', () =>
+  commitBranding({ gradientFrom: els.brandGradientFrom.value })
+)
+els.brandGradientTo.addEventListener('change', () =>
+  commitBranding({ gradientTo: els.brandGradientTo.value })
+)
+
+for (const [input, code] of [[els.brandLogoAltEn, 'en'], [els.brandLogoAltFr, 'fr']]) {
+  input.addEventListener('input', () => {
+    const logoAlt = { ...brandingOf(state.capture).logoAlt, [code]: input.value.trim() || null }
+    editInPlace(setBranding(state.capture, { logoAlt }))
+  })
+}
+
+els.brandLogo.addEventListener('change', () =>
+  readBrandImage(els.brandLogo, (bytes) =>
+    commitBranding({ logo: bytes }, 'branding.imageSet', t('branding.logo', state.lang))
+  )
+)
+els.brandLogoClear.addEventListener('click', () =>
+  commitBranding({ logo: null }, 'branding.imageCleared', t('branding.logo', state.lang))
+)
+els.brandBackground.addEventListener('change', () =>
+  readBrandImage(els.brandBackground, (bytes) =>
+    commitBranding({ background: bytes }, 'branding.imageSet', t('branding.background', state.lang))
+  )
+)
+els.brandBackgroundClear.addEventListener('click', () =>
+  commitBranding({ background: null }, 'branding.imageCleared', t('branding.background', state.lang))
+)
+
+els.brandReset.addEventListener('click', () => {
+  if (!state.capture) return
+  clearError()
+  // Undoable like anything else, so a mis-click does not cost an uploaded logo.
+  commit({ ...state.capture, branding: defaultBranding() })
+  renderAll({ announceReadiness: false })
+  announce('branding.wasReset')
+})
 
 /*
  * Include or exclude the worked example.

@@ -27,6 +27,7 @@ import {
   documentHeader,
 } from './emit-common.js'
 import { t } from './i18n.js'
+import { brandingCss, brandingLogo } from './branding.js'
 import { NARRATIVE_FIELDS, SCENARIO_FIELDS, caseStudyReadiness, hasNarrative } from './case-study.js'
 
 const CASE_STUDY_CSS = `
@@ -222,7 +223,7 @@ ${notes}
   const titles = Object.fromEntries(languages.map((code) => [code, captureTitle(capture, code)]))
   const meta = { author: capture.author, date: capture.date }
 
-  const body = `${documentHeader({ title, titles, meta, languages })}
+  const body = `${documentHeader({ title, titles, meta, languages, logo: brandingLogo(capture, primary) })}
 <main>
 ${scenarioBlock}
   <h2>${langLabel('caseStudy.heading', languages)}</h2>
@@ -232,6 +233,7 @@ ${steps}
 </main>`
 
   return renderDocument({
+    branding: brandingCss(capture),
     title,
     docTitle: artifactName(title, 'WorkedExample'),
     languages,

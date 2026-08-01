@@ -36,6 +36,7 @@ import {
   localeTag,
 } from './emit-common.js'
 import { t } from './i18n.js'
+import { brandingCss, brandingLogo } from './branding.js'
 
 const WALKTHROUGH_CSS = `
 .viewer { display: grid; gap: 1.5rem; margin-top: 1.5rem; }
@@ -298,7 +299,7 @@ ${media}        <div class="step__instruction">${instruction}</div>
   const titles = Object.fromEntries(languages.map((code) => [code, captureTitle(capture, code)]))
   const meta = { author: capture.author, date: capture.date }
 
-  const body = `${documentHeader({ title, titles, meta, languages })}
+  const body = `${documentHeader({ title, titles, meta, languages, logo: brandingLogo(capture, primary) })}
 <main>
   <div class="viewer">
     <nav class="rail" aria-labelledby="rail-heading">
@@ -323,6 +324,7 @@ ${stepItems}
 </main>`
 
   return renderDocument({
+    branding: brandingCss(capture),
     title,
     docTitle: artifactName(title, 'Walkthrough'),
     languages,

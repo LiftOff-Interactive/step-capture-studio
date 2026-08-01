@@ -24,6 +24,7 @@
 import { writeZip } from './zip-write.js'
 import { altFor, captureTitle, imageType } from './emit-common.js'
 import { t } from './i18n.js'
+import { brandingOf, FONT_STACKS, SIZE_LIMITS, SCALE_LIMITS, isHexColour } from './branding.js'
 
 /** English Metric Units: 914400 per inch, 9525 per pixel at 96 dpi. */
 const EMU_PER_PX = 9525
@@ -98,26 +99,76 @@ function drawing(image, relId, docPrId, altText) {
   )
 }
 
-function stylesXml(lang) {
+/**
+ * Branding, translated from CSS into what OOXML understands.
+ *
+ * Only three of the branding options have a meaning in Word. Fonts become the
+ * first *named* family of the chosen stack — Word cannot fall back through a
+ * CSS-style list, so `system-ui` and other generic keywords are dropped and the
+ * document simply keeps Word's default when nothing named remains.
+ *
+ * Sizes are half-points here, not rem, and the base scales the heading sizes
+ * with it. The gradient and the background image have no equivalent: Word has
+ * no page gradient worth the OOXML, and a background image behind body text is
+ * the opposite of accessible in a document meant to be printed.
+ */
+function docxBranding(capture) {
+  const b = brandingOf(capture)
+  const named = (key) => {
+    // "System default" means Word's own default, so it emits no override at
+    // all. Resolving it to the stack's first named face (Segoe UI) would put a
+    // font on every document that never had one — the default has to stay a
+    // no-op here exactly as it does in the CSS.
+    if (key === 'system') return null
+    return (FONT_STACKS[key] ?? '')
+      .split(',')
+      .map((part) => part.trim().replace(/^["']|["']$/g, ''))
+      .find((part) => part && !/^(system-ui|ui-monospace|sans-serif|serif|monospace|-apple-system)$/.test(part))
+  }
+
+  const size = Math.min(SIZE_LIMITS.max, Math.max(SIZE_LIMITS.min, Number(b.baseSize) || 16))
+  const scale = Math.min(SCALE_LIMITS.max, Math.max(SCALE_LIMITS.min, Number(b.headingScale) || 1.25))
+  // Half-points: Word's unit. 16px of body text is its familiar 22 half-points.
+  const half = (rem) => Math.round(size * rem * 1.375)
+
+  return {
+    bodyFont: named(b.fontBody),
+    headingFont: named(b.fontHeading),
+    // Word wants RRGGBB with no hash.
+    headingColour: isHexColour(b.highlight) ? b.highlight.slice(1).toUpperCase() : null,
+    body: half(1),
+    h1: half(scale ** 2),
+    h2: half(scale),
+    title: half(scale ** 3),
+  }
+}
+
+function stylesXml(lang, brand) {
   const tag = localeTag(lang)
+  const fonts = (family) =>
+    family
+      ? `<w:rFonts w:ascii="${xml(family)}" w:hAnsi="${xml(family)}" w:cs="${xml(family)}"/>`
+      : ''
+  const colour = brand.headingColour ? `<w:color w:val="${brand.headingColour}"/>` : ''
+
   const heading = (id, name, size, outline) =>
     `<w:style w:type="paragraph" w:styleId="${id}"><w:name w:val="${name}"/>` +
     `<w:basedOn w:val="Normal"/><w:qFormat/>` +
     `<w:pPr><w:outlineLvl w:val="${outline}"/><w:spacing w:before="240" w:after="120"/><w:keepNext/></w:pPr>` +
-    `<w:rPr><w:b/><w:sz w:val="${size}"/></w:rPr></w:style>`
+    `<w:rPr>${fonts(brand.headingFont)}<w:b/>${colour}<w:sz w:val="${size}"/></w:rPr></w:style>`
 
   return (
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
     `<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">` +
-    `<w:docDefaults><w:rPrDefault><w:rPr><w:lang w:val="${tag}"/><w:sz w:val="22"/></w:rPr></w:rPrDefault></w:docDefaults>` +
+    `<w:docDefaults><w:rPrDefault><w:rPr>${fonts(brand.bodyFont)}<w:lang w:val="${tag}"/><w:sz w:val="${brand.body}"/></w:rPr></w:rPrDefault></w:docDefaults>` +
     `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>` +
     // Title is a real style, not a large paragraph — the checker treats it as
     // document structure.
     `<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:qFormat/>` +
     `<w:pPr><w:outlineLvl w:val="0"/><w:spacing w:after="240"/></w:pPr>` +
-    `<w:rPr><w:b/><w:sz w:val="48"/></w:rPr></w:style>` +
-    heading('Heading1', 'heading 1', 32, 0) +
-    heading('Heading2', 'heading 2', 26, 1) +
+    `<w:rPr>${fonts(brand.headingFont)}<w:b/>${colour}<w:sz w:val="${brand.title}"/></w:rPr></w:style>` +
+    heading('Heading1', 'heading 1', brand.h1, 0) +
+    heading('Heading2', 'heading 2', brand.h2, 1) +
     `<w:style w:type="paragraph" w:styleId="Figure"><w:name w:val="Figure"/><w:basedOn w:val="Normal"/>` +
     `<w:pPr><w:spacing w:before="120" w:after="120"/><w:keepNext/></w:pPr></w:style>` +
     `</w:styles>`
@@ -306,7 +357,7 @@ export async function emitDocx(capture, { lang = capture.sourceLang ?? 'en' } = 
     { name: '_rels/.rels', data: utf8(packageRels), deflate: true },
     { name: 'word/document.xml', data: utf8(documentXml), deflate: true },
     { name: 'word/_rels/document.xml.rels', data: utf8(documentRels), deflate: true },
-    { name: 'word/styles.xml', data: utf8(stylesXml(lang)), deflate: true },
+    { name: 'word/styles.xml', data: utf8(stylesXml(lang, docxBranding(capture))), deflate: true },
     { name: 'word/settings.xml', data: utf8(settingsXml), deflate: true },
     { name: 'docProps/core.xml', data: utf8(coreXml), deflate: true },
     { name: 'docProps/app.xml', data: utf8(appXml), deflate: true },

@@ -1,5 +1,5 @@
-/**
- * Tests for the accessible .docx writer — the project's highest-risk item.
+﻿/**
+ * Tests for the accessible .docx writer â€” the project's highest-risk item.
  *
  * These assert structure by **round trip**: emit a package, then read it back
  * with this project's own `docx.js`, proving the ZIP is valid and every XML
@@ -24,6 +24,7 @@ import { setNarrative, setScenario } from '../src/lib/case-study.js'
 import { emitDocx } from '../src/lib/emit-docx.js'
 import { readDocx, decodeText, pngSize } from '../src/lib/docx.js'
 import { writeZip, crc32 } from '../src/lib/zip-write.js'
+import { setBranding } from '../src/lib/branding.js'
 import { makeCapture, ENGLISH_STEPS } from './helpers/synthetic.mjs'
 
 const { DOMParser } = new JSDOM().window
@@ -39,10 +40,10 @@ function parseXml(text, label) {
 async function authored() {
   let c = seedAltText(await parseSnagitDocx(makeCapture({ steps: ENGLISH_STEPS })))
   for (const step of c.steps) {
-    c = setStepText(c, step.index, 'fr', `Étape ${step.index} en français`)
+    c = setStepText(c, step.index, 'fr', `Ã‰tape ${step.index} en franÃ§ais`)
     for (const img of step.images) {
       c = confirmAltText(c, step.index, img.id, 'en')
-      c = setAltText(c, step.index, img.id, 'fr', `Capture d’écran ${step.index}`)
+      c = setAltText(c, step.index, img.id, 'fr', `Capture dâ€™Ã©cran ${step.index}`)
       c = confirmAltText(c, step.index, img.id, 'fr')
     }
   }
@@ -63,7 +64,7 @@ test('the ZIP writer round-trips through our own reader', async () => {
 })
 
 test('CRC32 matches the known check value', () => {
-  // The standard "123456789" vector — a wrong CRC is exactly the kind of bug
+  // The standard "123456789" vector â€” a wrong CRC is exactly the kind of bug
   // that makes an archive open in some tools and not others.
   assert.equal(crc32(new TextEncoder().encode('123456789')), 0xcbf43926)
 })
@@ -104,8 +105,8 @@ test('the package contains every part Word requires', async () => {
  * Regression: compatibility mode.
  *
  * Word infers the format era from `compatibilityMode` in settings.xml. With no
- * settings.xml the file opened in Compatibility Mode — "this document is in an
- * older format with limited functionality" — and one of the functions Word
+ * settings.xml the file opened in Compatibility Mode â€” "this document is in an
+ * older format with limited functionality" â€” and one of the functions Word
  * limits is the **Accessibility Checker**, which it disables outright.
  *
  * That made the export unable to satisfy its own accessibility criterion: the
@@ -176,7 +177,7 @@ test('every image relationship resolves to a part that exists', async () => {
 
 // ---------------------------------------------------------- accessibility ---
 
-test('every image carries alt text in descr — the checker\'s commonest error', async () => {
+test('every image carries alt text in descr â€” the checker\'s commonest error', async () => {
   const entries = await readDocx(await emitDocx(await authored(), { lang: 'en' }))
   const doc = parseXml(decodeText(entries.get('word/document.xml')), 'document.xml')
 
@@ -219,8 +220,8 @@ test('the document has a title in core properties', async () => {
 })
 
 test('core properties are shaped like a Word-authored file', async () => {
-  // Regression test. A leaner core.xml — no dcmitype, no empty optional
-  // elements, no cp:revision — was discarded by Word entirely: a re-save came
+  // Regression test. A leaner core.xml â€” no dcmitype, no empty optional
+  // elements, no cp:revision â€” was discarded by Word entirely: a re-save came
   // back with an empty title AND an empty creator. The document title is an
   // Accessibility Checker requirement, so the shape matters, not just the value.
   const entries = await readDocx(await emitDocx(await authored(), { lang: 'en' }))
@@ -233,7 +234,7 @@ test('core properties are shaped like a Word-authored file', async () => {
   }
 
   // Verified by bisection against Word 16.0: including dc:language makes Word
-  // discard the whole part, so the title disappears — and the title is an
+  // discard the whole part, so the title disappears â€” and the title is an
   // Accessibility Checker requirement. The language lives in w:lang instead.
   assert.ok(!text.includes('<dc:language'), 'dc:language must NOT be in core.xml')
 
@@ -265,8 +266,8 @@ test('the French document is French all the way down', async () => {
     'the default run language too'
   )
   const alt = doc.getElementsByTagName('wp:docPr')[0].getAttribute('descr')
-  assert.match(alt, /^Capture d’écran/, 'alt text is the French one')
-  assert.match(decodeText(entries.get('word/document.xml')), /Étape 1 en français/)
+  assert.match(alt, /^Capture dâ€™Ã©cran/, 'alt text is the French one')
+  assert.match(decodeText(entries.get('word/document.xml')), /Ã‰tape 1 en franÃ§ais/)
 })
 
 test('it refuses to emit an image with no alt text', async () => {
@@ -299,7 +300,7 @@ test('unreviewed drafted narrative is left out entirely', async () => {
 test('special characters are escaped rather than breaking the package', async () => {
   let c = await authored()
   c = setStepText(c, 1, 'en', 'Click "Save & Close" <now>')
-  c = setScenario(c, 'audience', 'en', "Réal's team — 100% of them")
+  c = setScenario(c, 'audience', 'en', "RÃ©al's team â€” 100% of them")
 
   const entries = await readDocx(await emitDocx(c, { lang: 'en' }))
   const text = decodeText(entries.get('word/document.xml'))
@@ -359,12 +360,12 @@ test('imageType reads the format from the bytes, never a filename', async () => 
   webp.set([0x57, 0x45, 0x42, 0x50], 8) // WEBP
   assert.equal(imageType(webp).mime, 'image/webp')
 
-  // Unknown bytes fall back to PNG rather than throwing — the parser vets input.
+  // Unknown bytes fall back to PNG rather than throwing â€” the parser vets input.
   assert.equal(imageType(new Uint8Array([1, 2, 3, 4])).ext, 'png')
 })
 
 test('a JPEG image is embedded as .jpeg with the right content type, not mislabelled png', async () => {
-  // Regression: everything used to hardcode PNG — part name, data URI, and the
+  // Regression: everything used to hardcode PNG â€” part name, data URI, and the
   // [Content_Types] Default. A JPEG in a capture then produced a package whose
   // bytes and labels disagreed, which is the shape of file Word offers to repair.
   let c = await authored()
@@ -391,7 +392,7 @@ test('a JPEG image is embedded as .jpeg with the right content type, not mislabe
   assert.match(ct, /Extension="jpeg" ContentType="image\/jpeg"/, 'jpeg content type declared')
   assert.match(ct, /Extension="png" ContentType="image\/png"/, 'png content type still declared')
 
-  // Every image part must have a content type Word can resolve — no undeclared
+  // Every image part must have a content type Word can resolve â€” no undeclared
   // extension, which is an untyped part.
   const declared = new Set([...ct.matchAll(/Extension="([^"]+)"/g)].map((m) => m[1]))
   for (const name of names.filter((n) => n.startsWith('word/media/'))) {
@@ -414,4 +415,43 @@ test('the emitter embeds screenshots byte-identically regardless of format', asy
   }
   const entries = await readDocx(await emitDocx(c, { lang: 'en' }))
   assert.deepEqual([...entries.get('word/media/image1.jpeg')], [...jpeg], 'JPEG not re-encoded')
+})
+
+test('branding reaches the Word document as fonts, colour and sizes', async () => {
+  // Only three branding options mean anything in OOXML. The gradient and the
+  // background image have no equivalent and are deliberately dropped: Word has
+  // no page gradient worth the markup, and a photograph behind body text is the
+  // opposite of accessible in a document meant to be printed.
+  const capture = setBranding(await authored(), {
+    fontBody: 'serif',
+    fontHeading: 'slab',
+    baseSize: 20,
+    headingScale: 1.5,
+    highlight: '#7a0019',
+    background: new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
+  })
+  const entries = await readDocx(await emitDocx(capture, { lang: 'en' }))
+  const styles = decodeText(entries.get('word/styles.xml'))
+
+  assert.match(styles, /w:ascii="Georgia"/, 'body font is the first NAMED family of the stack')
+  assert.match(styles, /w:ascii="Rockwell"/, 'headings take their own')
+  assert.match(styles, /<w:color w:val="7A0019"\/>/, 'headings carry the highlight, hash stripped')
+  assert.doesNotMatch(styles, /system-ui|sans-serif/, 'CSS generics never reach Word')
+  assert.doesNotMatch(styles, /background/i, 'and neither does the background image')
+})
+
+test('"System default" leaves Word on its own default font', async () => {
+  // It resolves to a stack whose first named face is Segoe UI, but emitting
+  // that would put a font on every document that never had one. The default
+  // branding has to be a no-op in Word exactly as it is in the CSS.
+  const capture = setBranding(await authored(), { fontBody: 'system', fontHeading: 'system' })
+  const entries = await readDocx(await emitDocx(capture, { lang: 'en' }))
+  const styles = decodeText(entries.get('word/styles.xml'))
+  assert.doesNotMatch(styles, /w:rFonts/, 'no font override at all')
+})
+
+test('an unbranded capture still produces the sizes Word always had', async () => {
+  const entries = await readDocx(await emitDocx(await authored(), { lang: 'en' }))
+  const styles = decodeText(entries.get('word/styles.xml'))
+  assert.match(styles, /<w:sz w:val="22"\/>/, 'the familiar 11pt body')
 })

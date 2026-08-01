@@ -16,6 +16,7 @@
 
 import { t } from './i18n.js'
 import { NARRATIVE_FIELDS, confirmNarrative, includesWorkedExample } from './case-study.js'
+import { brandingReadiness } from './branding.js'
 
 /** Re-derive 1-based indexes from array position. */
 function renumber(steps) {
@@ -391,6 +392,21 @@ export function exportReadiness(capture, languages = capture.languages ?? ['en']
         }
       }
     }
+  }
+
+  // Branding is measured, not trusted. A brand colour that fails AA makes the
+  // artifact exactly as non-compliant as missing alt text does, and it fails it
+  // everywhere at once rather than in one image — so it belongs in the same
+  // gate rather than in a warning the author can scroll past.
+  for (const blocker of brandingReadiness(capture).blockers) {
+    blockers.push({
+      code: `BRANDING_${blocker.code}`,
+      stepIndex: null,
+      lang: null,
+      field: blocker.field,
+      ratio: blocker.ratio,
+      against: blocker.against,
+    })
   }
 
   return { ready: blockers.length === 0, blockers }

@@ -36,6 +36,7 @@ import {
   toDataUri,
 } from './emit-common.js'
 import { t, LANGUAGE_NAMES } from './i18n.js'
+import { brandingCss, brandingLogo, brandingIcon } from './branding.js'
 import { emitWalkthrough } from './emit-walkthrough.js'
 import { emitCaseStudy } from './emit-case-study.js'
 import { includesWorkedExample } from './case-study.js'
@@ -76,6 +77,12 @@ const AIO_CSS = `
 .aio-card__icon {
   width: 132px; height: 112px; border-radius: 22px;
   background: var(--aio-brand); border: 2px solid var(--aio-outline);
+}
+/* An uploaded icon keeps the tile's footprint but not its fill — the artwork
+   is the mark, so it sits inside the box rather than being cropped to it. */
+.aio-card__icon--custom {
+  background: none; border: 0; border-radius: 0;
+  object-fit: contain; width: auto; max-width: 132px; height: 112px;
 }
 .aio-card__title { font-size: 1.2rem; font-weight: 700; text-align: center; }
 .aio-card__desc, .aio-card__usewhen, .aio-word {
@@ -207,18 +214,28 @@ function useWhenLine(useWhenKey, languages) {
   return `<p class="aio-card__usewhen">${spans}</p>`
 }
 
-/** The icon + title block, shared by both card kinds. */
-function cardHead(titleKey, languages) {
-  return `<span class="aio-card__icon" aria-hidden="true"></span>
+/**
+ * The icon + title block, shared by both card kinds.
+ *
+ * The icon is decorative in both forms — the card's own title names it right
+ * underneath, so describing the picture as well would make a screen reader
+ * announce the same card twice. An uploaded icon therefore carries `alt=""`
+ * rather than asking the author for text nobody should hear.
+ */
+function cardHead(titleKey, languages, icon = null) {
+  const mark = icon
+    ? `<img class="aio-card__icon aio-card__icon--custom" src="${icon}" alt="">`
+    : `<span class="aio-card__icon" aria-hidden="true"></span>`
+  return `${mark}
             <span class="aio-card__title">${langLabel(titleKey, languages, { tag: 'span' })}</span>`
 }
 
 /** A card whose title/icon link opens the artifact panel below. */
-function openCard(panelId, keys, languages) {
+function openCard(panelId, keys, languages, icon = null) {
   return `      <li>
         <article class="aio-card aio-card--panel">
           <a class="aio-card__head aio-card__open" href="#panel-${panelId}">
-            ${cardHead(keys.title, languages)}
+            ${cardHead(keys.title, languages, icon)}
           </a>
           <p class="aio-card__desc">${langLabel(keys.desc, languages, { tag: 'span' })}</p>
           ${useWhenLine(keys.useWhen, languages)}
@@ -227,11 +244,11 @@ function openCard(panelId, keys, languages) {
 }
 
 /** The download-only card: no panel, no reveal — just the Word links. */
-function downloadCard(keys, languages, wordBlock) {
+function downloadCard(keys, languages, wordBlock, icon = null) {
   return `      <li>
         <article class="aio-card aio-card--download">
           <div class="aio-card__head">
-            ${cardHead(keys.title, languages)}
+            ${cardHead(keys.title, languages, icon)}
           </div>
           <p class="aio-card__desc">${langLabel(keys.desc, languages, { tag: 'span' })}</p>
           ${useWhenLine(keys.useWhen, languages)}
@@ -317,10 +334,12 @@ export async function emitAllInOne(capture, { languages = capture.languages ?? [
   // after it. That is the intended behaviour — the alternation is positional by
   // design (see AIO_CSS), so three cards alternate correctly on their own.
   const cards = [
-    openCard('walkthrough', walkthroughKeys, languages),
-    downloadCard(stepGuideKeys, languages, wordBlock),
-    ...(wantsWorkedExample ? [openCard('worked-example', workedExampleKeys, languages)] : []),
-    openCard('quick-reference', quickKeys, languages),
+    openCard('walkthrough', walkthroughKeys, languages, brandingIcon(capture, 'walkthrough')),
+    downloadCard(stepGuideKeys, languages, wordBlock, brandingIcon(capture, 'stepGuide')),
+    ...(wantsWorkedExample
+      ? [openCard('worked-example', workedExampleKeys, languages, brandingIcon(capture, 'workedExample'))]
+      : []),
+    openCard('quick-reference', quickKeys, languages, brandingIcon(capture, 'quickReference')),
   ]
   const panels = [
     panel('walkthrough', 'allInOne.walkthrough.title', walkthroughHtml, languages, primary),
@@ -330,7 +349,7 @@ export async function emitAllInOne(capture, { languages = capture.languages ?? [
     panel('quick-reference', 'allInOne.quickReference.title', quickHtml, languages, primary),
   ]
 
-  const body = `${documentHeader({ title, titles, meta, languages })}
+  const body = `${documentHeader({ title, titles, meta, languages, logo: brandingLogo(capture, primary) })}
 <main id="aio-top">
   <div id="aio-menu" class="aio-menu">
     <h2 class="visually-hidden">${langLabel('allInOne.chooseFormat', languages, { tag: 'span' })}</h2>
@@ -342,6 +361,7 @@ ${panels.join('\n')}
 </main>`
 
   return renderDocument({
+    branding: brandingCss(capture),
     title,
     docTitle: artifactName(title, 'AllInOne'),
     languages,

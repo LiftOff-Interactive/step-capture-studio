@@ -108,6 +108,15 @@
       <button
         type="button"
         class="phase-nav__btn"
+        data-phase-target="branding"
+        data-i18n="nav.branding"
+        disabled
+      >
+        Branding
+      </button>
+      <button
+        type="button"
+        class="phase-nav__btn"
         data-phase-target="export"
         data-i18n="nav.export"
         disabled
@@ -437,6 +446,169 @@
           <button type="button" id="apply-translation" class="button" data-i18n="translate.apply">
             Apply translation
           </button>
+        </div>
+      </section>
+
+      <!--
+        Branding. Applies to every artifact, so it lives in its own phase rather
+        than beside any one output.
+
+        Two things are deliberately NOT here. There is no text colour for the
+        header: it is derived from the gradient, because "black or white on this
+        colour" has a right answer and offering it is offering a way to get it
+        wrong. And there is no separate dark-mode accent: one brand colour
+        cannot clear AA on both a white page and a near-black one, so the dark
+        variant is derived from the light one with the hue preserved.
+
+        Fonts are stacks, not files. The artifacts make no external request of
+        any kind, so a web font is out; each option resolves against faces
+        already on the reader's machine and ends in a generic family.
+      -->
+      <section
+        id="branding"
+        class="panel"
+        hidden
+        aria-labelledby="branding-heading"
+        data-phase="branding"
+      >
+        <h2 id="branding-heading" data-i18n="branding.heading">Branding</h2>
+        <p class="hint" data-i18n="branding.intro">
+          Applies to every artifact you export. Colours are measured against WCAG AA — a combination
+          that would fail is listed on the Export page and blocks the download, the same as missing
+          alt text.
+        </p>
+
+        <fieldset class="fieldset--plain">
+          <legend class="field-label" data-i18n="branding.typeLegend">Type</legend>
+          <div class="field">
+            <label class="field-label" for="brand-font-body" data-i18n="branding.fontBody">
+              Body font
+            </label>
+            <select id="brand-font-body"></select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="brand-font-heading" data-i18n="branding.fontHeading">
+              Heading font
+            </label>
+            <select id="brand-font-heading"></select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="brand-size" data-i18n="branding.baseSize">
+              Base text size
+            </label>
+            <input type="range" id="brand-size" min="14" max="22" step="1"
+                   aria-describedby="brand-size-value" />
+            <p class="hint" id="brand-size-value"></p>
+          </div>
+          <div class="field">
+            <label class="field-label" for="brand-scale" data-i18n="branding.headingScale">
+              Heading size step
+            </label>
+            <input type="range" id="brand-scale" min="1.1" max="1.5" step="0.05"
+                   aria-describedby="brand-scale-value" />
+            <p class="hint" id="brand-scale-value"></p>
+          </div>
+        </fieldset>
+
+        <fieldset class="fieldset--plain">
+          <legend class="field-label" data-i18n="branding.colourLegend">Colour</legend>
+          <div class="field">
+            <label class="field-label" for="brand-highlight" data-i18n="branding.highlight">
+              Highlight colour
+            </label>
+            <input type="color" id="brand-highlight" aria-describedby="brand-highlight-value" />
+            <p class="hint" id="brand-highlight-value"></p>
+          </div>
+
+          <div class="choice">
+            <input type="checkbox" id="brand-gradient-on" />
+            <label for="brand-gradient-on" data-i18n="branding.gradientOn">
+              Two-tone gradient behind the header
+            </label>
+          </div>
+          <div id="brand-gradient-fields" hidden>
+            <div class="field">
+              <label class="field-label" for="brand-gradient-from" data-i18n="branding.gradientFrom">
+                Gradient start
+              </label>
+              <input type="color" id="brand-gradient-from" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="brand-gradient-to" data-i18n="branding.gradientTo">
+                Gradient end
+              </label>
+              <input type="color" id="brand-gradient-to" />
+            </div>
+            <p class="hint" id="brand-gradient-value"></p>
+          </div>
+        </fieldset>
+
+        <fieldset class="fieldset--plain">
+          <legend class="field-label" data-i18n="branding.imageLegend">Logo and imagery</legend>
+
+          <div class="field">
+            <label class="field-label" for="brand-logo" data-i18n="branding.logo">Logo</label>
+            <input type="file" id="brand-logo" accept="image/png,image/jpeg,image/svg+xml" />
+            <p class="hint" data-i18n="branding.logoHint">
+              Shown in the header of every artifact. PNG, JPEG or SVG.
+            </p>
+          </div>
+          <!--
+            Alt text per language, and empty is a legitimate answer: a logo
+            beside a title that already names the thing is decorative, and
+            inventing "Company logo" only makes a screen reader announce noise.
+          -->
+          <div class="field">
+            <label class="field-label" for="brand-logo-alt-en" data-i18n="branding.logoAltEn">
+              Logo alt text (English)
+            </label>
+            <input type="text" id="brand-logo-alt-en" aria-describedby="brand-logo-alt-hint" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="brand-logo-alt-fr" data-i18n="branding.logoAltFr">
+              Logo alt text (French)
+            </label>
+            <input type="text" id="brand-logo-alt-fr" aria-describedby="brand-logo-alt-hint" />
+          </div>
+          <p class="hint" id="brand-logo-alt-hint" data-i18n="branding.logoAltHint">
+            Leave both empty if the logo repeats the title beside it — it is then decorative and
+            screen readers correctly skip it.
+          </p>
+          <div class="toolbar">
+            <button type="button" id="brand-logo-clear" class="button button--quiet"
+                    data-i18n="branding.removeLogo">Remove logo</button>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="brand-background" data-i18n="branding.background">
+              Page background image
+            </label>
+            <input type="file" id="brand-background" accept="image/png,image/jpeg" />
+            <p class="hint" data-i18n="branding.backgroundHint">
+              Sits behind the walkthrough and the all-in-one dashboard, under a scrim that keeps the
+              text readable over it.
+            </p>
+          </div>
+          <div class="toolbar">
+            <button type="button" id="brand-background-clear" class="button button--quiet"
+                    data-i18n="branding.removeBackground">Remove background</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="fieldset--plain">
+          <legend class="field-label" data-i18n="branding.iconLegend">
+            All-in-one card icons
+          </legend>
+          <p class="hint" data-i18n="branding.iconHint">
+            One per card on the dashboard. Each card's title sits directly underneath, so the icons
+            are decorative and need no alt text.
+          </p>
+          <div id="brand-icons"></div>
+        </fieldset>
+
+        <div class="toolbar">
+          <button type="button" id="brand-reset" class="button button--quiet"
+                  data-i18n="branding.reset">Reset branding to the defaults</button>
         </div>
       </section>
 

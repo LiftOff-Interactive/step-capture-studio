@@ -7,8 +7,13 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## 📍 Current State
 - **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT (repo
   recreated 2026-07-22, moved to the `LiftOff-Interactive` org 2026-08-01; the old
-  `mbubyn.github.io` address is gone). **307/307 tests.** Autosave, replace-image, and the
+  `mbubyn.github.io` address is gone). **332/332 tests.** Autosave, replace-image, and the
   all-in-one dashboard shipped and verified live 2026-07-24.
+- **2026-08-01: a Branding phase** — fonts and sizes, header gradient, one highlight colour, logo,
+  page background and per-card icons, applied to all four HTML artifacts and to Word. Contrast is
+  measured and a failure **blocks export** like unconfirmed alt text. The default is a no-op.
+  ⚠️ **The branded `.docx` has never been opened in Word** — `help.md` 0.
+  `staging/stage-4-ship/feature-branding.md`.
 - **2026-08-01: the walkthrough puts each screenshot beside its instruction** instead of above it
   (644px step in a 596px panel → 309px). A container query, not a media query — the rail changes how
   much room a step has. `staging/stage-3-generators/feature-html-walkthrough.md`.

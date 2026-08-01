@@ -291,7 +291,7 @@ export function langLabel(key, languages, { tag = 'span', params = {} } = {}) {
  * @param {string} [options.css]       artifact-specific CSS, appended to BASE_CSS
  * @param {string} [options.script]    artifact-specific JS, appended to the toggle
  */
-export function renderDocument({ title, docTitle, languages, body, css = '', script = '' }) {
+export function renderDocument({ title, docTitle, languages, body, css = '', script = '', branding = '' }) {
   const names = Object.fromEntries(languages.map((code) => [code, code === 'fr' ? 'Français' : 'English']))
   const locales = Object.fromEntries(languages.map((code) => [code, localeTag(code)]))
 
@@ -306,6 +306,7 @@ export function renderDocument({ title, docTitle, languages, body, css = '', scr
 <title>${escapeHtml(docTitle || title)}</title>
 <style>
 ${BASE_CSS}
+${branding}
 ${css}
 </style>
 </head>
@@ -336,7 +337,7 @@ ${script}
  * @param {object} [options.meta]      `{ author, date, stepCount }`, all optional
  * @param {string[]} options.languages language codes
  */
-export function documentHeader({ title, titles = null, meta = null, languages }) {
+export function documentHeader({ title, titles = null, meta = null, languages, logo = null }) {
   const toggle =
     languages.length > 1
       ? `<button type="button" id="lang-toggle" class="lang-toggle" hidden>Français</button>`
@@ -375,8 +376,19 @@ export function documentHeader({ title, titles = null, meta = null, languages })
           .join('')
       : escapeHtml(resolved ? resolved[0] : title)
 
+  // The author's logo, if they supplied one.
+  //
+  // `alt=""` when they left the alt field empty, which is the honest default: a
+  // logo sitting beside the document title that already names the thing is
+  // decorative, and inventing "Company logo" for it would just make screen
+  // readers announce noise. Supplying alt text makes it informative instead.
+  const logoAlt = logo?.alt?.trim()
+  const logoImg = logo?.src
+    ? `  <img class="doc-logo" src="${logo.src}" alt="${escapeHtml(logoAlt ?? '')}">\n`
+    : ''
+
   return `<header class="doc-header">
-  <div>
+${logoImg}  <div>
     <h1>${heading}</h1>
     ${subtitle ? `<p class="doc-meta">${subtitle}</p>` : ''}
   </div>

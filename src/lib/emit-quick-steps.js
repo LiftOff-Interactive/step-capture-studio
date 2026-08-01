@@ -20,6 +20,7 @@ import {
   documentHeader,
 } from './emit-common.js'
 import { t } from './i18n.js'
+import { brandingCss, brandingLogo } from './branding.js'
 
 const QUICK_CSS = `
 .quick-list { counter-reset: step; list-style: none; padding: 0; margin: 1.5rem 0 0; }
@@ -83,7 +84,7 @@ export function emitQuickSteps(capture, { languages = capture.languages ?? ['en'
     stepCount: capture.declaredStepCount ?? capture.steps.length,
   }
 
-  const body = `${documentHeader({ title, titles, meta, languages })}
+  const body = `${documentHeader({ title, titles, meta, languages, logo: brandingLogo(capture, primary) })}
 <main>
   <h2 class="visually-hidden">${langLabel('steps.heading', languages)}</h2>
   <ol class="quick-list">
@@ -92,6 +93,7 @@ ${items}
 </main>`
 
   return renderDocument({
+    branding: brandingCss(capture),
     title,
     docTitle: artifactName(title, 'QuickStep'),
     languages,

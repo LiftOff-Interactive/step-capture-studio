@@ -7,7 +7,21 @@ tells you at the time. Tick items as you complete them.
 
 ## 🔴 Blocking now
 
-_Nothing is blocking as of 2026-07-21._
+### [ ] 0. Open a **branded** `.docx` in Word — 2026-08-01
+**What:** brand a capture on the new Branding phase (pick a non-system heading font, a highlight
+colour, a larger base size), download the Word document, open it in Word and run the Accessibility
+Checker.
+**Why only you can do this:** this project's rule is that `.docx` is verified against **Word itself**,
+never by inspecting the markup — `dc:language` in core.xml once made Word discard a whole part while
+every structural test passed. I cannot drive Word from here. The branding is asserted structurally in
+`styles.xml` (fonts, `w:color`, scaled sizes) and that is all the confidence it has.
+**What to look for:** no repair prompt; headings actually in the chosen font and colour; body text at
+the chosen size; heading styles still recognised as headings by the navigation pane; the
+Accessibility Checker no worse than before.
+**Blocks:** the last automated criterion on `feature-branding`. You asked for Word to be in scope
+knowing it could not be verified here — this is that debt.
+
+_Nothing else is blocking as of 2026-08-01._
 
 ### [x] 1. ~~Resolve licensing~~ — done 2026-07-21
 **Decided:** MIT, © 2026 Mike Bubyn. `LICENSE` created, README updated.
