@@ -271,3 +271,31 @@ test('the document title carries the artifact name, so print files correctly', a
   assert.equal(dom.window.document.querySelector('h1').textContent, 'Testing Windows Audio')
   dom.window.close()
 })
+
+test('the step image is capped on screen, not only in print', async () => {
+  // Regression test. The print stylesheet caps images because an uncapped
+  // screenshot pushed its own explanation onto the following page — the step
+  // and the text describing it ended up apart. The same defect exists on
+  // screen: an uncapped image fills a short window, and inside the all-in-one
+  // dashboard, which embeds this document in an iframe barely taller than one
+  // step, the picture and its explanation were never visible together.
+  const dom = open(emitCaseStudy(await authored(), { languages: ['en'] }))
+  const sheet = dom.window.document.styleSheets[0]
+
+  const screenRules = [...sheet.cssRules].filter(
+    (r) => r.type === dom.window.CSSRule.STYLE_RULE && r.selectorText === '.case-step img'
+  )
+  assert.equal(screenRules.length, 1, 'one unconditional rule for the step image')
+  const img = screenRules[0].style
+
+  assert.ok(img.maxHeight, 'a screen max-height, not only the @media print one')
+  assert.match(img.maxHeight, /vh$/, 'relative to the viewport, so it adapts to the iframe')
+
+  // width/height auto is what lets max-width and max-height both apply while
+  // the aspect ratio survives. With width:100% the height cap would squash the
+  // screenshot instead of shrinking it.
+  assert.equal(img.width, 'auto')
+  assert.equal(img.height, 'auto')
+
+  dom.window.close()
+})

@@ -1,5 +1,5 @@
 # Handoff — step-capture-studio
-_Last updated: 2026-07-29 · Current stage: stage-4-ship_
+_Last updated: 2026-08-01 · Current stage: stage-4-ship_
 
 ## 🎯 Goals
 Finish Stage 4: a shippable demo capture and public polish, so a stranger can use the live site.
@@ -7,8 +7,12 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## 📍 Current State
 - **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT (repo
   recreated 2026-07-22, moved to the `LiftOff-Interactive` org 2026-08-01; the old
-  `mbubyn.github.io` address is gone). **272/272 tests.** Autosave, replace-image, and the
+  `mbubyn.github.io` address is gone). **275/275 tests.** Autosave, replace-image, and the
   all-in-one dashboard shipped and verified live 2026-07-24.
+- **2026-08-01: the worked example is usable inside the all-in-one again.** A step was taller than
+  the panel showing it, so a screenshot and its explanation were never on screen together. Images
+  are capped on screen now, not just in print, and an open panel fills the viewport rather than
+  nesting a second scrollbar. `staging/stage-4-ship/feature-all-in-one.md`.
 - **2026-07-29: full UI redesign to the PowerPoint mock-ups** — teal shell, phase nav
   (6 stages), per-phase instructions panel, step chips (one step at a time), header
   "Export project file" button, Tabbed/Linear toggle, all-in-one restyled. **Pushed and confirmed live**

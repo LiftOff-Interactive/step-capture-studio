@@ -46,6 +46,51 @@ destination" without juggling separate files. Requested with a mockup 2026-07-24
 
 ## Verification Log
 
+### 2026-08-01 — Worked example was unusable in its panel. Fixed.
+
+**Reported by Cam:** in the all-in-one, the worked example "doesn't show properly — the smaller
+window makes the text and image stack on top of each other."
+
+**Measured, dashboard at a 1000x760 window.** The frame was 623px tall; one worked-example step was
+**640px**. The step did not fit in the window showing it, and the screenshot took ~340px of that, so
+the picture and the explanation belonging to it were never on screen together — you scrolled the
+frame, then the page, and the two halves never met.
+
+**Two causes, two fixes.**
+
+1. **The image was capped in print but not on screen** (`emit-case-study.js`). This is the *same*
+   defect the print block already documents: an uncapped screenshot pushed its own explanation onto
+   the next page. Harmless on a full page, fatal in an iframe barely taller than one step. The step
+   image now carries `max-height: 46vh` with `width`/`height: auto`, so both maxima apply and the
+   aspect ratio survives — `vh` resolves against the iframe when embedded and the window when
+   standalone, which is right in both. Cam's call: cap both copies rather than diverge them.
+2. **The panel was a nested scroll region** (`emit-all-in-one.js`). At a fixed `82vh` the frame was
+   shorter than the window while the page behind it still scrolled — two scrollbars. An open panel
+   now fills what is left below the header and the body stops scrolling. **Screen-only**, because a
+   body pinned to `100vh` with `overflow: hidden` would clip the printed menu to one page.
+
+**Result, same 1000x760 window:** frame 559px, step **478px** — the whole step, image and both text
+blocks, visible at once, with step 2 beginning below. Outer scrollbar gone.
+
+**Verified in Chromium** against the demo capture, all-in-one and standalone worked example:
+- Dashboard 1000x760 — step fits the frame; no outer scroll; screenshot captured.
+- Mobile 375x812 — step 449px in a 560px frame; no horizontal overflow; image width-bound, not
+  height-bound, so the cap never over-shrinks a narrow view.
+- Walkthrough panel — also fills the viewport, no nested scroll. Back to menu restores `overflow`.
+- **Standalone worked example, 1246x978 — image 736x419, byte-for-byte the same size as before.**
+  The width cap already bound there, so the change is invisible on a normal window and only engages
+  where it helps. Aspect ratio confirmed preserved against `naturalWidth/naturalHeight`.
+- Print path unchanged, asserted through the CSSOM: no `body:has`, no `100vh`/`overflow:hidden` in
+  any print block; the menu still prints and panels still drop.
+- No console errors.
+
+**Automated: 275/275** (was 273). Two regression tests added, both mutation-tested:
+`emit-case-study.test.js` asserts a viewport-relative screen `max-height` and `width`/`height: auto`
+(removing the cap fails it); `emit-all-in-one.test.js` asserts the takeover lives under
+`@media screen` and never reaches print (leaking it into print, or dropping the frame rule, fails it).
+
+Status stays **awaiting verification** — this wants Cam's eyes on the live site.
+
 ### 2026-07-24 (later) — Redesign: 4 cards, one language control, print buttons
 
 On a revised mockup: a fourth **Step Guide** card that is **download-only** (the Word EN/FR links move

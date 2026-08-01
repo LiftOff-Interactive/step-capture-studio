@@ -24,6 +24,15 @@ show the user.
 
 ## Verification Log
 
+### 2026-08-01 — Step image capped on screen, not only in print
+
+The print block already capped step images because an uncapped screenshot pushed its own explanation
+onto the following page. The same defect existed on screen and surfaced in the all-in-one, which
+embeds this document in an iframe barely taller than one step: `max-height: 46vh` with
+`width`/`height: auto` now applies unconditionally. On a normal window the width cap already bound,
+so the standalone artifact renders identically (measured: 736x419 before and after). Full write-up,
+measurements and the browser pass are in `staging/stage-4-ship/feature-all-in-one.md` (2026-08-01).
+
 ### 2026-07-21 - Built; automated PASS, in-browser PASS
 
 **The integrity property, and how the open questions resolved.** The one thing that had to survive

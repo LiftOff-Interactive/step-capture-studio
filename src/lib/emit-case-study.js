@@ -42,7 +42,24 @@ const CASE_STUDY_CSS = `
 .case-step + .case-step { border-top: 1px solid var(--border-subtle); padding-top: 2rem; }
 .case-step h3 { font-size: 1.15rem; }
 .case-step figure { margin: 0 0 1rem; }
-.case-step img { display: block; width: 100%; height: auto; max-width: 46rem;
+/*
+ * Screen sizing — the same defect print already had, in a different place.
+ *
+ * An uncapped screenshot claims the whole viewport, so the step it illustrates
+ * and the text explaining it are never on screen together. Harmless on a full
+ * page; fatal inside the all-in-one dashboard, which embeds this document in an
+ * iframe barely taller than one step, and bad on any short window.
+ *
+ * max-height is the constraint that matters (a tall portrait screenshot is
+ * unaffected by a width cap). vh resolves against the iframe when embedded and
+ * the window when standalone, which is the right answer in both. width/height
+ * auto let both maxima apply while the aspect ratio is preserved; that also
+ * stops a screenshot narrower than the column being upscaled to blur.
+ *
+ * No backticks in this comment — it lives inside a template literal.
+ */
+.case-step img { display: block; width: auto; height: auto;
+  max-width: min(46rem, 100%); max-height: 46vh;
   border: 1px solid var(--border-subtle); border-radius: var(--radius); }
 .case-action { padding: .75rem 1rem; background: var(--surface);
   border-left: 4px solid var(--accent); border-radius: var(--radius); margin-bottom: 1rem; }

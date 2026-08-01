@@ -166,3 +166,38 @@ test('the dashboard is axe clean', async () => {
   assert.equal(surprises.length, 0, `unexpected incomplete: ${describe(surprises)}`)
   dom.window.close()
 })
+
+test('the viewport takeover is screen-only, so print still gets the menu', async () => {
+  // Regression test, two halves.
+  //
+  // At a fixed 82vh the frame was shorter than the window while the page behind
+  // it still scrolled, so the artifact sat in a nested scroll region with less
+  // height than one of its own steps. An open panel now fills what is left
+  // below the header and the body stops scrolling.
+  //
+  // That second part is why this must not reach print: a body pinned to 100vh
+  // with overflow:hidden clips the printed menu to a single page. The print
+  // block deliberately hides panels and prints the menu instead.
+  const dom = open(await build())
+  const { CSSRule } = dom.window
+
+  const media = [...dom.window.document.styleSheets[0].cssRules].filter(
+    (r) => r.type === CSSRule.MEDIA_RULE
+  )
+  const textOf = (blocks) => blocks.map((b) => [...b.cssRules].map((r) => r.cssText).join(' ')).join(' ')
+
+  const screenText = textOf(media.filter((r) => r.conditionText === 'screen'))
+  const printText = textOf(media.filter((r) => r.conditionText.includes('print')))
+
+  assert.match(screenText, /\.aio-panel:target[\s\S]*\.aio-frame/, 'the takeover sizes the open frame')
+  assert.match(screenText, /100vh/, 'and pins the body to the viewport')
+
+  assert.doesNotMatch(printText, /body:has/, 'the takeover never reaches print')
+  assert.doesNotMatch(printText, /100vh|overflow:\s*hidden/, 'print is never clipped to one screen')
+
+  // What print does instead, unchanged.
+  assert.match(printText, /\.aio-menu[^{]*\{[^}]*display:\s*block/, 'print keeps the menu')
+  assert.match(printText, /\.aio-panel:target[^{]*\{[^}]*display:\s*none/, 'print drops the panels')
+
+  dom.window.close()
+})

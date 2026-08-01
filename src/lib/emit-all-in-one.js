@@ -102,6 +102,40 @@ body:has(.aio-panel:target) .aio-menu { display: none; }
   border: 1px solid var(--border-subtle); border-radius: var(--radius);
 }
 
+/*
+ * An open panel takes over the viewport.
+ *
+ * At 82vh the frame is shorter than the window but the page behind it still
+ * scrolls, so the artifact sits in a nested scroll region: two scrollbars, and
+ * an embedded document squeezed into less height than one of its own steps.
+ * Letting the panel fill what is actually left below the header removes the
+ * inner/outer split and gives the artifact the room it needs.
+ *
+ * Screen only. The print block below hides panels and prints the menu, and a
+ * viewport-height body with overflow:hidden would clip that to a single page.
+ *
+ * Progressive, like the menu collapse above: without :has the frame keeps its
+ * 82vh and the page scrolls as before.
+ */
+@media screen {
+  body:has(.aio-panel:target) {
+    display: flex; flex-direction: column;
+    height: 100vh; overflow: hidden; padding-bottom: 0;
+  }
+  body:has(.aio-panel:target) .doc-header { flex: 0 0 auto; }
+  body:has(.aio-panel:target) main {
+    display: flex; flex-direction: column;
+    flex: 1 1 auto; min-height: 0; width: 100%;
+  }
+  .aio-panel:target {
+    display: flex; flex-direction: column;
+    flex: 1 1 auto; min-height: 0; margin-top: 1rem;
+  }
+  .aio-panel:target .aio-frame {
+    flex: 1 1 auto; height: auto; min-height: 0; margin-bottom: 1rem;
+  }
+}
+
 @media print {
   /* Printing the dashboard prints nothing useful; each artifact is printed from
      its own Print button, which prints the iframe with the artifact's styling. */
