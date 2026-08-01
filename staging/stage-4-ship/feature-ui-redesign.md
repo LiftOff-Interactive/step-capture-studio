@@ -71,7 +71,7 @@ dashboard export restyled to slide 1 (alternating card tint, large teal icon til
   (`e455852`); live page at https://liftoff-interactive.github.io/step-capture-studio/ confirmed
   serving the redesign markup (curl found the 6 phase-nav buttons). Remaining human criterion —
   the on-site keyboard walk and copy read — still open, so the status stands.
-- 2026-08-01 — **Header button corrected.** Cam: the header Export is meant to export the *project
+- 2026-08-01 — **Header button corrected.** Mike: the header Export is meant to export the *project
   file*, not navigate to the Export phase. `#header-export` now calls the same `exportProjectFile()`
   as the Edit toolbar's twin (one function, two listeners) and is relabelled from `nav.export` to
   the existing `project.export` string, so it no longer reads the same as the phase-nav tab.
@@ -90,6 +90,6 @@ dashboard export restyled to slide 1 (alternating card tint, large teal icon til
   Example). Slide 1's 4-card layout matches the shipped structure and was taken as the target;
   revisit if the deck meant the 3-card variant as the goal state.
 - ~~Slide 3's header shows the literal caption "Export Button"; shipped label is Export/Exporter.~~
-  **Resolved 2026-08-01 by Cam:** the deck meant *export the project file*, not a jump to the
+  **Resolved 2026-08-01 by Mike:** the deck meant *export the project file*, not a jump to the
   Export phase. Rewired and relabelled — see the log below.
 - `#readiness-summary` announcement suppression noted above.

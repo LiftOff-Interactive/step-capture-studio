@@ -48,7 +48,7 @@ destination" without juggling separate files. Requested with a mockup 2026-07-24
 
 ### 2026-08-01 — Worked example was unusable in its panel. Fixed.
 
-**Reported by Cam:** in the all-in-one, the worked example "doesn't show properly — the smaller
+**Reported by Mike:** in the all-in-one, the worked example "doesn't show properly — the smaller
 window makes the text and image stack on top of each other."
 
 **Measured, dashboard at a 1000x760 window.** The frame was 623px tall; one worked-example step was
@@ -63,7 +63,7 @@ frame, then the page, and the two halves never met.
    the next page. Harmless on a full page, fatal in an iframe barely taller than one step. The step
    image now carries `max-height: 46vh` with `width`/`height: auto`, so both maxima apply and the
    aspect ratio survives — `vh` resolves against the iframe when embedded and the window when
-   standalone, which is right in both. Cam's call: cap both copies rather than diverge them.
+   standalone, which is right in both. Mike's call: cap both copies rather than diverge them.
 2. **The panel was a nested scroll region** (`emit-all-in-one.js`). At a fixed `82vh` the frame was
    shorter than the window while the page behind it still scrolled — two scrollbars. An open panel
    now fills what is left below the header and the body stops scrolling. **Screen-only**, because a
@@ -89,7 +89,7 @@ blocks, visible at once, with step 2 beginning below. Outer scrollbar gone.
 (removing the cap fails it); `emit-all-in-one.test.js` asserts the takeover lives under
 `@media screen` and never reaches print (leaking it into print, or dropping the frame rule, fails it).
 
-Status stays **awaiting verification** — this wants Cam's eyes on the live site.
+Status stays **awaiting verification** — this wants Cam's review pass on the live site.
 
 ### 2026-07-24 (later) — Redesign: 4 cards, one language control, print buttons
 
