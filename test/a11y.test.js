@@ -24,6 +24,7 @@ import { JSDOM } from 'jsdom'
 import axe from 'axe-core'
 
 import { applyStaticStrings, buildEditableMeta, buildWarnings, buildSteps } from '../src/ui/render.js'
+import { LANGUAGES } from '../src/lib/i18n.js'
 import { parseSnagitDocx } from '../src/lib/parse-snagit.js'
 import { makeCapture, ENGLISH_STEPS } from './helpers/synthetic.mjs'
 
@@ -304,5 +305,40 @@ test('status is a polite live region and errors are a separate alert', async () 
   assert.equal(status.getAttribute('role'), 'status')
   assert.equal(status.getAttribute('aria-live'), 'polite')
   assert.equal(errorDetail.getAttribute('role'), 'alert')
+  dom.window.close()
+})
+
+test('the header save button is labelled as a project-file save, not the Export phase', async () => {
+  // Regression test. The header button originally jumped to the Export phase
+  // and shared the phase tab's `nav.export` string, so the page carried two
+  // controls named "Export" that did different things. It is a save — the same
+  // action as the Edit toolbar's twin — and must say so in both languages.
+  const dom = await makeDom()
+  const { document } = dom.window
+
+  const header = document.getElementById('header-export')
+  const twin = document.getElementById('export-project')
+  const phaseTab = document.querySelector('[data-phase-target="export"]')
+
+  assert.equal(
+    header.dataset.i18n,
+    twin.dataset.i18n,
+    'header button and toolbar twin are the same action, so the same string'
+  )
+  assert.notEqual(
+    header.dataset.i18n,
+    phaseTab.dataset.i18n,
+    'header button must not reuse the phase tab string'
+  )
+
+  for (const lang of LANGUAGES) {
+    applyStaticStrings(document, lang)
+    assert.notEqual(
+      header.textContent.trim(),
+      phaseTab.textContent.trim(),
+      `distinguishable accessible names in ${lang}`
+    )
+    assert.ok(header.textContent.trim().length > 0, `header button has a label in ${lang}`)
+  }
   dom.window.close()
 })

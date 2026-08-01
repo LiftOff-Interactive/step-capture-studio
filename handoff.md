@@ -10,8 +10,8 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
   `mbubyn.github.io` address is gone). **272/272 tests.** Autosave, replace-image, and the
   all-in-one dashboard shipped and verified live 2026-07-24.
 - **2026-07-29: full UI redesign to the PowerPoint mock-ups** — teal shell, phase nav
-  (6 stages), per-phase instructions panel, step chips (one step at a time), header Export
-  shortcut, Tabbed/Linear toggle, all-in-one restyled. **Pushed and confirmed live**
+  (6 stages), per-phase instructions panel, step chips (one step at a time), header
+  "Export project file" button, Tabbed/Linear toggle, all-in-one restyled. **Pushed and confirmed live**
   (Cam approved the push 2026-07-29; the deployed page serves the new markup). Cam's hands-on
   pass of the live site is still worth doing. See `staging/stage-4-ship/feature-ui-redesign.md`.
 - **Editor is three Phases** — Worked example → Edit → Translation — export panel last; capture

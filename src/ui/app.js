@@ -970,12 +970,6 @@ for (const btn of phaseButtons) {
 els.viewTabbed.addEventListener('click', () => setView('tabbed'))
 els.viewLinear.addEventListener('click', () => setView('linear'))
 
-// The header's Export shortcut — the same trip as the last phase button.
-els.headerExport.addEventListener('click', () => {
-  if (state.view === 'tabbed') return setPhase('export')
-  els.readiness.scrollIntoView({ behavior: 'smooth', block: 'start' })
-})
-
 els.fileInput.addEventListener('change', (event) => loadFile(event.target.files[0]))
 els.projectInput.addEventListener('change', (event) => loadProjectFile(event.target.files[0]))
 
@@ -1007,7 +1001,13 @@ els.loadDemo.addEventListener('click', async () => {
   }
 })
 
-els.exportProject.addEventListener('click', () => {
+/**
+ * Save the whole project — steps, edits, and screenshots — as one
+ * self-contained .html the user can reopen later. Wired to both the Edit
+ * toolbar button and the header shortcut, so it must stay idempotent and
+ * safe to call from any phase.
+ */
+function exportProjectFile() {
   if (!state.capture) return
   clearError()
   const name = `${artifactName(captureTitle(state.capture, state.lang), 'Project')}.html`
@@ -1021,7 +1021,13 @@ els.exportProject.addEventListener('click', () => {
     console.error(error)
     showError('EXPORT_FAILED', { reason: error.message })
   }
-})
+}
+
+els.exportProject.addEventListener('click', exportProjectFile)
+// The header shortcut saves the project file too — the point of hoisting it
+// out of the Edit toolbar is that the save is reachable mid-edit, from any
+// phase. Navigating to the Export phase is the phase nav's job.
+els.headerExport.addEventListener('click', exportProjectFile)
 
 // Drag and drop is an enhancement only — the file input alone is sufficient.
 for (const type of ['dragenter', 'dragover']) {

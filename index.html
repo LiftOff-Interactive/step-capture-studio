@@ -47,10 +47,16 @@
             Linear
           </button>
         </div>
-        <!-- Jumps to the export phase. Disabled until a capture is loaded,
-             like the phase buttons below — JS lifts the gate. -->
-        <button type="button" id="header-export" class="button button--brand" data-i18n="nav.export" disabled>
-          Export
+        <!--
+          Saves the project file — the same action as "Export project file" in
+          the Edit toolbar, hoisted here so it is reachable from every phase.
+          It does NOT jump to the Export phase; the phase nav below does that.
+          Disabled until a capture is loaded, like the phase buttons — JS lifts
+          the gate. Like its twin in the toolbar it is deliberately outside the
+          readiness gate: this is a save, not a deliverable.
+        -->
+        <button type="button" id="header-export" class="button button--brand" data-i18n="project.export" disabled>
+          Export project file
         </button>
         <button type="button" id="lang-toggle" class="button button--quiet" data-i18n="lang.switchTo">
           Français

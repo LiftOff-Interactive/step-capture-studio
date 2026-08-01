@@ -6,7 +6,7 @@ Re-skin and restructure the studio to match the July 2026 PowerPoint mock-ups ("
 studio Dashboard" deck, 9 slides): a brand-teal shell with white cards, a phase nav
 (Start here → Capture details → Worked example → Edit steps → Translate → Export), a per-phase
 "Page instructions" panel on the right, numbered step chips that show one step at a time in the
-editor, an Export shortcut in the header, and a Tabbed/Linear layout toggle. The all-in-one
+editor, a header button that saves the project file, and a Tabbed/Linear layout toggle. The all-in-one
 dashboard export restyled to slide 1 (alternating card tint, large teal icon tiles).
 
 ## The shape, and why
@@ -55,8 +55,8 @@ dashboard export restyled to slide 1 (alternating card tint, large teal icon til
       `.button--brand` inherited dark-mode `--on-accent` and measured **2.65:1** — explicit
       `--on-brand` now.
 - [x] Full flow driven in a real browser (Playwright + preview): demo load auto-advances to
-      Capture details; nav unlocks; chips show one step at a time and switch; header Export jumps
-      to the export phase ("Ready to export." on the demo); Linear stacks all six sections, hides
+      Capture details; nav unlocks; chips show one step at a time and switch; the header button
+      saves the project file without leaving the current phase; Linear stacks all six sections, hides
       chips + instructions, and persists; French swaps nav labels, chip aria-labels, nav
       aria-label, and instructions body; all-in-one export renders 4 cards with alternating tint.
 - [ ] **Human pass (Cam)**: look at every phase on the live site, keyboard-only walk, and confirm
@@ -71,10 +71,25 @@ dashboard export restyled to slide 1 (alternating card tint, large teal icon til
   (`e455852`); live page at https://liftoff-interactive.github.io/step-capture-studio/ confirmed
   serving the redesign markup (curl found the 6 phase-nav buttons). Remaining human criterion —
   the on-site keyboard walk and copy read — still open, so the status stands.
+- 2026-08-01 — **Header button corrected.** Cam: the header Export is meant to export the *project
+  file*, not navigate to the Export phase. `#header-export` now calls the same `exportProjectFile()`
+  as the Edit toolbar's twin (one function, two listeners) and is relabelled from `nav.export` to
+  the existing `project.export` string, so it no longer reads the same as the phase-nav tab.
+  Verified in Chromium against the local server, demo capture loaded:
+  - Header click → `TestingWindowsAudio_Project.html` downloaded, `#status` announced "Project
+    saved as TestingWindowsAudio_Project.html.", and `aria-current` **stayed on `capture`** — no
+    phase change.
+  - Edit-toolbar twin still downloads (second file, unchanged behaviour).
+  - Phase-nav "Export" still navigates (`aria-current` → `export`) and downloads nothing.
+  - FR: header reads "Exporter le fichier de projet", distinct from the nav's "Exporter".
+  - `npm test` 272/272; no console errors.
+  Status stays **awaiting verification** — Cam's on-site pass is still the open criterion.
 
 ## Open edges
 - Slide 2 shows a 3-card all-in-one variant (no Step Guide card, Word links under Worked
   Example). Slide 1's 4-card layout matches the shipped structure and was taken as the target;
   revisit if the deck meant the 3-card variant as the goal state.
-- Slide 3's header shows the literal caption "Export Button"; shipped label is Export/Exporter.
+- ~~Slide 3's header shows the literal caption "Export Button"; shipped label is Export/Exporter.~~
+  **Resolved 2026-08-01 by Cam:** the deck meant *export the project file*, not a jump to the
+  Export phase. Rewired and relabelled — see the log below.
 - `#readiness-summary` announcement suppression noted above.
