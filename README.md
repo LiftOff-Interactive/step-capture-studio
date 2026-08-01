@@ -3,7 +3,7 @@
 Turn one Snagit step-capture `.docx` into ready-to-use, bilingual training artifacts — without
 uploading anything, anywhere.
 
-**→ [Try it](https://mbubyn.github.io/step-capture-studio/)** — nothing to install, nothing uploaded.
+**→ [Try it](https://liftoff-interactive.github.io/step-capture-studio/)** — nothing to install, nothing uploaded.
 No Snagit file handy? Click **“Try it with a sample capture”** on the page.
 
 ![The Step Capture Studio landing page: a “Load a file” panel to choose a Snagit .docx or resume a

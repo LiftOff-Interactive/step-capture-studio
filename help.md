@@ -21,7 +21,8 @@ pushed. Pages not enabled — see item 2b.
 
 ### [x] 2b. ~~Decide how Pages should be exposed~~ — done 2026-07-21
 Repo is **public**, Pages enabled from `main` / root, HTTPS enforced.
-Live at **https://mbubyn.github.io/step-capture-studio/**
+Live at **https://liftoff-interactive.github.io/step-capture-studio/** (the repo moved to the
+`LiftOff-Interactive` org on 2026-08-01; the original `mbubyn.github.io` address now 404s).
 
 Before publishing: internal references were sanitised, history rewritten with `git-filter-repo`, and
 the old private repo **deleted and recreated** rather than force-pushed — GitHub retains unreachable

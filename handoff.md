@@ -5,16 +5,15 @@ _Last updated: 2026-07-29 · Current stage: stage-4-ship_
 Finish Stage 4: a shippable demo capture and public polish, so a stranger can use the live site.
 
 ## 📍 Current State
-- **LIVE at https://mbubyn.github.io/step-capture-studio/** — public, MIT (repo recreated
-  2026-07-22). **272/272 tests.** Autosave, replace-image, and the all-in-one dashboard shipped and
-  verified live 2026-07-24.
+- **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT (repo
+  recreated 2026-07-22, moved to the `LiftOff-Interactive` org 2026-08-01; the old
+  `mbubyn.github.io` address is gone). **272/272 tests.** Autosave, replace-image, and the
+  all-in-one dashboard shipped and verified live 2026-07-24.
 - **2026-07-29: full UI redesign to the PowerPoint mock-ups** — teal shell, phase nav
   (6 stages), per-phase instructions panel, step chips (one step at a time), header Export
   shortcut, Tabbed/Linear toggle, all-in-one restyled. **Pushed and confirmed live**
-  (Cam approved the push 2026-07-29; the deployed page serves the new markup at
-  https://liftoff-interactive.github.io/step-capture-studio/ — note the org URL; the old
-  mbubyn.github.io address predates the repo move). Cam's hands-on pass of the live site is
-  still worth doing. See `staging/stage-4-ship/feature-ui-redesign.md`.
+  (Cam approved the push 2026-07-29; the deployed page serves the new markup). Cam's hands-on
+  pass of the live site is still worth doing. See `staging/stage-4-ship/feature-ui-redesign.md`.
 - **Editor is three Phases** — Worked example → Edit → Translation — export panel last; capture
   metadata (author/duration/date/steps) editable; "Case study" → **"Worked example"** everywhere.
 - **Stages 1–3 complete.** Three HTML artifacts: self-contained, bilingual, readable with JS off,

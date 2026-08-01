@@ -11,7 +11,7 @@ works — before any feature depth is built on top of them.
 - [x] `feature-snagit-parser` — `document.xml` → normalised capture model — **verified done**
 - [ ] `feature-app-shell` — accessible file-drop UI — *awaiting verification* (screen reader +
       rendered demo outstanding)
-- [x] `feature-pages-deploy` — live URL — **verified done**, https://mbubyn.github.io/step-capture-studio/
+- [x] `feature-pages-deploy` — live URL — **verified done**, https://liftoff-interactive.github.io/step-capture-studio/
 
 ## Definition of done — testable checklist
 - [x] `npm test` passes with zero failures. — 29/29
