@@ -93,6 +93,29 @@ Chromium 148, real sample loaded through the actual file input at `http://localh
 **All success criteria met and the procedure fully executed → `verified done`.**
 (Live-URL confirmation belongs to `feature-pages-deploy`, which is deliberately deferred.)
 
+### 2026-07-24 — Second real capture (Node, parser only) PASS, with one caveat
+
+A second, independently recorded capture — a **French-language Windows** desktop, but recorded with an
+**English Snagit interface** — parsed clean. Parser only: it was **not** rendered or exported, and its
+path, author and imagery are kept out of this repo, because it is a real capture that must never enter
+public history. Results (structure only):
+- **7 steps, 7 images**, one per step, none missing; declared count 7 = parsed 7; **zero warnings,
+  zero false positives.**
+- **French accented characters and guillemets survived** the docx UTF-8 decode intact.
+- Metadata read correctly, including a **French date string** (`… juillet 2026`).
+
+**Caveat — this does NOT exercise the French-Snagit-verb path.** Snagit itself was in English, so the
+step text reads `Click "…" on …` with only the UI labels in French. The `Cliquez sur` case (success
+criterion above, and the CLAUDE.md rule) is therefore **still untested against a real file** — though
+the parser stays verb-agnostic by construction (it strips only `N.` numbering), so it should hold.
+Because the Snagit UI was English, the metadata line was English too, so the French `N étapes` format
+(Open Question below) is likewise still untested on a real file.
+
+**What it does confirm:** a different capture — different author, content and locale — parsed with no
+warnings, so the master plan's **risk #1** (parser built against a single sample) is substantially
+retired for the format itself. The *French-interface* capture remains the valuable outstanding one
+(`help.md` 3).
+
 ## Open Questions
 - Does Snagit ever emit more than one image per step (e.g. a zoomed inset)? The model allows an array
   to avoid painting into a corner, but no sample exercises it.
@@ -100,6 +123,12 @@ Chromium 148, real sample loaded through the actual file input at `http://localh
   locales? A French export may read `10 étapes`. Parse it defensively: split on `|`, take the count
   from the digits, and never fail the whole parse if this line is unrecognised.
 - Is the title paragraph always the application name, or is it user-editable in Snagit?
+- **The app hardcodes `sourceLang: 'en'` at parse time** (`app.js` calls `parseSnagitDocx(bytes)` with
+  no options) and offers no UI to say otherwise. The parser itself accepts a `sourceLang`, so this is
+  an app gap, not a parser one: a capture recorded in a **French Snagit** would have its French verbs
+  filed under `en`, and the translation round-trip would then run fr→en, backwards. Confirmed benign
+  for the 2026-07-24 capture (English Snagit → `en` is correct there). A source-language choice at
+  load would close it; noted, not urgent.
 
 ## Notes & Decisions
 The parser's job is **fidelity, not improvement**. Dedup, editing, and alt text all belong to the

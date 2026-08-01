@@ -67,16 +67,21 @@ appear in both the walkthrough and the case study. The `loading="lazy"` class of
 step's explanation onto the following page. Fixed — print now caps images at 4.6in × 3.2in with
 `break-inside: avoid` on the figure, measured at 29% of a page rather than 100%.
 
-### [ ] 3. Provide a second Snagit capture — ideally a French one
-**What:** Record any short procedure in Snagit and export to `.docx`. A capture made with a
-French-language interface would be worth considerably more than a second English one.
-**Why it's needed:** The parser is currently built against exactly one sample, from one Snagit
-version, one theme, one locale. This is risk #1 in the master plan. A second capture — especially
-French — turns an assumption into a tested fact.
-**Where to put it:** anywhere outside the repo. `<your-downloads-folder>\` is fine. **Do not put
-captures inside the project folder**; the pre-commit hook will block them, but keeping them out
-entirely is safer.
-**Blocks:** nothing outright, but it de-risks `feature-snagit-parser` substantially.
+### [ ] 3. A second capture is in — a French-*interface* one is the remaining gap
+**Done 2026-07-24 (partial):** you supplied a second, independently recorded capture (a French Windows
+desktop, recorded with an **English** Snagit UI). It parsed clean — **7/7 steps, zero warnings, French
+accents intact** — which retires risk #1 for the format itself. Details in
+`staging/stage-1-foundation/feature-snagit-parser.md` (2026-07-24).
+**Still wanted:** a capture where **Snagit's own interface is French**, so the step verbs read
+`Cliquez sur …`. The one you gave had English verbs (`Click …`), so the exact case the CLAUDE.md rule
+warns about is still untested against a real file. The parser is verb-agnostic by design, so it
+*should* hold — but a real French-Snagit capture would prove it.
+**If your Snagit only ever runs in English, this may never occur in practice** — in which case say so
+and this item can be closed. (Related: the app currently assumes an English source at load; a
+French-Snagit capture would need a source-language choice — see the parser's Open Questions.)
+**Where to put it:** anywhere outside the repo (Desktop/Downloads fine); never inside the project
+folder.
+**Blocks:** nothing; it de-risks the French-verb path specifically.
 
 ### [x] 4. ~~Record a synthetic demo capture~~ — supplied 2026-07-22
 **Supplied:** "Testing Windows Audio" — 6 steps through Windows Sound settings, kept outside the
