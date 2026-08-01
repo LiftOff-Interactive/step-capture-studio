@@ -38,6 +38,7 @@ import {
 import { t, LANGUAGE_NAMES } from './i18n.js'
 import { emitWalkthrough } from './emit-walkthrough.js'
 import { emitCaseStudy } from './emit-case-study.js'
+import { includesWorkedExample } from './case-study.js'
 import { emitQuickSteps } from './emit-quick-steps.js'
 import { emitDocx } from './emit-docx.js'
 
@@ -266,9 +267,13 @@ export async function emitAllInOne(capture, { languages = capture.languages ?? [
     stepCount: capture.declaredStepCount ?? capture.steps.length,
   }
 
-  // The three HTML artifacts, each a complete document.
+  // The HTML artifacts, each a complete document. The worked example is only
+  // built when it is wanted — `emitCaseStudy` refuses a capture with no
+  // explanations, so building it unconditionally would throw on exactly the
+  // captures that opted out.
+  const wantsWorkedExample = includesWorkedExample(capture)
   const walkthroughHtml = emitWalkthrough(capture, { languages })
-  const workedExampleHtml = emitCaseStudy(capture, { languages })
+  const workedExampleHtml = wantsWorkedExample ? emitCaseStudy(capture, { languages }) : null
   const quickHtml = emitQuickSteps(capture, { languages })
 
   // The Word document, one per language, as base64 download links.
@@ -303,20 +308,37 @@ export async function emitAllInOne(capture, { languages = capture.languages ?? [
     useWhen: 'allInOne.quickReference.useWhen',
   }
 
+  // The dashboard is the sum of the artifacts that exist, not a fixed set of
+  // four. With the worked example switched off its card and panel are absent
+  // entirely rather than shown disabled: this file is the deliverable a reader
+  // opens, and a dead tile in it is a defect, not a hint.
+  //
+  // The grid tints by :nth-child(odd), so dropping a card re-tints the ones
+  // after it. That is the intended behaviour — the alternation is positional by
+  // design (see AIO_CSS), so three cards alternate correctly on their own.
+  const cards = [
+    openCard('walkthrough', walkthroughKeys, languages),
+    downloadCard(stepGuideKeys, languages, wordBlock),
+    ...(wantsWorkedExample ? [openCard('worked-example', workedExampleKeys, languages)] : []),
+    openCard('quick-reference', quickKeys, languages),
+  ]
+  const panels = [
+    panel('walkthrough', 'allInOne.walkthrough.title', walkthroughHtml, languages, primary),
+    ...(wantsWorkedExample
+      ? [panel('worked-example', 'allInOne.workedExample.title', workedExampleHtml, languages, primary)]
+      : []),
+    panel('quick-reference', 'allInOne.quickReference.title', quickHtml, languages, primary),
+  ]
+
   const body = `${documentHeader({ title, titles, meta, languages })}
 <main id="aio-top">
   <div id="aio-menu" class="aio-menu">
     <h2 class="visually-hidden">${langLabel('allInOne.chooseFormat', languages, { tag: 'span' })}</h2>
     <ul class="aio-grid">
-${openCard('walkthrough', walkthroughKeys, languages)}
-${downloadCard(stepGuideKeys, languages, wordBlock)}
-${openCard('worked-example', workedExampleKeys, languages)}
-${openCard('quick-reference', quickKeys, languages)}
+${cards.join('\n')}
     </ul>
   </div>
-${panel('walkthrough', 'allInOne.walkthrough.title', walkthroughHtml, languages, primary)}
-${panel('worked-example', 'allInOne.workedExample.title', workedExampleHtml, languages, primary)}
-${panel('quick-reference', 'allInOne.quickReference.title', quickHtml, languages, primary)}
+${panels.join('\n')}
 </main>`
 
   return renderDocument({

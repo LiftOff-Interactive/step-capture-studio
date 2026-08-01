@@ -95,6 +95,12 @@ const STRINGS = {
     'caseStudy.why': 'Why this step matters',
     'caseStudy.ifSkipped': 'What breaks if it is skipped',
     'caseStudy.scenarioHeading': 'About this procedure',
+    'caseStudy.include': 'Include a worked example in the output',
+    'caseStudy.includeHint':
+      'Unticking this hides the explanations here and in the editor, leaves them out of the translation prompt, and removes the worked example from the exports. Nothing you have already written is deleted.',
+    'caseStudy.included': 'Worked example included. Explanations are back in the editor.',
+    'caseStudy.excluded':
+      'Worked example excluded. Explanations are hidden and left out of the exports; nothing was deleted.',
     'caseStudy.unreviewed': 'Drafted, not yet reviewed',
     'caseStudy.confirm': 'I have reviewed this',
     'caseStudy.copyPrompt': 'Build and copy the worked-example prompt',
@@ -338,6 +344,12 @@ const STRINGS = {
     'caseStudy.why': 'Pourquoi cette étape est importante',
     'caseStudy.ifSkipped': 'Ce qui ne fonctionne plus si on l’omet',
     'caseStudy.scenarioHeading': 'À propos de cette procédure',
+    'caseStudy.include': 'Inclure un exemple pratique dans les fichiers produits',
+    'caseStudy.includeHint':
+      'Décocher cette case masque les explications ici et dans l’éditeur, les exclut de la consigne de traduction et retire l’exemple pratique des exportations. Rien de ce que vous avez déjà rédigé n’est supprimé.',
+    'caseStudy.included': 'Exemple pratique inclus. Les explications sont de retour dans l’éditeur.',
+    'caseStudy.excluded':
+      'Exemple pratique exclu. Les explications sont masquées et exclues des exportations; rien n’a été supprimé.',
     'caseStudy.unreviewed': 'Ébauche, pas encore révisée',
     'caseStudy.confirm': 'J’ai révisé ce texte',
     'caseStudy.copyPrompt': 'Créer et copier la consigne d’exemple pratique',

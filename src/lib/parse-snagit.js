@@ -166,6 +166,10 @@ export async function parseSnagitDocx(bytes, options = {}) {
     // Author-written grounding for the case study. The model never fills these
     // in — they are what stops it inventing rationale from nothing.
     scenario: emptyScenario(langs),
+    // Every capture starts out producing a worked example; the author opts out
+    // on the Worked example phase. Explicit here rather than left undefined so
+    // the field is visible in a project file and in any dump of the model.
+    includeWorkedExample: true,
     steps: [],
     warnings,
   }

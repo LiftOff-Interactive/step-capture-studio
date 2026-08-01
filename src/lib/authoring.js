@@ -15,7 +15,7 @@
  */
 
 import { t } from './i18n.js'
-import { NARRATIVE_FIELDS, confirmNarrative } from './case-study.js'
+import { NARRATIVE_FIELDS, confirmNarrative, includesWorkedExample } from './case-study.js'
 
 /** Re-derive 1-based indexes from array position. */
 function renumber(steps) {
@@ -293,11 +293,17 @@ export function stepVerification(capture, stepIndex, languages = capture.languag
   // Only *drafted* narrative needs review. Once confirmed it stops being
   // drafted and drops out of this list entirely, which is why `done` is always
   // false here: a present item is by definition still unreviewed.
-  for (const field of NARRATIVE_FIELDS) {
-    for (const lang of languages) {
-      const passage = step.narrative?.[field]?.[lang]
-      if (passage?.drafted && passage.text?.trim()) {
-        items.push({ kind: 'narrative', field, lang, done: false, blocked: false })
+  //
+  // Skipped entirely when the worked example is off: prose nothing will read
+  // does not need attesting to, and asking would make the step's single check
+  // impossible to satisfy for a reason the author has already dismissed.
+  if (includesWorkedExample(capture)) {
+    for (const field of NARRATIVE_FIELDS) {
+      for (const lang of languages) {
+        const passage = step.narrative?.[field]?.[lang]
+        if (passage?.drafted && passage.text?.trim()) {
+          items.push({ kind: 'narrative', field, lang, done: false, blocked: false })
+        }
       }
     }
   }

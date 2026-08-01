@@ -84,6 +84,11 @@ export function parseProject(html, DOMParserImpl = globalThis.DOMParser) {
   const languages = (root.getAttribute('data-languages') || 'en').split(/\s+/).filter(Boolean)
   if (!languages.length) throw new ProjectError('PROJECT_NO_LANGUAGES')
   const sourceLang = root.getAttribute('data-source-lang') || languages[0]
+  // Only the literal string "false" opts out. A file written before this
+  // existed has no attribute and keeps its worked example, and a hand-edited
+  // file with something unexpected in there fails safe the same way — the
+  // artifact is produced rather than silently dropped.
+  const includeWorkedExample = root.getAttribute('data-include-worked-example') !== 'false'
 
   const declared = root.getAttribute('data-declared-step-count')
   const attr = (name) => {
@@ -180,6 +185,7 @@ export function parseProject(html, DOMParserImpl = globalThis.DOMParser) {
     sourceLang,
     languages,
     declaredStepCount: declared ? Number(declared) : null,
+    includeWorkedExample,
     scenario,
     steps: steps.map(({ declaredIndex, ...step }) => step),
     warnings: [],

@@ -46,6 +46,17 @@ destination" without juggling separate files. Requested with a mockup 2026-07-24
 
 ## Verification Log
 
+### 2026-08-01 — The card set is no longer fixed at four
+
+With the worked example switched off (`feature-optional-worked-example`), its card and panel are
+absent rather than disabled — this file is the deliverable a reader opens, and a dead tile in it is a
+defect, not a hint. The dashboard itself still exports, so opting out of one artifact does not cost
+the author the bundle; it also makes the all-in-one reachable for captures that could never produce a
+worked example at all. `emitAllInOne` now only builds the worked example when it is wanted, because
+`emitCaseStudy` refuses a capture with no explanations. Measured: 3 cards, no `#panel-worked-example`,
+zero links pointing at it. **Not yet eyeballed against the deck** — the tint alternates by position,
+so three cards tint differently from four.
+
 ### 2026-08-01 — Worked example was unusable in its panel. Fixed.
 
 **Reported by Mike:** in the all-in-one, the worked example "doesn't show properly — the smaller

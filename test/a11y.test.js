@@ -378,3 +378,52 @@ test('the source language is a labelled radio group, not a nameless toggle', asy
   }
   dom.window.close()
 })
+
+test('the worked-example opt-out has a label, a description, and one collapsible body', async () => {
+  // app.js collapses by setting `hidden` on #worked-example-body, so that
+  // wrapper has to actually contain every control the choice makes irrelevant.
+  // If a field escaped it, the author would be left typing into something that
+  // feeds nothing — the accessible equivalent of a dead control.
+  const dom = await makeDom()
+  const { document } = dom.window
+
+  const box = document.getElementById('include-worked-example')
+  assert.equal(box.type, 'checkbox')
+  assert.equal(box.defaultChecked, true, 'captures include a worked example by default')
+  assert.ok(document.querySelector(`label[for="${box.id}"]`), 'has a real label')
+  assert.equal(
+    document.getElementById(box.getAttribute('aria-describedby'))?.tagName,
+    'P',
+    'and a description saying nothing is deleted'
+  )
+
+  const body = document.getElementById('worked-example-body')
+  assert.ok(body, 'the collapsible body exists')
+  assert.equal(body.contains(box), false, 'the checkbox itself stays visible')
+  for (const id of [
+    'scenario-audience',
+    'scenario-context',
+    'scenario-outcome',
+    'case-prompt',
+    'case-prompt-output',
+    'case-draft-input',
+    'apply-case-draft',
+  ]) {
+    assert.ok(body.contains(document.getElementById(id)), `${id} collapses with it`)
+  }
+  dom.window.close()
+})
+
+test('the collapsed worked-example phase is axe clean', async () => {
+  const dom = await makeDom()
+  const capture = await parseSnagitDocx(makeCapture({ steps: ENGLISH_STEPS }))
+  renderInto(dom, capture, 'en')
+
+  const { document } = dom.window
+  document.getElementById('case-study').hidden = false
+  document.getElementById('include-worked-example').checked = false
+  document.getElementById('worked-example-body').hidden = true
+
+  assertAxeClean(await run(dom), 'worked example collapsed')
+  dom.window.close()
+})

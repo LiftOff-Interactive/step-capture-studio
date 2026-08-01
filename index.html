@@ -291,6 +291,35 @@
 
       <section id="case-study" class="panel" hidden aria-labelledby="case-study-heading" data-phase="worked">
         <h2 id="case-study-heading" data-i18n="phase.workedExample">Worked example phase</h2>
+
+        <!--
+          The worked example is the only optional artifact — the other three are
+          reformattings of the capture, this one needs prose the author has to
+          write. Opting out collapses everything below, drops the explanations
+          from the step editor and the translation prompt, and takes the card out
+          of the all-in-one.
+
+          Nothing is deleted. Scenario and narrative stay in the model and in the
+          project file, so switching back restores the work.
+        -->
+        <div class="checkbox">
+          <input
+            type="checkbox"
+            id="include-worked-example"
+            checked
+            aria-describedby="include-worked-example-hint"
+          />
+          <label for="include-worked-example" data-i18n="caseStudy.include">
+            Include a worked example in the output
+          </label>
+        </div>
+        <p class="hint" id="include-worked-example-hint" data-i18n="caseStudy.includeHint">
+          Unticking this hides the explanations here and in the editor, leaves them out of the
+          translation prompt, and removes the worked example from the exports. Nothing you have
+          already written is deleted.
+        </p>
+
+        <div id="worked-example-body">
         <p data-i18n="caseStudy.scenarioHeading">About this procedure</p>
 
         <div class="field">
@@ -336,6 +365,7 @@
           <button type="button" id="apply-case-draft" class="button" data-i18n="caseStudy.applyDraft">
             Apply drafted explanations
           </button>
+        </div>
         </div>
       </section>
 

@@ -24,6 +24,14 @@ show the user.
 
 ## Verification Log
 
+### 2026-08-01 — This artifact is now optional
+
+An author can switch the worked example off on its phase, which collapses the scenario and narrative
+fields, drops them from the translation prompt, stops unreviewed drafts blocking export, and removes
+the card from the all-in-one. Nothing here changes when it is left on, which is the default and what
+every capture written before the choice existed gets. See
+`staging/stage-4-ship/feature-optional-worked-example.md`.
+
 ### 2026-08-01 — Step image capped on screen, not only in print
 
 The print block already capped step images because an uncapped screenshot pushed its own explanation

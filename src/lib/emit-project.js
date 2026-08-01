@@ -179,6 +179,9 @@ ${notes}
     ` data-project="step-capture-studio"` +
     ` data-project-version="${PROJECT_FORMAT_VERSION}"` +
     ` data-source-lang="${escapeHtml(capture.sourceLang ?? languages[0])}"` +
+    // Written even when true. The scenario and narrative are still in the file
+    // below, so their presence cannot imply the choice — only this can.
+    ` data-include-worked-example="${capture.includeWorkedExample === false ? 'false' : 'true'}"` +
     ` data-languages="${escapeHtml(languages.join(' '))}"` +
     ` data-capture-title="${escapeHtml(title)}"` +
     languages

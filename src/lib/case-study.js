@@ -140,6 +140,31 @@ export function setScenario(capture, field, lang, text) {
   }
 }
 
+// ---------------------------------------------------------- opting out ---
+
+/**
+ * Whether this capture will produce a worked example at all.
+ *
+ * **Absent means yes.** Every capture and project file written before this
+ * choice existed had one, so defaulting to "no" would silently drop work an
+ * author had already done and reopen nothing to tell them about it.
+ */
+export function includesWorkedExample(capture) {
+  return capture?.includeWorkedExample !== false
+}
+
+/**
+ * Include or exclude the worked example.
+ *
+ * Nothing is deleted when it is switched off. Scenario and narrative stay in
+ * the model, untouched, so switching back restores the work rather than asking
+ * for it again — which also means the project file has to carry the flag, not
+ * infer it from whether narrative happens to be present.
+ */
+export function setIncludeWorkedExample(capture, included) {
+  return { ...capture, includeWorkedExample: Boolean(included) }
+}
+
 // -------------------------------------------------------------- readiness ---
 
 /**
@@ -150,6 +175,11 @@ export function setScenario(capture, field, lang, text) {
  */
 export function caseStudyReadiness(capture, languages = capture.languages ?? ['en']) {
   const blockers = []
+
+  // Nothing will consume this prose, so unreviewed drafts are no longer a
+  // defect. Leaving them in the count would report a problem the author has
+  // already decided does not apply.
+  if (!includesWorkedExample(capture)) return { ready: true, blockers }
 
   for (const step of capture.steps) {
     const narrative = narrativeOf(step, languages)

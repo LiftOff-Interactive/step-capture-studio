@@ -31,6 +31,16 @@ const NARRATIVE_FIELDS = ['why', 'ifSkipped']
 const SCENARIO_FIELDS = ['audience', 'context', 'outcome']
 const SCENARIO_ID = (field) => `about-${field}`
 
+/**
+ * Whether the capture will produce a worked example.
+ *
+ * Duplicated from case-study.js for the circular-import reason above. It is
+ * behaviour rather than a constant, so keep the two in step: **absent means
+ * included**, because every capture written before the choice existed had one.
+ * case-study.js owns the definition; this is the read-only copy.
+ */
+const includesWorkedExample = (capture) => capture?.includeWorkedExample !== false
+
 const DELIMITER = '|||'
 
 export class TranslationError extends Error {
@@ -72,11 +82,19 @@ export function collectTranslatable(capture, from = capture.sourceLang) {
   // Worked-example scenario — the "about this procedure" details. Authored
   // directly (never drafted), so any non-empty field is the author's own words
   // and safe to translate.
+  //
+  // Both this and the narrative below are skipped when the worked example is
+  // switched off. The strings stay in the model — switching back must restore
+  // them — but sending prose out to be translated that nothing will read wastes
+  // the author's own round trip, which is the scarce part of this workflow.
+  const wantsWorkedExample = includesWorkedExample(capture)
   const scenario = capture.scenario ?? {}
-  for (const field of SCENARIO_FIELDS) {
-    const value = scenario[field]?.[from]
-    if (value?.trim()) {
-      items.push({ id: SCENARIO_ID(field), text: value.trim(), kind: 'scenario', field })
+  if (wantsWorkedExample) {
+    for (const field of SCENARIO_FIELDS) {
+      const value = scenario[field]?.[from]
+      if (value?.trim()) {
+        items.push({ id: SCENARIO_ID(field), text: value.trim(), kind: 'scenario', field })
+      }
     }
   }
 
@@ -104,6 +122,7 @@ export function collectTranslatable(capture, from = capture.sourceLang) {
     // Both worked-example fields, whenever populated — including drafts. A
     // translated draft arrives drafted and is blocked at export until reviewed,
     // so translating it now simply saves the author a manual pass later.
+    if (!wantsWorkedExample) continue
     for (const field of NARRATIVE_FIELDS) {
       const passage = step.narrative?.[field]?.[from]
       if (!passage?.text?.trim()) continue

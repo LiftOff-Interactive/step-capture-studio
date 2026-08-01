@@ -7,8 +7,13 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## 📍 Current State
 - **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT (repo
   recreated 2026-07-22, moved to the `LiftOff-Interactive` org 2026-08-01; the old
-  `mbubyn.github.io` address is gone). **286/286 tests.** Autosave, replace-image, and the
+  `mbubyn.github.io` address is gone). **300/300 tests.** Autosave, replace-image, and the
   all-in-one dashboard shipped and verified live 2026-07-24.
+- **2026-08-01: the worked example is optional** — a tick box on its own phase. Unticking collapses
+  the explanations there and in the editor, drops them from the translation prompt, stops them
+  blocking export, greys out that one download, and takes the card out of the all-in-one (which
+  still exports, with three cards). Nothing is deleted; re-ticking restores it.
+  `staging/stage-4-ship/feature-optional-worked-example.md`.
 - **2026-08-01: the capture's source language is now the author's to set** (radio group on Capture
   details). A French-Snagit capture was filed as English, which ran the translation round trip
   backwards and put `lang="en-CA"` on French prose. Correcting it moves every string and refuses to

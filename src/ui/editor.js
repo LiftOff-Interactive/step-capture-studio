@@ -20,7 +20,7 @@
 
 import { t, LOCALES } from '../lib/i18n.js'
 import { duplicatePairs, stepVerification } from '../lib/authoring.js'
-import { NARRATIVE_FIELDS } from '../lib/case-study.js'
+import { NARRATIVE_FIELDS, includesWorkedExample } from '../lib/case-study.js'
 
 /**
  * Stable, unique, and valid as an HTML id.
@@ -309,7 +309,11 @@ export function buildEditableSteps(document, capture, lang, handlers, imageUrl) 
     // Only the source language is edited here. The French comes through the
     // translation round trip, which already exists — duplicating 20 more
     // fields would double the form for no gain.
-    for (const field of NARRATIVE_FIELDS) {
+    //
+    // Absent entirely when the worked example is switched off. Two fields per
+    // step is the bulk of this form, and they are the only ones that do not
+    // feed the artifacts an author who opted out is actually exporting.
+    for (const field of includesWorkedExample(capture) ? NARRATIVE_FIELDS : []) {
       const passage = step.narrative?.[field]?.[capture.sourceLang]
       const group = document.createElement('div')
       group.className = 'narrative-group'

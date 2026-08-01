@@ -52,6 +52,8 @@ import {
   hasNarrative,
   buildCaseStudyPrompt,
   applyCaseStudyResponse,
+  includesWorkedExample,
+  setIncludeWorkedExample,
   SCENARIO_FIELDS,
 } from '../lib/case-study.js'
 import { setSourceLang, sourceLangReadiness, SourceLangError } from '../lib/source-lang.js'
@@ -127,6 +129,8 @@ const els = {
   downloadDocxFr: document.getElementById('download-docx-fr'),
   downloadAllInOne: document.getElementById('download-all-in-one'),
   caseStudy: document.getElementById('case-study'),
+  includeWorkedExample: document.getElementById('include-worked-example'),
+  workedExampleBody: document.getElementById('worked-example-body'),
   casePrompt: document.getElementById('case-prompt'),
   casePromptOutput: document.getElementById('case-prompt-output'),
   caseDraftInput: document.getElementById('case-draft-input'),
@@ -531,13 +535,24 @@ function renderReadiness({ announce = true } = {}) {
   // The case study carries an extra condition: no unreviewed drafted prose,
   // and something to actually say. Its own gate, because an unreviewed
   // explanation must not block the other two artifacts.
+  //
+  // Switched off, it is permanently blocked — greyed out on the Export page
+  // rather than hidden, for the same reason as every other gated control: an
+  // export that vanishes tells the author nothing about why.
+  const wantsWorkedExample = includesWorkedExample(state.capture)
   const narrative = caseStudyReadiness(state.capture, state.capture.languages)
   const caseStudyBlocked =
-    !readiness.ready || !narrative.ready || !hasNarrative(state.capture, state.capture.languages)
+    !wantsWorkedExample ||
+    !readiness.ready ||
+    !narrative.ready ||
+    !hasNarrative(state.capture, state.capture.languages)
   setOnPair(els.downloadCaseStudy, 'disabled', caseStudyBlocked)
-  // The all-in-one bundles the worked example, so it carries the same gate — its
-  // strictest input decides. Never exportable when the worked example is not.
-  els.downloadAllInOne.disabled = caseStudyBlocked
+  // The all-in-one bundles the worked example, so it inherits that gate — but
+  // only while there is one to bundle. Opting out drops the card from the
+  // dashboard instead of withholding the dashboard: turning off one artifact
+  // should not cost the author the bundle, and it makes the all-in-one
+  // reachable for captures that could never produce a worked example at all.
+  els.downloadAllInOne.disabled = wantsWorkedExample ? caseStudyBlocked : !readiness.ready
   els.exportHint.hidden = readiness.ready
 
   show(els.readiness)
@@ -587,10 +602,26 @@ function syncSourceLang() {
 function syncCaptureFields() {
   if (!state.capture) return
   syncSourceLang()
+  syncWorkedExample()
   renderTitleFields()
   for (const field of SCENARIO_FIELDS) {
     els.scenario[field].value = state.capture.scenario?.[field]?.[state.capture.sourceLang] ?? ''
   }
+}
+
+/**
+ * Reflect the include/exclude choice onto the checkbox and collapse the phase
+ * body to match.
+ *
+ * `hidden` rather than a CSS class: the scenario fields and the prompt controls
+ * are not merely invisible when the worked example is off, they are not part of
+ * the form at all, and a screen reader tabbing into a field that feeds nothing
+ * would be the accessible equivalent of a dead control.
+ */
+function syncWorkedExample() {
+  const included = includesWorkedExample(state.capture)
+  els.includeWorkedExample.checked = included
+  els.workedExampleBody.hidden = !included
 }
 
 function renderSteps() {
@@ -997,6 +1028,23 @@ for (const btn of phaseButtons) {
 
 els.viewTabbed.addEventListener('click', () => setView('tabbed'))
 els.viewLinear.addEventListener('click', () => setView('linear'))
+
+/*
+ * Include or exclude the worked example.
+ *
+ * A full re-render: it changes which fields exist in the step editor, what the
+ * readiness list counts, and which exports are reachable. Undoable like any
+ * other authoring operation — and since nothing is deleted, undo and simply
+ * re-ticking the box are equivalent.
+ */
+els.includeWorkedExample.addEventListener('change', () => {
+  if (!state.capture) return
+  const included = els.includeWorkedExample.checked
+  clearError()
+  commit(setIncludeWorkedExample(state.capture, included))
+  renderAll({ announceReadiness: false })
+  announce(included ? 'caseStudy.included' : 'caseStudy.excluded')
+})
 
 /*
  * Correcting the capture's source language.
