@@ -46,6 +46,46 @@ destination" without juggling separate files. Requested with a mockup 2026-07-24
 
 ## Verification Log
 
+### 2026-08-01 (later) — The author chooses what the dashboard bundles, and the cards got icons
+
+**Mike:** put the all-in-one's write-up on the Export page, add a check per artifact to include it in
+the dashboard, and give the cards standard icons that the Branding page can still override.
+
+**The Export page now shows one card per artifact**, carrying the *same* description and "use when"
+line the dashboard shows a reader. The copy was already written and already translated; an author
+deciding what to hand over wants exactly the summary the learner will see, and keeping one source
+means the two cannot drift. Each card holds its own download (the Step Guide card holds both Word
+buttons, matching the dashboard) plus an **Include in the all-in-one** checkbox.
+
+**Unticking a part never affects its download.** This chooses what goes in the bundle, not what
+exists — asserted, because it is the whole point. Unbundled artifacts are not built at all, so the
+dashboard also gets smaller rather than merely hiding a card.
+
+**Two switches, and the stronger one wins.** The worked example already had a master switch on its
+own phase. When that is off, this checkbox is disabled with a note saying why, rather than shown
+tickable and quietly ignored.
+
+**An empty selection disables the download** and says so. A dashboard of nothing is a file that looks
+broken rather than deliberately empty.
+
+**Standard card icons.** Inline stroke SVG on the existing tile — a few hundred bytes each, inheriting
+the tile's colour so they follow the branding, crisp at any size, and no external request. Four
+distinct drawings: a screen with a play mark, a document, a document with a lamp, a list with a bolt.
+All decorative; the card's title sits directly beneath. The Branding page's per-card upload still
+overrides any of them.
+
+**Automated: 344/344** (was 332). `test/all-in-one-parts.test.js` covers the default, dropping a card
+and its panel, an unbundled artifact still emitting on its own, the Word links following the Step
+Guide card, the master switch winning, empty and single-part selections, the unknown-part guard, both
+project-file directions, and four distinct decorative glyphs. Three mutations caught: removing the
+master-switch override, making an absent attribute mean "bundle nothing" (data loss on every existing
+project file), and giving all four cards the same glyph.
+
+**In-browser:** four cards with their descriptions and use-when lines; unticking Quick Reference gave
+a 3-card dashboard with no quick panel and 3 distinct glyphs, while its own download stayed enabled;
+unticking everything disabled the dashboard and showed the hint, with all four individual downloads
+still working.
+
 ### 2026-08-01 — The card set is no longer fixed at four
 
 With the worked example switched off (`feature-optional-worked-example`), its card and panel are

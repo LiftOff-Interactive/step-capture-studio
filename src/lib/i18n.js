@@ -115,6 +115,12 @@ const STRINGS = {
     'export.downloadDocxEn': 'Download Word document (English)',
     'export.downloadDocxFr': 'Download Word document (French)',
     'export.downloadAllInOne': 'Download all-in-one dashboard',
+    'export.includeInAllInOne': 'Include in the all-in-one',
+    'export.workedExampleOff':
+      'Switched off on the Worked example phase, so there is none to bundle.',
+    'export.allInOneEmpty': 'Tick at least one artifact above to build the dashboard.',
+    'export.partIncluded': '{card} added to the all-in-one.',
+    'export.partExcluded': '{card} left out of the all-in-one.',
     'allInOne.chooseFormat': 'Choose a format',
     'allInOne.useWhen': 'Use when:',
     'allInOne.back': 'Back to menu',
@@ -656,6 +662,13 @@ const STRINGS = {
       'Dégradé de l’en-tête ({field}) : {ratio}:1 sur le texte. La norme WCAG AA exige 4,5:1.',
     'blocker.BRANDING_COLOUR_INVALID': 'La couleur {field} n’est pas valide.',
 
+    'export.includeInAllInOne': 'Inclure dans le tableau de bord',
+    'export.workedExampleOff':
+      'Désactivé à la phase Exemple pratique; il n’y a donc rien à inclure.',
+    'export.allInOneEmpty':
+      'Cochez au moins un artefact ci-dessus pour créer le tableau de bord.',
+    'export.partIncluded': '{card} ajouté au tableau de bord.',
+    'export.partExcluded': '{card} retiré du tableau de bord.',
     'privacy.heading': 'Rien n’est téléversé',
     'privacy.body':
       'Cette page n’a pas de serveur. Votre capture est lue dans votre navigateur et n’est jamais envoyée ailleurs. Vous pouvez vous déconnecter du réseau et tout continue de fonctionner.',

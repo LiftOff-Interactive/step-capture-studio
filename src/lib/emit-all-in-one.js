@@ -40,6 +40,7 @@ import { brandingCss, brandingLogo, brandingIcon } from './branding.js'
 import { emitWalkthrough } from './emit-walkthrough.js'
 import { emitCaseStudy } from './emit-case-study.js'
 import { includesWorkedExample } from './case-study.js'
+import { allInOneParts } from './all-in-one.js'
 import { emitQuickSteps } from './emit-quick-steps.js'
 import { emitDocx } from './emit-docx.js'
 
@@ -77,7 +78,10 @@ const AIO_CSS = `
 .aio-card__icon {
   width: 132px; height: 112px; border-radius: 22px;
   background: var(--aio-brand); border: 2px solid var(--aio-outline);
+  display: flex; align-items: center; justify-content: center;
+  color: #ffffff;
 }
+.aio-card__icon svg { width: 56px; height: 56px; }
 /* An uploaded icon keeps the tile's footprint but not its fill — the artwork
    is the mark, so it sits inside the box rather than being cropped to it. */
 .aio-card__icon--custom {
@@ -214,28 +218,62 @@ function useWhenLine(useWhenKey, languages) {
   return `<p class="aio-card__usewhen">${spans}</p>`
 }
 
+/*
+ * The standard card icons.
+ *
+ * Inline SVG rather than image files: they are a few hundred bytes each, they
+ * inherit the tile's colour so they follow the branding, and they stay crisp at
+ * any size. An external file would break the no-request rule outright.
+ *
+ * Stroke-only, 24-unit grid, no fill — legible at the 112px the tile renders
+ * and still readable if a reader zooms. Each one is decorative; the card's
+ * title sits directly beneath it.
+ *
+ * No backticks in these — they live inside a template literal.
+ */
+const DEFAULT_ICONS = {
+  // A screen with a play mark: something you step through at your own pace.
+  walkthrough:
+    '<rect x="2" y="4" width="20" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/><path d="M8 21h8"/>',
+  // A document with a corner fold and lines of instruction.
+  stepGuide:
+    '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/>',
+  // The same document with a lamp: the reasoning behind each step.
+  workedExample:
+    '<path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M9 8h4M9 12h3"/><path d="M17 20h4M18 22h2"/><path d="M19 11a3 3 0 0 1 2 5v1h-4v-1a3 3 0 0 1 2-5z"/>',
+  // A short list with a bolt: the fast reminder.
+  quickReference:
+    '<path d="M4 6h9M4 12h9M4 18h6"/><path d="M18 4l-3 7h4l-3 7"/>',
+}
+
 /**
  * The icon + title block, shared by both card kinds.
  *
- * The icon is decorative in both forms — the card's own title names it right
+ * The icon is decorative in every form — the card's own title names it right
  * underneath, so describing the picture as well would make a screen reader
  * announce the same card twice. An uploaded icon therefore carries `alt=""`
- * rather than asking the author for text nobody should hear.
+ * rather than asking the author for text nobody should hear, and the standard
+ * one is `aria-hidden`.
  */
-function cardHead(titleKey, languages, icon = null) {
+function cardHead(titleKey, languages, icon = null, slot = null) {
+  const glyph = DEFAULT_ICONS[slot]
   const mark = icon
     ? `<img class="aio-card__icon aio-card__icon--custom" src="${icon}" alt="">`
-    : `<span class="aio-card__icon" aria-hidden="true"></span>`
+    : `<span class="aio-card__icon" aria-hidden="true">${
+        glyph
+          ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false">${glyph}</svg>`
+          : ''
+      }</span>`
   return `${mark}
             <span class="aio-card__title">${langLabel(titleKey, languages, { tag: 'span' })}</span>`
 }
 
 /** A card whose title/icon link opens the artifact panel below. */
-function openCard(panelId, keys, languages, icon = null) {
+function openCard(panelId, keys, languages, icon = null, slot = null) {
   return `      <li>
         <article class="aio-card aio-card--panel">
           <a class="aio-card__head aio-card__open" href="#panel-${panelId}">
-            ${cardHead(keys.title, languages, icon)}
+            ${cardHead(keys.title, languages, icon, slot)}
           </a>
           <p class="aio-card__desc">${langLabel(keys.desc, languages, { tag: 'span' })}</p>
           ${useWhenLine(keys.useWhen, languages)}
@@ -244,11 +282,11 @@ function openCard(panelId, keys, languages, icon = null) {
 }
 
 /** The download-only card: no panel, no reveal — just the Word links. */
-function downloadCard(keys, languages, wordBlock, icon = null) {
+function downloadCard(keys, languages, wordBlock, icon = null, slot = null) {
   return `      <li>
         <article class="aio-card aio-card--download">
           <div class="aio-card__head">
-            ${cardHead(keys.title, languages, icon)}
+            ${cardHead(keys.title, languages, icon, slot)}
           </div>
           <p class="aio-card__desc">${langLabel(keys.desc, languages, { tag: 'span' })}</p>
           ${useWhenLine(keys.useWhen, languages)}
@@ -288,14 +326,21 @@ export async function emitAllInOne(capture, { languages = capture.languages ?? [
   // built when it is wanted — `emitCaseStudy` refuses a capture with no
   // explanations, so building it unconditionally would throw on exactly the
   // captures that opted out.
-  const wantsWorkedExample = includesWorkedExample(capture)
-  const walkthroughHtml = emitWalkthrough(capture, { languages })
+  //
+  // Only what the author ticked. Each artifact is still individually
+  // downloadable on the Export page whatever is bundled here — unticking a part
+  // says "not in the dashboard", never "do not produce this" — so the build is
+  // skipped rather than the card merely hidden. That also keeps the file small:
+  // an unbundled artifact is not inlined at all.
+  const parts = allInOneParts(capture)
+  const wantsWorkedExample = parts.workedExample
+  const walkthroughHtml = parts.walkthrough ? emitWalkthrough(capture, { languages }) : null
   const workedExampleHtml = wantsWorkedExample ? emitCaseStudy(capture, { languages }) : null
-  const quickHtml = emitQuickSteps(capture, { languages })
+  const quickHtml = parts.quickReference ? emitQuickSteps(capture, { languages }) : null
 
   // The Word document, one per language, as base64 download links.
   const wordLinks = []
-  for (const code of languages) {
+  for (const code of parts.stepGuide ? languages : []) {
     const bytes = await emitDocx(capture, { lang: code })
     const name = `${artifactName(captureTitle(capture, code), 'Steps')}_${code.toUpperCase()}.docx`
     wordLinks.push(
@@ -334,19 +379,29 @@ export async function emitAllInOne(capture, { languages = capture.languages ?? [
   // after it. That is the intended behaviour — the alternation is positional by
   // design (see AIO_CSS), so three cards alternate correctly on their own.
   const cards = [
-    openCard('walkthrough', walkthroughKeys, languages, brandingIcon(capture, 'walkthrough')),
-    downloadCard(stepGuideKeys, languages, wordBlock, brandingIcon(capture, 'stepGuide')),
-    ...(wantsWorkedExample
-      ? [openCard('worked-example', workedExampleKeys, languages, brandingIcon(capture, 'workedExample'))]
+    ...(parts.walkthrough
+      ? [openCard('walkthrough', walkthroughKeys, languages, brandingIcon(capture, 'walkthrough'), 'walkthrough')]
       : []),
-    openCard('quick-reference', quickKeys, languages, brandingIcon(capture, 'quickReference')),
+    ...(parts.stepGuide
+      ? [downloadCard(stepGuideKeys, languages, wordBlock, brandingIcon(capture, 'stepGuide'), 'stepGuide')]
+      : []),
+    ...(wantsWorkedExample
+      ? [openCard('worked-example', workedExampleKeys, languages, brandingIcon(capture, 'workedExample'), 'workedExample')]
+      : []),
+    ...(parts.quickReference
+      ? [openCard('quick-reference', quickKeys, languages, brandingIcon(capture, 'quickReference'), 'quickReference')]
+      : []),
   ]
   const panels = [
-    panel('walkthrough', 'allInOne.walkthrough.title', walkthroughHtml, languages, primary),
+    ...(parts.walkthrough
+      ? [panel('walkthrough', 'allInOne.walkthrough.title', walkthroughHtml, languages, primary)]
+      : []),
     ...(wantsWorkedExample
       ? [panel('worked-example', 'allInOne.workedExample.title', workedExampleHtml, languages, primary)]
       : []),
-    panel('quick-reference', 'allInOne.quickReference.title', quickHtml, languages, primary),
+    ...(parts.quickReference
+      ? [panel('quick-reference', 'allInOne.quickReference.title', quickHtml, languages, primary)]
+      : []),
   ]
 
   const body = `${documentHeader({ title, titles, meta, languages, logo: brandingLogo(capture, primary) })}

@@ -57,6 +57,7 @@ import {
   SCENARIO_FIELDS,
 } from '../lib/case-study.js'
 import { setSourceLang, sourceLangReadiness, SourceLangError } from '../lib/source-lang.js'
+import { allInOneParts, setAllInOnePart, hasAnyPart } from '../lib/all-in-one.js'
 import {
   FONT_KEYS,
   ICON_SLOTS,
@@ -170,6 +171,9 @@ const els = {
   brandIcons: document.getElementById('brand-icons'),
   brandReset: document.getElementById('brand-reset'),
   branding: document.getElementById('branding'),
+  aioParts: [...document.querySelectorAll('[data-aio-part]')],
+  aioWorkedExampleNote: document.getElementById('aio-part-workedExample-note'),
+  aioEmptyHint: document.getElementById('aio-empty-hint'),
   exportHint: document.getElementById('export-hint'),
   headerExport: document.getElementById('header-export'),
   viewTabbed: document.getElementById('view-tabbed'),
@@ -584,7 +588,28 @@ function renderReadiness({ announce = true } = {}) {
   // dashboard instead of withholding the dashboard: turning off one artifact
   // should not cost the author the bundle, and it makes the all-in-one
   // reachable for captures that could never produce a worked example at all.
-  els.downloadAllInOne.disabled = wantsWorkedExample ? caseStudyBlocked : !readiness.ready
+  // The dashboard bundles only what the author ticked, so its gate follows the
+  // parts actually going in: the worked example's extra condition applies only
+  // while the worked example is one of them. An empty selection disables it
+  // outright — a dashboard of nothing is a file that looks broken rather than
+  // deliberately empty.
+  const parts = allInOneParts(state.capture)
+  const bundlesWorkedExample = parts.workedExample
+  const anyPart = hasAnyPart(state.capture)
+  els.downloadAllInOne.disabled =
+    !anyPart || (bundlesWorkedExample ? caseStudyBlocked : !readiness.ready)
+  els.aioEmptyHint.hidden = anyPart
+
+  for (const box of els.aioParts) {
+    const part = box.dataset.aioPart
+    box.checked = parts[part]
+    // The worked example's master switch lives on its own phase and wins over
+    // this one; showing this tickable would be a lie about what would happen.
+    if (part === 'workedExample') {
+      box.disabled = !wantsWorkedExample
+      els.aioWorkedExampleNote.hidden = wantsWorkedExample
+    }
+  }
   els.exportHint.hidden = readiness.ready
 
   show(els.readiness)
@@ -1215,6 +1240,26 @@ for (const btn of phaseButtons) {
 
 els.viewTabbed.addEventListener('click', () => setView('tabbed'))
 els.viewLinear.addEventListener('click', () => setView('linear'))
+
+/*
+ * Which artifacts the all-in-one bundles.
+ *
+ * Nothing here affects the download beside it — every artifact stays
+ * individually exportable whatever is ticked. Undoable like any other
+ * authoring change.
+ */
+for (const box of els.aioParts) {
+  box.addEventListener('change', () => {
+    if (!state.capture) return
+    const part = box.dataset.aioPart
+    clearError()
+    commit(setAllInOnePart(state.capture, part, box.checked))
+    renderAll({ announceReadiness: false })
+    announce(box.checked ? 'export.partIncluded' : 'export.partExcluded', {
+      card: t(`allInOne.${part}.title`, state.lang),
+    })
+  })
+}
 
 /*
  * Branding controls.

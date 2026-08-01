@@ -634,45 +634,131 @@
 
         <div id="readiness-body"></div>
 
+        <!--
+          One card per artifact, carrying the same description and "use when"
+          line the all-in-one dashboard shows a reader. The copy was already
+          written and already translated; an author choosing what to hand over
+          needs exactly the same summary the learner will see, and having it in
+          one place means the two cannot drift apart.
+
+          Each card's checkbox controls whether that artifact goes INTO the
+          dashboard. It never affects the download beside it — every artifact
+          stays individually downloadable whatever is ticked.
+        -->
+        <ul class="export-cards">
+          <li>
+            <article class="export-card">
+              <h3 data-i18n="allInOne.walkthrough.title">Interactive Walkthrough</h3>
+              <p data-i18n="allInOne.walkthrough.desc">A self-paced visual guide.</p>
+              <p class="hint">
+                <em data-i18n="allInOne.useWhen">Use when:</em>
+                <span data-i18n="allInOne.walkthrough.useWhen">
+                  You want to click through instructions and screenshots at your own speed.
+                </span>
+              </p>
+              <div class="choice">
+                <input type="checkbox" id="aio-part-walkthrough" data-aio-part="walkthrough" />
+                <label for="aio-part-walkthrough" data-i18n="export.includeInAllInOne">
+                  Include in the all-in-one
+                </label>
+              </div>
+              <button type="button" id="download-walkthrough" class="button"
+                      data-i18n="export.downloadWalkthrough">Download HTML walkthrough</button>
+            </article>
+          </li>
+          <li>
+            <article class="export-card">
+              <h3 data-i18n="allInOne.stepGuide.title">Step Guide</h3>
+              <p data-i18n="allInOne.stepGuide.desc">
+                Detailed instructions combining clear actions with screenshots.
+              </p>
+              <p class="hint">
+                <em data-i18n="allInOne.useWhen">Use when:</em>
+                <span data-i18n="allInOne.stepGuide.useWhen">
+                  You are doing a task for the first time or one you rarely perform.
+                </span>
+              </p>
+              <div class="choice">
+                <input type="checkbox" id="aio-part-stepGuide" data-aio-part="stepGuide" />
+                <label for="aio-part-stepGuide" data-i18n="export.includeInAllInOne">
+                  Include in the all-in-one
+                </label>
+              </div>
+              <button type="button" id="download-docx-en" class="button"
+                      data-i18n="export.downloadDocxEn">Download Word document (English)</button>
+              <button type="button" id="download-docx-fr" class="button"
+                      data-i18n="export.downloadDocxFr">Download Word document (French)</button>
+            </article>
+          </li>
+          <li>
+            <article class="export-card">
+              <h3 data-i18n="allInOne.workedExample.title">Worked Example</h3>
+              <p data-i18n="allInOne.workedExample.desc">
+                Detailed instructions combining clear actions with screenshots and the reasoning
+                behind each step.
+              </p>
+              <p class="hint">
+                <em data-i18n="allInOne.useWhen">Use when:</em>
+                <span data-i18n="allInOne.workedExample.useWhen">
+                  You are doing a task for the first time or one you rarely perform.
+                </span>
+              </p>
+              <!--
+                Disabled outright when the capture produces no worked example at
+                all — that master switch lives on the Worked example phase and
+                wins over this one, so showing it tickable would be a lie.
+              -->
+              <div class="choice">
+                <input type="checkbox" id="aio-part-workedExample" data-aio-part="workedExample"
+                       aria-describedby="aio-part-workedExample-note" />
+                <label for="aio-part-workedExample" data-i18n="export.includeInAllInOne">
+                  Include in the all-in-one
+                </label>
+              </div>
+              <p class="hint" id="aio-part-workedExample-note" hidden
+                 data-i18n="export.workedExampleOff">
+                Switched off on the Worked example phase, so there is none to bundle.
+              </p>
+              <button type="button" id="download-case-study" class="button"
+                      data-i18n="export.downloadCaseStudy">Download worked example</button>
+            </article>
+          </li>
+          <li>
+            <article class="export-card">
+              <h3 data-i18n="allInOne.quickReference.title">Quick Reference</h3>
+              <p data-i18n="allInOne.quickReference.desc">
+                A fast, text-only summary of essential steps.
+              </p>
+              <p class="hint">
+                <em data-i18n="allInOne.useWhen">Use when:</em>
+                <span data-i18n="allInOne.quickReference.useWhen">
+                  You already know the task but need a quick memory refresher.
+                </span>
+              </p>
+              <div class="choice">
+                <input type="checkbox" id="aio-part-quickReference" data-aio-part="quickReference" />
+                <label for="aio-part-quickReference" data-i18n="export.includeInAllInOne">
+                  Include in the all-in-one
+                </label>
+              </div>
+              <button type="button" id="download-quick-steps" class="button"
+                      data-i18n="export.downloadQuickSteps">Download quick-steps guide</button>
+            </article>
+          </li>
+        </ul>
+
+        <!--
+          The "all in one" bundles the ticked artifacts above into a single
+          self-contained page. It carries the same gate as the worked example
+          (the strictest) whenever it contains one.
+        -->
         <div class="toolbar">
-          <button
-            type="button"
-            id="download-quick-steps"
-            class="button"
-            data-i18n="export.downloadQuickSteps"
-          >
-            Download quick-steps guide
-          </button>
-          <button
-            type="button"
-            id="download-walkthrough"
-            class="button"
-            data-i18n="export.downloadWalkthrough"
-          >
-            Download HTML walkthrough
-          </button>
-          <button
-            type="button"
-            id="download-case-study"
-            class="button"
-            data-i18n="export.downloadCaseStudy"
-          >
-            Download worked example
-          </button>
-          <button type="button" id="download-docx-en" class="button" data-i18n="export.downloadDocxEn">
-            Download Word document (English)
-          </button>
-          <button type="button" id="download-docx-fr" class="button" data-i18n="export.downloadDocxFr">
-            Download Word document (French)
-          </button>
-          <!--
-            The "all in one" bundles every artifact above into a single
-            self-contained page. It carries the same gate as the worked example
-            (the strictest), since it contains it.
-          -->
           <button type="button" id="download-all-in-one" class="button" data-i18n="export.downloadAllInOne">
             Download all-in-one dashboard
           </button>
+          <p class="hint" id="aio-empty-hint" hidden data-i18n="export.allInOneEmpty">
+            Tick at least one artifact above to build the dashboard.
+          </p>
         </div>
         <p id="export-hint" class="hint" data-i18n="export.blockedHint">
           Exports unlock once everything above is resolved.

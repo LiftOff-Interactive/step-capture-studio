@@ -29,6 +29,7 @@ import {
 } from './emit-common.js'
 import { NARRATIVE_FIELDS, SCENARIO_FIELDS } from './case-study.js'
 import { brandingOf, ICON_SLOTS } from './branding.js'
+import { AIO_PARTS, allInOneParts } from './all-in-one.js'
 
 /** Bumped only when the shape changes incompatibly; the parser checks it. */
 export const PROJECT_FORMAT_VERSION = '1'
@@ -183,6 +184,11 @@ ${notes}
     // Written even when true. The scenario and narrative are still in the file
     // below, so their presence cannot imply the choice — only this can.
     ` data-include-worked-example="${capture.includeWorkedExample === false ? 'false' : 'true'}"` +
+    // The parts that ARE bundled, listed. An absent attribute means all of
+    // them, which is what the dashboard always did.
+    ` data-all-in-one-parts="${escapeHtml(
+      AIO_PARTS.filter((part) => (capture.allInOne ?? {})[part] !== false).join(' ')
+    )}"` +
     ` data-languages="${escapeHtml(languages.join(' '))}"` +
     ` data-capture-title="${escapeHtml(title)}"` +
     languages

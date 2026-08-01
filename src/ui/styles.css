@@ -707,6 +707,49 @@ input[type="file"] {
   margin: 0;
 }
 
+/* One card per artifact on the Export page, carrying the same description the
+   all-in-one shows a reader. */
+.export-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.export-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}
+
+.export-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.export-card p {
+  margin: 0;
+  max-width: none;
+}
+
+/* The download sits at the foot of every card whatever the text above it runs
+   to, so the buttons line up across the row. */
+.export-card .button {
+  align-self: start;
+  margin-top: auto;
+}
+
+.export-card .button + .button {
+  margin-top: 0.5rem;
+}
+
 /* The source-language group. A bare fieldset carries a default border and
    padding that would read as a second card inside the Capture panel. */
 .fieldset--plain {
