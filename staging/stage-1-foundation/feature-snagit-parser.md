@@ -123,12 +123,12 @@ retired for the format itself. The *French-interface* capture remains the valuab
   locales? A French export may read `10 étapes`. Parse it defensively: split on `|`, take the count
   from the digits, and never fail the whole parse if this line is unrecognised.
 - Is the title paragraph always the application name, or is it user-editable in Snagit?
-- **The app hardcodes `sourceLang: 'en'` at parse time** (`app.js` calls `parseSnagitDocx(bytes)` with
-  no options) and offers no UI to say otherwise. The parser itself accepts a `sourceLang`, so this is
-  an app gap, not a parser one: a capture recorded in a **French Snagit** would have its French verbs
-  filed under `en`, and the translation round-trip would then run fr→en, backwards. Confirmed benign
-  for the 2026-07-24 capture (English Snagit → `en` is correct there). A source-language choice at
-  load would close it; noted, not urgent.
+- ~~**The app hardcodes `sourceLang: 'en'` at parse time**~~ — **closed 2026-08-01.** The load path
+  still parses as `en` (the parser cannot know better, and guessing from the verbs is forbidden), but
+  the author now corrects it on Capture details and every string moves with it. The consequences were
+  worse than "noted, not urgent" once measured: the translation prompt ran backwards **and** the
+  artifacts declared French prose as `lang="en-CA"`. See
+  `staging/stage-4-ship/feature-source-language.md`.
 
 ## Notes & Decisions
 The parser's job is **fidelity, not improvement**. Dedup, editing, and alt text all belong to the

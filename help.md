@@ -78,11 +78,17 @@ accents intact** — which retires risk #1 for the format itself. Details in
 warns about is still untested against a real file. The parser is verb-agnostic by design, so it
 *should* hold — but a real French-Snagit capture would prove it.
 **If your Snagit only ever runs in English, this may never occur in practice** — in which case say so
-and this item can be closed. (Related: the app currently assumes an English source at load; a
-French-Snagit capture would need a source-language choice — see the parser's Open Questions.)
+and this item can be closed.
+**Worth more now than it was.** 2026-08-01 added the source-language control on Capture details, so
+there is finally something to test *with*: load a French-Snagit capture, switch the radio to French,
+and confirm the text moves and the artifacts come out declaring `lang="fr-CA"`. Everything about that
+path is currently proven only against a **synthetic** French capture
+(`staging/stage-4-ship/feature-source-language.md`). A real one would also settle whether Snagit
+writes a usable `dc:language`, which would let the control default to the right answer instead of
+always starting at English.
 **Where to put it:** anywhere outside the repo (Desktop/Downloads fine); never inside the project
 folder.
-**Blocks:** nothing; it de-risks the French-verb path specifically.
+**Blocks:** the last success criterion on `feature-source-language`; otherwise nothing.
 
 ### [x] 4. ~~Record a synthetic demo capture~~ — supplied 2026-07-22
 **Supplied:** "Testing Windows Audio" — 6 steps through Windows Sound settings, kept outside the

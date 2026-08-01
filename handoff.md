@@ -7,8 +7,12 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## 📍 Current State
 - **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT (repo
   recreated 2026-07-22, moved to the `LiftOff-Interactive` org 2026-08-01; the old
-  `mbubyn.github.io` address is gone). **275/275 tests.** Autosave, replace-image, and the
+  `mbubyn.github.io` address is gone). **286/286 tests.** Autosave, replace-image, and the
   all-in-one dashboard shipped and verified live 2026-07-24.
+- **2026-08-01: the capture's source language is now the author's to set** (radio group on Capture
+  details). A French-Snagit capture was filed as English, which ran the translation round trip
+  backwards and put `lang="en-CA"` on French prose. Correcting it moves every string and refuses to
+  run over authored work. `staging/stage-4-ship/feature-source-language.md`.
 - **2026-08-01: the worked example is usable inside the all-in-one again.** A step was taller than
   the panel showing it, so a screenshot and its explanation were never on screen together. Images
   are capped on screen now, not just in print, and an open panel fills the viewport rather than
@@ -34,6 +38,8 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## 📂 Files I'm Working On
 - `src/lib/emit-all-in-one.js` (+ test) — composes the other emitters into one dashboard; each
   artifact embedded whole in an `<iframe srcdoc>`.
+- `src/lib/source-lang.js` (+ test) — exchanges every per-language bucket when the author corrects
+  the capture's source language; gated so it cannot land on authored work.
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7).
 
 ## ✅ Things I've Changed

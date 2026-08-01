@@ -73,6 +73,13 @@ const STRINGS = {
     'capture.stepCount': 'Steps',
     'capture.untitled': 'Untitled capture',
 
+    'sourceLang.legend': 'Language this capture was recorded in',
+    'sourceLang.hint':
+      'Set this before translating. Snagit does not record it, so we assume English — if the steps read “Cliquez sur…”, choose French and the text moves to the French side.',
+    'sourceLang.en': 'English',
+    'sourceLang.fr': 'French',
+    'sourceLang.changed': 'Source language set to {language}. The step text moved with it.',
+
     'alt.seedFromStep': 'Screenshot showing: {text}',
     'alt.unconfirmed': 'Alt text not confirmed',
     'alt.decorative': 'Decorative — no alt text needed',
@@ -246,6 +253,8 @@ const STRINGS = {
     'error.BROWSER_UNSUPPORTED':
       'This browser is too old to read .docx files here. Use a current version of Chrome or Edge.',
     'error.NOT_A_PNG': 'A screenshot inside this file is not a readable image.',
+    'error.SOURCE_LANG_BLOCKED':
+      'The source language cannot be changed now: {count} items are already written in {language}. Changing it moves every string to the other side, which would file that work under the wrong language. Clear those items first, or reload the capture and set the language before translating.',
     'error.UNKNOWN': 'Something went wrong reading this file.',
 
     'privacy.heading': 'Nothing is uploaded',
@@ -306,6 +315,13 @@ const STRINGS = {
     'capture.date': 'Enregistrée le',
     'capture.stepCount': 'Étapes',
     'capture.untitled': 'Capture sans titre',
+
+    'sourceLang.legend': 'Langue dans laquelle cette capture a été enregistrée',
+    'sourceLang.hint':
+      'À définir avant la traduction. Snagit ne l’indique pas; l’anglais est donc présumé. Si les étapes commencent par « Cliquez sur… », choisissez le français et le texte passera du côté français.',
+    'sourceLang.en': 'Anglais',
+    'sourceLang.fr': 'Français',
+    'sourceLang.changed': 'Langue source réglée à {language}. Le texte des étapes a suivi.',
 
     'alt.seedFromStep': 'Capture d’écran montrant : {text}',
     'alt.unconfirmed': 'Texte de remplacement non confirmé',
@@ -499,6 +515,8 @@ const STRINGS = {
     'error.BROWSER_UNSUPPORTED':
       'Ce navigateur est trop ancien pour lire les fichiers .docx ici. Utilisez une version récente de Chrome ou Edge.',
     'error.NOT_A_PNG': 'Une capture d’écran de ce fichier n’est pas une image lisible.',
+    'error.SOURCE_LANG_BLOCKED':
+      'La langue source ne peut pas être changée maintenant : {count} éléments sont déjà rédigés en {language}. Ce changement déplace toutes les chaînes vers l’autre langue, ce qui classerait ce travail sous la mauvaise langue. Effacez ces éléments d’abord, ou rechargez la capture et réglez la langue avant de traduire.',
     'error.UNKNOWN': 'Une erreur est survenue lors de la lecture de ce fichier.',
 
     'privacy.heading': 'Rien n’est téléversé',

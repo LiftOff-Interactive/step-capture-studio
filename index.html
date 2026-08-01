@@ -237,6 +237,40 @@
         <div id="capture-meta" class="meta"></div>
 
         <!--
+          Snagit records nothing we can trust about the capture's language, and
+          guessing from the step verbs is the one thing CLAUDE.md forbids. So the
+          parser assumes English and the author corrects it here, before any
+          translation work starts.
+
+          Changing this MOVES every string to the other language rather than
+          relabelling it, and refuses to run over work already written in the
+          target language — see src/lib/source-lang.js.
+
+          A radio group, not the header's aria-pressed pair: this is a value
+          belonging to the capture, not a view mode. The translation direction
+          and every artifact's lang attribute are built from it.
+        -->
+        <fieldset id="source-lang" class="fieldset--plain" aria-describedby="source-lang-hint">
+          <legend class="field-label" data-i18n="sourceLang.legend">
+            Language this capture was recorded in
+          </legend>
+          <div class="toolbar">
+            <span class="choice">
+              <input type="radio" name="source-lang" id="source-lang-en" value="en" checked />
+              <label for="source-lang-en" data-i18n="sourceLang.en">English</label>
+            </span>
+            <span class="choice">
+              <input type="radio" name="source-lang" id="source-lang-fr" value="fr" />
+              <label for="source-lang-fr" data-i18n="sourceLang.fr">French</label>
+            </span>
+          </div>
+          <p class="hint" id="source-lang-hint" data-i18n="sourceLang.hint">
+            Set this before translating. Snagit does not record it, so we assume English — if the
+            steps read “Cliquez sur…”, choose French and the text moves to the French side.
+          </p>
+        </fieldset>
+
+        <!--
           The title is the most visible string in every artifact, and the source
           document can only ever supply one language. Editable here, one field
           per language, and also carried by the translation round trip.

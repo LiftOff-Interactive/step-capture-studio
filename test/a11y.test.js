@@ -342,3 +342,39 @@ test('the header save button is labelled as a project-file save, not the Export 
   }
   dom.window.close()
 })
+
+test('the source language is a labelled radio group, not a nameless toggle', async () => {
+  // The capture's source language is a value, not a view mode, so it is radios
+  // in a fieldset rather than the header's aria-pressed pair. Both options need
+  // a real label in both languages: a screen reader user choosing the language
+  // of the whole document should not be guessing between two unnamed controls.
+  const dom = await makeDom()
+  const { document } = dom.window
+
+  const group = document.getElementById('source-lang')
+  assert.equal(group.tagName, 'FIELDSET')
+  assert.ok(group.querySelector('legend')?.dataset.i18n, 'the group is named by a legend')
+  assert.equal(
+    document.getElementById(group.getAttribute('aria-describedby'))?.tagName,
+    'P',
+    'and described by the hint explaining that the text moves'
+  )
+
+  const radios = [...document.querySelectorAll('input[name="source-lang"]')]
+  assert.deepEqual(
+    radios.map((r) => r.value),
+    ['en', 'fr'],
+    'one radio per supported language'
+  )
+  assert.equal(radios.filter((r) => r.defaultChecked).length, 1, 'exactly one default')
+
+  for (const lang of LANGUAGES) {
+    applyStaticStrings(document, lang)
+    for (const radio of radios) {
+      const label = document.querySelector(`label[for="${radio.id}"]`)
+      assert.ok(label, `${radio.value} has a label`)
+      assert.ok(label.textContent.trim().length > 0, `labelled in ${lang}`)
+    }
+  }
+  dom.window.close()
+})

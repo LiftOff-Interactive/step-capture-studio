@@ -35,7 +35,9 @@ export const NARRATIVE_FIELDS = ['why', 'ifSkipped']
 /** The scenario fields carried per capture. Author-written, never drafted. */
 export const SCENARIO_FIELDS = ['audience', 'context', 'outcome']
 
-const emptyPassage = () => ({ text: null, drafted: false })
+/** The shape every narrative slot holds, present or not. Exported so anything
+ *  rebuilding a narrative block keeps that invariant rather than writing null. */
+export const emptyPassage = () => ({ text: null, drafted: false })
 
 /** A fresh narrative block for one step. */
 export function emptyNarrative(languages) {

@@ -54,6 +54,7 @@ import {
   applyCaseStudyResponse,
   SCENARIO_FIELDS,
 } from '../lib/case-study.js'
+import { setSourceLang, sourceLangReadiness, SourceLangError } from '../lib/source-lang.js'
 import { applyStaticStrings, buildEditableMeta, buildWarnings } from './render.js'
 import {
   buildEditableSteps,
@@ -98,6 +99,7 @@ const els = {
   errorDetail: document.getElementById('error-detail'),
   capture: document.getElementById('capture'),
   captureMeta: document.getElementById('capture-meta'),
+  sourceLangRadios: [...document.querySelectorAll('input[name="source-lang"]')],
   titleFields: document.getElementById('title-fields'),
   warnings: document.getElementById('warnings'),
   warningsList: document.getElementById('warnings-list'),
@@ -561,6 +563,36 @@ function renderTitleFields() {
   )
 }
 
+/**
+ * Reflect the model's source language onto the radio group.
+ *
+ * One-way, model to control. The control is also put back through here when a
+ * change is refused, so the radio can never sit on a language the capture is
+ * not actually in.
+ */
+function syncSourceLang() {
+  const current = state.capture?.sourceLang
+  for (const radio of els.sourceLangRadios) radio.checked = radio.value === current
+}
+
+/**
+ * Everything outside the step list that is read out of a per-language bucket.
+ *
+ * Split out of `renderAll` because undo needs it too. Until the source language
+ * became undoable, every history entry was step-scoped and `rerenderSteps` was
+ * the whole picture; one that moves every string at once left the radio, the
+ * title fields and the scenario inputs showing the state that was just undone.
+ * That is the same render seam `failed-approaches.md` has caught twice before.
+ */
+function syncCaptureFields() {
+  if (!state.capture) return
+  syncSourceLang()
+  renderTitleFields()
+  for (const field of SCENARIO_FIELDS) {
+    els.scenario[field].value = state.capture.scenario?.[field]?.[state.capture.sourceLang] ?? ''
+  }
+}
+
 function renderSteps() {
   els.stepsList.replaceChildren(
     ...buildEditableSteps(document, state.capture, state.lang, handlers, trackedImageUrl)
@@ -594,7 +626,7 @@ function renderAll({ announceReadiness = true } = {}) {
       editInPlace(setCaptureMeta(state.capture, field, value))
     })
   )
-  renderTitleFields()
+  syncCaptureFields()
 
   if (state.capture.warnings.length) {
     els.warningsList.replaceChildren(...buildWarnings(document, state.capture, state.lang))
@@ -605,10 +637,6 @@ function renderAll({ announceReadiness = true } = {}) {
 
   renderSteps()
   renderReadiness({ announce: announceReadiness })
-
-  for (const field of SCENARIO_FIELDS) {
-    els.scenario[field].value = state.capture.scenario?.[field]?.[state.capture.sourceLang] ?? ''
-  }
 
   els.undo.hidden = state.history.length === 0
   show(els.capture)
@@ -970,6 +998,47 @@ for (const btn of phaseButtons) {
 els.viewTabbed.addEventListener('click', () => setView('tabbed'))
 els.viewLinear.addEventListener('click', () => setView('linear'))
 
+/*
+ * Correcting the capture's source language.
+ *
+ * This is a full re-render, not an in-place edit: every string in the model has
+ * just moved to the other language, so the title fields, step list, scenario
+ * fields and readiness are all showing the wrong side until they are rebuilt.
+ *
+ * Undoable like any other authoring operation — it goes through commit(), so a
+ * misclick is one Undo away rather than a reload.
+ */
+for (const radio of els.sourceLangRadios) {
+  radio.addEventListener('change', () => {
+    if (!state.capture || !radio.checked) return
+    const target = radio.value
+    if (target === state.capture.sourceLang) return
+
+    const { ready, blockers } = sourceLangReadiness(state.capture, target)
+    if (!ready) {
+      // The model did not change, so the control must go back to match it.
+      syncSourceLang()
+      return showError('SOURCE_LANG_BLOCKED', {
+        count: blockers.length,
+        language: t(`sourceLang.${target}`, state.lang),
+      })
+    }
+
+    clearError()
+    try {
+      commit(setSourceLang(state.capture, target))
+    } catch (error) {
+      // readiness already cleared this, so anything landing here is a bug, not
+      // a refused edit. Put the control back rather than leave it lying.
+      syncSourceLang()
+      if (!(error instanceof SourceLangError)) console.error(error)
+      return showError('UNKNOWN')
+    }
+    renderAll({ announceReadiness: false })
+    announce('sourceLang.changed', { language: t(`sourceLang.${target}`, state.lang) })
+  })
+}
+
 els.fileInput.addEventListener('change', (event) => loadFile(event.target.files[0]))
 els.projectInput.addEventListener('change', (event) => loadProjectFile(event.target.files[0]))
 
@@ -1063,6 +1132,8 @@ els.undo.addEventListener('click', () => {
   // Undo changes the document, so the autosave and the dirty flag follow it.
   markDirty()
   scheduleAutosave()
+  // The step list is not the whole document — see syncCaptureFields.
+  syncCaptureFields()
   rerenderSteps()
   announce('editor.undone')
   if (els.undo.hidden) els.seedAlt.focus()
