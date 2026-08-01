@@ -7,8 +7,11 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## 📍 Current State
 - **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT (repo
   recreated 2026-07-22, moved to the `LiftOff-Interactive` org 2026-08-01; the old
-  `mbubyn.github.io` address is gone). **304/304 tests.** Autosave, replace-image, and the
+  `mbubyn.github.io` address is gone). **307/307 tests.** Autosave, replace-image, and the
   all-in-one dashboard shipped and verified live 2026-07-24.
+- **2026-08-01: the walkthrough puts each screenshot beside its instruction** instead of above it
+  (644px step in a 596px panel → 309px). A container query, not a media query — the rail changes how
+  much room a step has. `staging/stage-3-generators/feature-html-walkthrough.md`.
 - **2026-08-01: Edit steps reworked** — step pane no longer capped at the prose measure (585px →
   867px at 1280), the two halves are equal, explanations have a field per language, and "Export
   project file" exists only in the header. `staging/stage-2-authoring/feature-step-editor.md`.

@@ -24,6 +24,44 @@ user.
 
 ## Verification Log
 
+### 2026-08-01 — Screenshot beside its instruction, not above it
+
+**Reported by Mike:** in the all-in-one, the walkthrough "has stacked interaction (text on top of
+image)".
+
+**Measured, all-in-one at a 1280 window.** The panel frame was 960×596. A step measured **644px**,
+taller than the frame showing it: image 911×518 at full column width, instruction at y=1017 — 532px
+below the top of the picture it describes. Same defect the worked example had; here there was width
+going spare, so the fix was to use it rather than only to shrink the image.
+
+**Two changes.** Every step's figures are wrapped in `.step__media`, so the grid has exactly two
+children however many images a step carries — omitted entirely when a step has none, and the CSS
+gives the instruction full width by keying off that absence. The step then becomes a two-column grid
+with the heading spanning both.
+
+**A container query, not a media query.** How much room a step has depends on whether the 17rem rail
+is showing, and this document is embedded in an iframe as well as opened standalone — so the viewport
+does not answer the question. Measured proof: an **800px frame gives the steps 751px**, while a
+**1000px frame gives only 664px**, because the rail appears in between. A viewport media query would
+have had that backwards. Browsers without container queries keep the stacked layout, which is what
+shipped before.
+
+**Result, same panel:** step **309px** (was 644), image 444×253 in the left column, instruction 444px
+wide beside it, and the step now fits the frame with no outer scroll.
+
+**Swept the width**, driving the frame directly: side by side at 1400/1000/800/700; stacked at 660 and
+below (the container falls under the 40rem threshold); no horizontal overflow at any width down to
+360. Standalone artifact at 1280: rail visible, side by side, aspect ratio preserved, no overflow, no
+console errors.
+
+**Print pinned to stacked.** The printed content box lands right on the container threshold, close
+enough to flip on a margin change, and printing was already verified stacked — so `@media print` sets
+`display: block` explicitly and caps the image at 3.2in, matching the worked example.
+
+**Automated: 307/307** (was 304). Three tests, all mutation-tested: the wrapper contract (emitting
+bare figures again fails it), the rule being a container query (swapping in a media query fails it),
+and print staying stacked (dropping the pin fails it).
+
 ### 2026-07-21 - Built; automated PASS, in-browser PASS
 
 **One DOM, two modes.** The emitted document is a plain sequential guide with scripting off and a

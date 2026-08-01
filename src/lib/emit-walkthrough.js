@@ -66,9 +66,42 @@ const WALKTHROUGH_CSS = `
 .step:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 .step h3 { font-size: .95rem; color: var(--muted); margin-bottom: .35rem; }
 .step figure { margin: 0 0 .85rem; }
+.step__media > figure:last-child { margin-bottom: 0; }
 .step img {
-  display: block; width: 100%; height: auto; max-width: 60rem;
+  display: block; width: auto; height: auto;
+  max-width: min(60rem, 100%); max-height: 70vh;
   border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg);
+}
+
+/*
+ * Screenshot beside its instruction, not above it.
+ *
+ * At full column width the picture pushed its own sentence 500px down: inside
+ * the all-in-one panel a step measured 644px in a 596px frame, so the two were
+ * never on screen together. Same defect the worked example had; here there is
+ * width to spare, so the fix is to use it rather than only to shrink the image.
+ *
+ * A CONTAINER query, not a media query. How much room a step actually has
+ * depends on whether the rail is showing — it takes 17rem from 60rem up — so
+ * the viewport does not answer the question, and this document is embedded in
+ * an iframe as well as opened on its own. Asking the step's own container is
+ * the only reading that is right in all three places.
+ *
+ * No backticks in this comment — it lives inside a template literal.
+ */
+.steps { container-type: inline-size; container-name: steps; }
+
+@container steps (min-width: 40rem) {
+  .step {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  .step h3 { grid-column: 1 / -1; }
+  /* A step with no screenshot gets the full width for its instruction rather
+     than a half-width column beside nothing. */
+  .step:not(:has(.step__media)) .step__instruction { grid-column: 1 / -1; }
 }
 .step__instruction {
   padding: .85rem 1rem; background: var(--surface);
@@ -91,7 +124,12 @@ html:not(.js) .step { border-bottom: 1px solid var(--border-subtle); }
 
 @media print {
   .rail, .step-nav { display: none !important; }
-  .step { break-inside: avoid; }
+  /* Stacked on paper, deterministically. The printed content box is around
+     39rem, which sits right on the container threshold above — close enough
+     that the layout could flip with a margin change. Printing was verified
+     stacked, so pin it there rather than leave it to a rounding. */
+  .step { display: block; break-inside: avoid; }
+  .step img { max-height: 3.2in; }
   html.js .step[hidden] { display: block !important; }
 }
 `.trim()
@@ -225,9 +263,16 @@ export function emitWalkthrough(capture, { languages = capture.languages ?? ['en
           // nothing — and a lazy image that was never scrolled into view can
           // come out blank when printed, or stay undecoded while its step is
           // hidden. Both are silent failures in the artifact learners receive.
-          return `        <figure><img src="${toDataUri(image.bytes)}" alt="${escapeHtml(altFor(image, primary))}" ${altAttrs}${dims} decoding="sync"></figure>`
+          return `          <figure><img src="${toDataUri(image.bytes)}" alt="${escapeHtml(altFor(image, primary))}" ${altAttrs}${dims} decoding="sync"></figure>`
         })
         .join('\n')
+
+      // One wrapper around every screenshot, so the step's grid has exactly two
+      // children to place side by side however many images a step carries.
+      // Omitted entirely when there are none — an empty column would leave the
+      // instruction stranded in half the width for no reason, and the CSS keys
+      // off this element's absence to give it the full width instead.
+      const media = figures ? `        <div class="step__media">\n${figures}\n        </div>\n` : ''
 
       const instruction = languages
         .map((code) => {
@@ -238,8 +283,7 @@ export function emitWalkthrough(capture, { languages = capture.languages ?? ['en
 
       return `      <li class="step" id="step-${step.index}" tabindex="-1" aria-labelledby="step-${step.index}-heading">
         <h3 id="step-${step.index}-heading">${heading}</h3>
-${figures}
-        <div class="step__instruction">${instruction}</div>
+${media}        <div class="step__instruction">${instruction}</div>
       </li>`
     })
     .join('\n')

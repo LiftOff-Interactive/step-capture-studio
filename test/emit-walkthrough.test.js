@@ -325,3 +325,58 @@ test('heading structure is sound in both modes', async () => {
     dom.window.close()
   }
 })
+
+test('each step wraps its screenshots so image and instruction can sit side by side', async () => {
+  // Regression test. A screenshot at full column width pushed its own
+  // instruction ~500px below it: inside the all-in-one panel a step measured
+  // 644px in a 596px frame, so the picture and the sentence describing it were
+  // never on screen together. The grid needs exactly two children whatever
+  // number of images a step carries, hence the wrapper.
+  const html = emitWalkthrough(await authored(), { languages: ['en', 'fr'] })
+  const { document } = new JSDOM(html).window
+
+  for (const step of document.querySelectorAll('.step')) {
+    const media = step.querySelector('.step__media')
+    assert.ok(media, `${step.id} has a media wrapper`)
+    assert.equal(
+      step.querySelectorAll('figure').length,
+      media.querySelectorAll('figure').length,
+      'every figure is inside it, none stranded as a direct child'
+    )
+    // The two grid children, in order.
+    const kids = [...step.children].map((el) => el.tagName.toLowerCase() + '.' + el.className)
+    assert.deepEqual(kids.slice(1), ['div.step__media', 'div.step__instruction'])
+  }
+})
+
+test('a step with no screenshot has no empty media column', async () => {
+  // The CSS gives the instruction the full width by keying off this element's
+  // absence, so emitting an empty wrapper would strand the text in half the
+  // page for no reason.
+  let capture = await authored()
+  capture = { ...capture, steps: capture.steps.map((s) => ({ ...s, images: [] })) }
+
+  const html = emitWalkthrough(capture, { languages: ['en'] })
+  const { document } = new JSDOM(html).window
+
+  assert.equal(document.querySelectorAll('.step__media').length, 0)
+  assert.match(html, /:not\(:has\(\.step__media\)\) \.step__instruction/, 'and the CSS covers it')
+})
+
+test('the side-by-side rule is a container query, and print stays stacked', async () => {
+  // A media query would be wrong here: how much room a step has depends on
+  // whether the 17rem rail is showing, and this document is embedded in an
+  // iframe as well as opened on its own. Measured proof of the difference — an
+  // 800px frame gives the steps 751px, a 1000px frame only 664px, because the
+  // rail appears in between.
+  //
+  // Print is pinned to stacked because the printed content box lands right on
+  // the container threshold, close enough to flip on a margin change.
+  const html = emitWalkthrough(await authored(), { languages: ['en'] })
+
+  assert.match(html, /container-type:\s*inline-size/, 'the step list is a query container')
+  assert.match(html, /@container steps \(min-width: 40rem\)/, 'and the split is asked of it')
+
+  const print = html.slice(html.indexOf('@media print'))
+  assert.match(print, /\.step \{[^}]*display:\s*block/, 'print stacks deterministically')
+})
