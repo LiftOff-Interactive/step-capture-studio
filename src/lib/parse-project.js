@@ -20,6 +20,7 @@
 
 import { NARRATIVE_FIELDS, SCENARIO_FIELDS } from './case-study.js'
 import { ICON_SLOTS, FONT_KEYS, defaultBranding, isHexColour } from './branding.js'
+import { AIO_PARTS, defaultParts } from './all-in-one.js'
 
 export class ProjectError extends Error {
   constructor(code, detail) {
@@ -90,6 +91,20 @@ export function parseProject(html, DOMParserImpl = globalThis.DOMParser) {
   // file with something unexpected in there fails safe the same way — the
   // artifact is produced rather than silently dropped.
   const includeWorkedExample = root.getAttribute('data-include-worked-example') !== 'false'
+  /*
+   * Which parts the all-in-one bundles. A file written before this existed has
+   * no attribute and bundles everything, which is what the dashboard did then.
+   * An attribute naming nothing is honoured as "nothing" — the author can
+   * legitimately have unticked them all, and quietly putting them back would
+   * undo that choice on every round trip.
+   */
+  const partsAttr = root.getAttribute('data-all-in-one-parts')
+  const allInOne =
+    partsAttr === null
+      ? defaultParts()
+      : Object.fromEntries(
+          AIO_PARTS.map((part) => [part, partsAttr.split(/\s+/).includes(part)])
+        )
 
   const declared = root.getAttribute('data-declared-step-count')
   const attr = (name) => {
@@ -234,6 +249,7 @@ export function parseProject(html, DOMParserImpl = globalThis.DOMParser) {
     languages,
     declaredStepCount: declared ? Number(declared) : null,
     includeWorkedExample,
+    allInOne,
     branding,
     scenario,
     steps: steps.map(({ declaredIndex, ...step }) => step),
