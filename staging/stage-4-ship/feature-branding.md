@@ -43,8 +43,9 @@ gradient, one highlight colour, a logo, a page background image, and an icon per
 - [x] The reader's own text-size preference is scaled, not overridden.
 - [x] Branding reaches the Word document: fonts, heading colour, sizes.
 - [x] Controls labelled and translated in both languages; collapsed states axe clean.
-- [ ] **The Word document opened in Word itself.** — *human, blocked; see `help.md`.*
-- [ ] A real author brands a capture end to end and looks at the result. — *human.*
+- [x] **The Word document opened in Word itself.** — *human, 2026-08-05; see the log below.*
+- [ ] A real author brands a capture end to end and looks at the result. — *human. Word side done
+  2026-08-05; the four HTML artifacts from that same branded capture have still not been looked at.*
 
 ## How We'll Verify
 1. `npm test` — the model, the contrast maths, the gate, every emitter, both round-trip directions.
@@ -87,6 +88,47 @@ this project's own rule is that `.docx` is verified against **Word itself**, not
 markup, precisely because valid OOXML can still be rejected (`dc:language` in core.xml discarded a
 whole part while every structural test passed). I cannot drive Word here. Mike chose to include the
 Word document knowing this; the criterion stays open and the blocker is in `help.md`.
+
+### 2026-08-05 — Word PASS. Opened in Word by Mike; the last automated criterion closes.
+
+**Automated: 345/345** (332 at the time of the entry above; the rest arrived with the bundle
+selection and Export rebuild).
+
+**The check the 2026-07-22 attempt could not make.** A fresh export from the deployed build opened
+in **the current format — no Compatibility Mode, no convert prompt, no repair dialog**. That is the
+precondition everything below depends on: in Compatibility Mode Word disables the Accessibility
+Checker outright, which is why the July result was meaningless rather than merely stale.
+
+**Review → Check Accessibility: "Looks good. No accessibility issues found."** Zero errors, and no
+warnings or tips reported. Heading styles are still recognised as headings by the navigation pane,
+so the outline survived as *structure* and not merely as large text.
+
+**Branding as it arrived in Word.** Branded with highlight `#ad0b69`, body font *monospace*, heading
+font *Humanist sans*, a logo, and an enlarged base size:
+
+| Set on the Branding phase | Seen in Word | Why that is the correct answer |
+|---|---|---|
+| Body font `mono` | **Cascadia Mono** 12.5pt | `w:rFonts` takes one family, not a stack. `named()` skips the generic aliases and takes the first concrete face — `ui-monospace` out, `Cascadia Mono` in. |
+| Heading font `humanist` | **Trebuchet MS** 28pt (H1) | First named face of the humanist stack. |
+| Highlight `#ad0b69` | Heading colour applied | Emitted as `w:color` `AD0B69`. Export was possible at all, so the gate measured it as clearing AA. |
+| Base size 18px, scale 1.5 | 12.5pt body / 28pt H1 | `Math.round(size × rem × 1.375)` → `round(18×1.375)`=25 half-points=**12.5pt**; `round(18×1.5²×1.375)`=`round(55.6875)`=56=**28pt**. |
+
+**Read the font row before filing a bug.** Word's font box shows the resolved family, never our
+option label — "monospace" and "Humanist sans" are names in `i18n.js`, not typefaces. Seeing
+*Cascadia Mono* where you chose *monospace* is the mapping working. This was misread once already.
+
+**The sizes are the strongest evidence here.** Both observed point sizes land exactly on the
+emitter's formula, half-point rounding included, which pins the whole size path through Word rather
+than establishing only that the text got bigger. Note the anchor is deliberate: 16px maps to Word's
+familiar 11pt body, not to the literal 12pt a px→pt conversion would give.
+
+**Not recorded:** the Word build number. The pre-branding check was 16.0; this one was not written
+down at the time.
+
+**No evidence file exists, by design.** The capture branded was an internal one, so the `.docx` and
+any screenshot of it can never enter the repo — the pre-commit hook checks file contents for
+embedded imagery and would stop it. This entry is deliberately specific because it is the only
+record there will be.
 
 ## Open edges
 - **Gradient and background have no Word equivalent** and are dropped there. Word has no page

@@ -1,5 +1,5 @@
 # Feature: docx-writer
-_Stage: stage-4-ship · Status: awaiting verification_
+_Stage: stage-4-ship · Status: **verified done** — 2026-08-05_
 
 ## Goal
 Export an accessible Word document from the capture model, with zero runtime dependencies. Flagged
@@ -16,8 +16,7 @@ malformed makes Word offer to "repair" the file — which a user reads as corrup
 - [x] Zero runtime dependencies — `CompressionStream` + hand-written ZIP.
 - [x] Word opens the file as a **modern document, not in Compatibility Mode** — the precondition
       for the checker existing at all. `CompatibilityMode=15`, verified via COM 2026-07-22.
-- [ ] Passes **Word's own Accessibility Checker** with zero errors. — *still not run. The first
-      attempt was invalid; see the 2026-07-22 compatibility-mode entry below.*
+- [x] Passes **Word's own Accessibility Checker** with zero errors. — *2026-08-05; see the log below.*
 
 ## How We'll Verify
 1. `npm test` — round-trip the emitted package through this project's own `docx.js` reader, proving
@@ -27,6 +26,25 @@ malformed makes Word offer to "repair" the file — which a user reads as corrup
 4. Record what Word actually reports, not what the markup claims.
 
 ## Verification Log
+
+### 2026-08-05 — Accessibility Checker PASS. Feature closes.
+
+Run by Mike on a fresh export from the deployed build, branded (so this doubles as
+`feature-branding`'s Word check — full detail lives in that file's 2026-08-05 entry).
+
+**The `settings.xml` fix held.** The document opened **in the current format, with no conversion
+prompt and no repair dialog**, which is the whole point: on 2026-07-22 the file opened in
+Compatibility Mode, where Word greys the Accessibility Checker out entirely, so the "result" that
+day was of Word's converted copy rather than of our output. This time the checker was genuinely
+available to run.
+
+**Review → Check Accessibility: "Looks good. No accessibility issues found."** Zero errors — the
+criterion — and no warnings or tips either. Heading styles are still reported as headings by the
+navigation pane, so the outline is real structure and not styled text.
+
+**Automated at time of closing: 345/345.**
+
+**Word build number not recorded** this time; the 2026-07-22 COM run was 16.0.
 
 ### 2026-07-22 — Built and verified against Word 16.0
 

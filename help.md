@@ -7,7 +7,7 @@ tells you at the time. Tick items as you complete them.
 
 ## 🔴 Blocking now
 
-### [ ] 0. Open a **branded** `.docx` in Word — 2026-08-01
+### [x] 0. Open a **branded** `.docx` in Word — 2026-08-01
 **What:** brand a capture on the new Branding phase (pick a non-system heading font, a highlight
 colour, a larger base size), download the Word document, open it in Word and run the Accessibility
 Checker.
@@ -21,7 +21,14 @@ Accessibility Checker no worse than before.
 **Blocks:** the last automated criterion on `feature-branding`. You asked for Word to be in scope
 knowing it could not be verified here — this is that debt.
 
-_Nothing else is blocking as of 2026-08-01._
+**✅ Done 2026-08-05 — passed.** No convert prompt, no repair dialog, "Looks good. No accessibility
+issues found", headings still headings in the navigation pane. Branding arrived: Cascadia Mono
+12.5pt body, Trebuchet MS 28pt H1, `#ad0b69` heading colour — both point sizes match the emitter's
+half-point formula exactly. Full evidence in `feature-branding.md`, Verification Log 2026-08-05.
+One thing to carry forward: Word's font box shows the **resolved family** (Cascadia Mono), never our
+option label (*monospace*). That is the mapping working, not a fault.
+
+_Nothing is blocking as of 2026-08-05._
 
 ### [x] 1. ~~Resolve licensing~~ — done 2026-07-21
 **Decided:** MIT, © 2026 Mike Bubyn. `LICENSE` created, README updated.
@@ -44,7 +51,7 @@ objects after a force-push, which stay fetchable by SHA once a repo is public.
 
 ## 🟡 Needed soon
 
-### [ ] 3b. Re-run Word's Accessibility Checker — **the first attempt could not have worked**
+### [x] 3b. Re-run Word's Accessibility Checker — **the first attempt could not have worked**
 **What:** Export a **fresh** Word document (the old ones will not do), open it, then
 Review → Check Accessibility, and confirm zero errors.
 
@@ -68,6 +75,10 @@ predates the fix. A fixed export is named `Something_Steps_EN.docx`.
 **What to report back:** whether the conversion prompt appeared, then the checker's verdict —
 *errors* specifically, since warnings and tips do not fail this criterion.
 **Blocks:** the last unticked criterion in `staging/stage-4-ship/feature-docx-writer.md`.
+
+**✅ Done 2026-08-05 — passed, on the same file as item 0.** The `settings.xml` fix took: the
+document opened in the **current format with no conversion prompt**, so the Accessibility Checker
+was genuinely available this time. Zero errors, and no warnings or tips either.
 
 **⚠️ Privacy note (2026-07-22):** the `TestingWindowsAudio_*.docx`/`.html` files left on your Desktop
 for this test embed the *original* step-3 screenshot, which shows your email. They are local only,
