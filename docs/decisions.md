@@ -392,3 +392,38 @@ the iframe's own `contentWindow.print()`, printing that artifact with its own pr
 **Rejected for print:** printing the dashboard itself (iframes are hidden in print on purpose) and
 intercepting Ctrl+P to resize the iframe (less predictable across browsers) — the author chose the
 explicit button.
+
+**Branding (`feature-branding`, 2026-08-01).** One phase controlling every artifact's look. Three
+constraints decided the shape. **Fonts are curated system stacks, not uploads:** the artifacts make
+no external request, so a web font is out, and embedding a `.woff2` adds 30–150KB to every file for
+a licence most commercial EULAs do not grant (author's call). **Colours that sit *on* a brand colour
+are derived, never asked for** — header ink is black or white by measurement, and the dark-scheme
+accent is the author's colour blended toward white until it clears AA, because one colour cannot
+serve a white page and a near-black one and BASE_CSS already shipped two accents for that reason.
+**A failing contrast ratio blocks export** alongside unconfirmed alt text (author's call): it makes
+the artifact exactly as non-compliant, and fails everywhere at once rather than in one image.
+**Size is a percentage of the reader's own default, never absolute px** — pinning `html` to 18px
+silently discards a larger default set by someone who needs it. **The default branding is a
+deliberate no-op** so a capture made before the feature renders byte-identically. **Rejected:**
+auto-adjusting a failing brand colour to the nearest passing shade (ships a colour that is not the
+brand's, and nobody is told). The author chose to include the Word document knowing it could not be
+verified against Word here; the gradient and background have no OOXML equivalent and are dropped.
+
+**Choosing what the all-in-one bundles (2026-08-01).** A check per artifact on the Export page, with
+the write-ups reused from the dashboard's own strings so the two cannot drift. **Unticking a part
+never affects its own download** — it says "not in the dashboard", never "do not produce this" — and
+unbundled artifacts are not built at all, so the file shrinks rather than hiding a card. **The worked
+example's master switch on its own phase wins** over the bundle checkbox, which is then disabled with
+a reason rather than shown tickable and ignored. **An empty selection disables the dashboard**: an
+all-in-one of nothing looks broken rather than deliberately empty. **Standard card icons are inline
+stroke SVG**, not image files — a few hundred bytes, inheriting the tile colour so they follow the
+branding, crisp at any size, and no external request. **Rejected:** greying the dashboard out when a
+part is excluded (costs the author the bundle over one artifact they opted out of).
+
+**The Export page as a comparison table (2026-08-01, to a supplied mock-up).** One row per output —
+write-up left, include control centre, downloads right — with the all-in-one promoted to the top and
+carrying no checkbox, because it *is* the bundle. **Rejected: a card grid** (shipped for one commit),
+which boxes each write-up to be read separately when the author is reading *down* the descriptions to
+compare them. Columns are aligned with **`subgrid`**: a grid per row resolves its own tracks from its
+own content, so the include column and buttons landed in a different place on every row.
+

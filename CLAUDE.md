@@ -3,8 +3,10 @@
 **Read `handoff.md` first, then follow its 🔗 Pointer to the active feature file. Do that before anything else.**
 
 ## What this is
-A zero-install, zero-upload static web tool that turns one Snagit step-capture `.docx` into three
-bilingual, WCAG 2.1 AA training artifacts: quick-steps guide, HTML walkthrough, case study.
+A zero-install, zero-upload static web tool that turns one Snagit step-capture `.docx` into
+bilingual, WCAG 2.1 AA training artifacts: quick-steps guide, HTML walkthrough, worked example and
+an accessible Word document — plus an all-in-one dashboard bundling whichever of them the author
+picks. ("Case study" was renamed **worked example** everywhere, 2026-07-23.)
 
 ## Stack (all deliberate — see docs/decisions.md)
 - Vanilla JS, ES modules, **no build step, no runtime dependencies**. Push to `main` = deploy.

@@ -260,3 +260,38 @@ behind for the user.
 **How it was found:** the value was obviously empty yet the assertion threw; a direct debug run showed axe genuinely clean. ·
 **Do instead:** assert on `.length` (and build any message with `.map(...).join(', ')`), exactly as the older a11y helpers already do — method *calls* work across realms, only the identity/prototype check does not. Never `deepEqual` a cross-realm array against a Node-realm literal. ·
 **Wider lesson:** anything crossing the jsdom boundary — return values from `window.eval`, `contentDocument` objects, arrays built inside the frame — is a foreign-realm object; compare it by value or length, never by identity or prototype.
+
+## 2026-08-01 — The prose measure applied to a form
+
+`p, li, dd { max-width: var(--measure) }` keeps reading lines short. A step in the editor is an
+`<li>`, so every step inherited a 68ch cap: **585px inside an 869px column** at a 1280 viewport, with
+the two halves squeezed to 324/216. The rule is right for prose and wrong for a grid of labelled
+controls. **Instead:** `.steps > .step { max-width: none }`. Watch for this on any list item that is
+really a container.
+
+## 2026-08-01 — A viewport media query for a component whose width is not the viewport's
+
+The walkthrough put each screenshot above its instruction. Splitting them side by side looked like a
+`@media` job until the numbers came in: an **800px frame gives the steps 751px, a 1000px frame only
+664px**, because the 17rem rail appears at 60rem in between — so the viewport is anti-correlated with
+the space the component actually has, and the document is also embedded in an iframe. **Instead:** a
+container query on the step list. Same shape of error is available anywhere the all-in-one embeds an
+artifact.
+
+## 2026-08-01 — One brand colour for both colour schemes
+
+`brandingReadiness` first measured the author's highlight against light *and* dark surfaces. The
+default `#0b5cab` failed immediately at 2.68:1 on the dark page — correctly, because BASE_CSS has
+always shipped a *separate* dark accent. A single colour cannot clear AA on both a white page and a
+near-black one. **Instead:** measure the supplied colour against the light surfaces only, and derive
+the dark counterpart by blending toward white until it passes.
+
+## 2026-08-01 — `git checkout --` to undo a mutation test, and `;` between test and commit
+
+Two process failures in one commit. Restoring a mutation-tested file with `git checkout --` reverts
+to **HEAD**, not to the working copy, so it discarded the session's real changes to
+`parse-project.js` along with the mutation. Chaining `npm test; git commit` in one PowerShell call
+then let the commit run over three red tests, and `3a2970c` shipped broken (fixed in `414ea15`).
+**Instead:** `cp` the file aside before mutating and `cp` it back, and gate the commit on the exit
+code (`if npm test; then git commit ...`).
+

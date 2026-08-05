@@ -12,7 +12,17 @@ use the tool without knowing anything about it.
 - [x] `feature-demo-capture` — ships as a loadable project file — **built, awaiting verification**
 - [x] `feature-all-in-one` — one dashboard bundling every artifact + Word downloads — **built,
       awaiting verification** (added 2026-07-24)
+- [x] `feature-ui-redesign` — tabbed teal shell to the July mock-ups — **built, awaiting
+      verification** (added 2026-07-29)
+- [x] `feature-source-language` — the author declares which language the capture was recorded in,
+      and every string moves with it — **built, awaiting verification** (added 2026-08-01)
+- [x] `feature-optional-worked-example` — the worked example can be switched off, collapsing its
+      fields, prompt items and gate — **built, awaiting verification** (added 2026-08-01)
+- [x] `feature-branding` — fonts, colours, logo and imagery across every artifact, contrast-gated —
+      **built, awaiting verification**; the branded `.docx` has **never been opened in Word**
+      (`help.md` 0) (added 2026-08-01)
 - [ ] `feature-public-polish` — README done; screenshot + stranger-flow remain — **in progress**
+      (the landing-page screenshot is now stale after the redesign)
 
 _Note: `feature-project-file` no longer "replaces autosave" — autosave was restored 2026-07-24, rebuilt
 on the project file. See `staging/stage-2-authoring/feature-autosave.md`._
@@ -21,6 +31,8 @@ on the project file. See `staging/stage-2-authoring/feature-autosave.md`._
 - [x] Exported `.docx` opens in Word with no repair prompt. — **verified, Word 16.0**
 - [x] Word opens it as a modern document, **not in Compatibility Mode** — `CompatibilityMode=15`,
       verified via COM 2026-07-22. Without this the checker below is disabled and unreachable.
+- [ ] A **branded** `.docx` opens in Word: chosen heading font and colour, chosen body size, heading
+      styles still recognised. — *never attempted; `help.md` 0.* (added 2026-08-01)
 - [ ] It passes **Word's own Accessibility Checker** with zero errors — the checker's verdict, not an
       inspection of the markup. *First attempt 2026-07-22 was invalid: Word required conversion
       first, so it graded a converted copy. Re-run needed — `help.md` 3b.*
