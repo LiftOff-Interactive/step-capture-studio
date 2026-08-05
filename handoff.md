@@ -7,10 +7,11 @@ Finish Stage 4: a shippable demo capture and public polish, so a stranger can us
 ## 📍 Current State
 - **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT (repo
   recreated 2026-07-22, moved to the `LiftOff-Interactive` org 2026-08-01; the old
-  `mbubyn.github.io` address is gone). **344/344 tests.** Autosave, replace-image, and the
+  `mbubyn.github.io` address is gone). **345/345 tests.** Autosave, replace-image, and the
   all-in-one dashboard shipped and verified live 2026-07-24.
-- **2026-08-01: the Export page carries the dashboard's own write-up**, a check per artifact to
-  include it in the all-in-one, and standard card icons (overridable on the Branding phase).
+- **2026-08-01: the Export page is a comparison table to Mike's mock-up** — the all-in-one leads
+  with its own write-up, then one row per output (description | include checkbox | downloads),
+  columns aligned with `subgrid`. Standard card icons, overridable on the Branding phase.
   Unticking a part never stops that artifact downloading on its own.
   `staging/stage-4-ship/feature-all-in-one.md`.
 - **2026-08-01: a Branding phase** — fonts and sizes, header gradient, one highlight colour, logo,

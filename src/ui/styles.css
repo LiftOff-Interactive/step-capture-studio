@@ -707,47 +707,86 @@ input[type="file"] {
   margin: 0;
 }
 
-/* One card per artifact on the Export page, carrying the same description the
-   all-in-one shows a reader. */
-.export-cards {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-  margin: 1rem 0;
+/*
+ * The Export page, per the 2026-08-01 mock-up: one row per output, with the
+ * write-up left, the include control centre, and the downloads right.
+ *
+ * Three columns rather than a card grid, because the rows are a comparison —
+ * an author is reading down the descriptions to decide what to hand over, and
+ * cards would put each write-up in its own box to be read separately.
+ */
+.export-rows {
+  margin: 1rem 0 0;
   padding: 0;
   list-style: none;
 }
 
-.export-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  height: 100%;
-  padding: 1rem;
-  background: var(--bg);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
+.export-row {
+  display: grid;
+  gap: 0.5rem 1.5rem;
+  align-items: start;
+  padding: 1rem 0;
 }
 
-.export-card h3 {
-  margin: 0;
-  font-size: 1.05rem;
+.export-row + .export-row {
+  border-top: 1px solid var(--border-subtle);
 }
 
-.export-card p {
-  margin: 0;
+/* The dashboard leads and is what the rows beneath it are made of, so it is
+   set off rather than left to look like a fifth sibling. */
+.export-row--bundle {
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--border-subtle);
+}
+
+.export-row--bundle + .export-row {
+  border-top: 0;
+}
+
+/*
+ * Columns that line up DOWN the page, not just across each row.
+ *
+ * A grid per row resolves its own tracks from its own content, so every row
+ * put its checkbox and its button somewhere slightly different — which defeats
+ * the point of a comparison table. The tracks are defined once on the list and
+ * each row borrows them with `subgrid`.
+ *
+ * Progressive, like the container query in the walkthrough: without subgrid
+ * support each row falls back to its own three tracks, which is still readable,
+ * just not aligned.
+ */
+@media (min-width: 52rem) {
+  .export-rows {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(11rem, max-content) max-content;
+  }
+
+  .export-row {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+  }
+}
+
+.export-row__text > * {
+  margin: 0 0 0.25rem;
   max-width: none;
 }
 
-/* The download sits at the foot of every card whatever the text above it runs
-   to, so the buttons line up across the row. */
-.export-card .button {
-  align-self: start;
-  margin-top: auto;
+.export-row__text h3 {
+  font-size: 1rem;
 }
 
-.export-card .button + .button {
-  margin-top: 0.5rem;
+/* Buttons stack and fill their column so the two Word downloads line up under
+   each other rather than wrapping raggedly. */
+.export-row__actions {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: stretch;
+}
+
+.export-row__include .hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
 }
 
 /* The source-language group. A bare fieldset carries a default border and

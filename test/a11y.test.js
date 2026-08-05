@@ -430,3 +430,48 @@ test('the collapsed worked-example phase is axe clean', async () => {
   assertAxeClean(await run(dom), 'worked example collapsed')
   dom.window.close()
 })
+
+test('the export page leads with the dashboard and lays the rest out beside it', async () => {
+  // The 2026-08-01 mock-up: write-up left, include control centre, downloads
+  // right, with the all-in-one promoted to the top. It carries no include
+  // checkbox because it IS the bundle, and the empty-selection hint belongs in
+  // its row rather than beside an artifact it is not about.
+  const dom = await makeDom()
+  const { document } = dom.window
+
+  const rows = [...document.querySelectorAll('.export-row')]
+  assert.equal(rows.length, 5, 'the dashboard plus four outputs')
+  assert.ok(rows[0].classList.contains('export-row--bundle'), 'the dashboard leads')
+  assert.equal(rows[0].querySelector('[data-aio-part]'), null, 'and has no include checkbox')
+  assert.ok(rows[0].contains(document.getElementById('download-all-in-one')))
+  assert.ok(rows[0].contains(document.getElementById('aio-empty-hint')))
+
+  // Every row carries the three cells the layout aligns on.
+  for (const row of rows) {
+    for (const cell of ['__text', '__include', '__actions']) {
+      assert.ok(row.querySelector(`.export-row${cell}`), `a ${cell} cell`)
+    }
+    assert.ok(row.querySelector('h3[data-i18n]'), 'a translated title')
+    assert.ok(row.querySelector('.hint em[data-i18n="allInOne.useWhen"]'), 'a "use when" line')
+  }
+
+  // The write-ups are the dashboard's own strings, so the two cannot drift.
+  const keys = rows.map((row) => row.querySelector('h3').dataset.i18n)
+  assert.deepEqual(keys, [
+    'allInOne.dashboard.title',
+    'allInOne.walkthrough.title',
+    'allInOne.stepGuide.title',
+    'allInOne.workedExample.title',
+    'allInOne.quickReference.title',
+  ])
+
+  // Each download sits in the row that describes it.
+  const rowOf = (id) => rows.findIndex((row) => row.contains(document.getElementById(id)))
+  assert.equal(rowOf('download-walkthrough'), 1)
+  assert.equal(rowOf('download-docx-en'), 2, 'both Word buttons ride with the Step Guide')
+  assert.equal(rowOf('download-docx-fr'), 2)
+  assert.equal(rowOf('download-case-study'), 3)
+  assert.equal(rowOf('download-quick-steps'), 4)
+
+  dom.window.close()
+})

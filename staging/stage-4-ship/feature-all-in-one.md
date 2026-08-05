@@ -46,6 +46,36 @@ destination" without juggling separate files. Requested with a mockup 2026-07-24
 
 ## Verification Log
 
+### 2026-08-01 (later still) — Export page rebuilt to the mock-up
+
+Mike supplied an image of the intended Export page. Two things differed from what had just shipped.
+
+**It is a comparison table, not a card grid.** One row per output: write-up left, include control
+centre, downloads right. Cards put each write-up in its own box to be read separately; an author is
+reading *down* the descriptions to decide what to hand over, so rows are the right shape.
+
+**The dashboard leads.** It sits at the top with its own title, description and "use when" line — new
+strings, since the all-in-one had never described itself — and no include checkbox, because it *is*
+the bundle. The empty-selection hint moved into its row, where it is about the thing it disables.
+
+**Columns are aligned with `subgrid`.** Measured first with a grid per row: the include column landed
+at x=122–185 and the buttons at x=350–413 depending on each row's own content, which defeats the
+point of a table. The tracks are defined once on the list and each row borrows them. Measured after:
+all five rows at 53 / 363 / 591, every button 289px. Progressive, like the walkthrough's container
+query — without subgrid each row falls back to its own three tracks, readable but unaligned.
+
+**A copy bug the layout created:** the empty hint still read "tick at least one artifact **above**"
+while the dashboard had moved to the top. Now "one output below", both languages.
+
+**Automated: 345/345.** The layout contract is asserted in `a11y.test.js` — five rows, the dashboard
+leading with no checkbox and owning both the download and the hint, three cells per row, the
+write-ups keyed to the dashboard's own strings so the two cannot drift, and each download in the row
+that describes it. Mutation-tested by demoting the dashboard to last.
+
+**In-browser:** aligned at 1280, stacked at 375 with no horizontal overflow, both languages
+(«Tableau de bord tout-en-un», «À utiliser quand :»), unticking everything disables the dashboard and
+shows the hint while all four individual downloads stay enabled. No console errors.
+
 ### 2026-08-01 (later) — The author chooses what the dashboard bundles, and the cards got icons
 
 **Mike:** put the all-in-one's write-up on the Export page, add a check per artifact to include it in
