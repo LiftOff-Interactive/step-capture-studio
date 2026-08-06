@@ -7,6 +7,7 @@
  *
  *   node tools/shoot.mjs phases              -> the seven phases, English
  *   node tools/shoot.mjs phases --fr         -> the same in French
+ *   node tools/shoot.mjs phases --brand      -> the same, studio branded
  *   node tools/shoot.mjs artifacts           -> the four exported HTML artifacts, branded
  *   OUT=docs/assets node tools/shoot.mjs phases
  *
@@ -39,6 +40,7 @@ import { pathToFileURL } from 'node:url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const mode = process.argv[2] ?? 'phases'
 const french = process.argv.includes('--fr')
+const branded = process.argv.includes('--brand')
 const ORIGIN = process.env.ORIGIN ?? 'http://localhost:8080'
 const OUT = resolve(root, process.env.OUT ?? join('tools', 'shots'))
 const PORT = Number(process.env.CDP_PORT ?? 9222)
@@ -221,7 +223,29 @@ async function loadDemo(cdp) {
   console.log(`loaded: ${await evaluate(cdp, `document.querySelector('[role="status"]')?.textContent.trim()`)}`)
 }
 
+/** Set the branding controls and commit them. Shared by both modes. */
+async function applyBranding(cdp) {
+  await evaluate(cdp, `document.querySelector('[data-phase-target="branding"]').click()`)
+  await waitFor(cdp, `${VISIBLE_PHASES}.includes('branding')`, 'the Branding panel')
+  for (const [id, value] of Object.entries(BRANDING)) {
+    console.log(`  ${id} = ${await evaluate(cdp, setControl(id, value))}`)
+  }
+  await sleep(400)
+}
+
 async function shootPhases(cdp) {
+  if (branded) {
+    console.log('branding the studio')
+    await applyBranding(cdp)
+    // The explicit commit — the studio deliberately does not repaint on input.
+    await evaluate(cdp, `document.getElementById('brand-apply').click()`)
+    await waitFor(
+      cdp,
+      `getComputedStyle(document.documentElement).getPropertyValue('--brand').trim()==='${BRANDING['brand-highlight']}'`,
+      'the studio to repaint',
+    )
+    console.log(`  applied: ${await evaluate(cdp, `document.getElementById('brand-apply-result').textContent.trim()`)}`)
+  }
   const hashes = new Map()
   for (const [i, [target, label]] of PHASES.entries()) {
     await evaluate(cdp, `document.querySelector('[data-phase-target="${target}"]').click()`)
@@ -241,12 +265,7 @@ async function shootArtifacts(cdp) {
   await rm(downloads, { recursive: true, force: true })
   await mkdir(downloads, { recursive: true })
 
-  await evaluate(cdp, `document.querySelector('[data-phase-target="branding"]').click()`)
-  await waitFor(cdp, `${VISIBLE_PHASES}.includes('branding')`, 'the Branding panel')
-  for (const [id, value] of Object.entries(BRANDING)) {
-    console.log(`  ${id} = ${await evaluate(cdp, setControl(id, value))}`)
-  }
-  await sleep(400)
+  await applyBranding(cdp)
   const readout = await evaluate(
     cdp,
     `[...document.querySelectorAll('[data-phase="branding"] *')].map(e=>e.textContent).find(t=>/:1/.test(t)&&t.length<80)?.trim()`,

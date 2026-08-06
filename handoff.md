@@ -5,7 +5,7 @@ _Last updated: 2026-08-05 · Current stage: stage-4-ship_
 Finish Stage 4: public polish and a shippable demo, so a stranger can use the live site unaided.
 
 ## 📍 Current State
-- **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT. **349/349.**
+- **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT. **352/352.**
 - **Seven phases:** Start · Capture · Worked example · Edit · Translate · Branding · Export.
 - **Branding phase** — fonts/sizes, gradient, highlight, logo, background, card icons; reaches all
   four artifacts and Word. A contrast failure **blocks export**. The default is a deliberate no-op.
@@ -25,7 +25,7 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7). 251 keys per language.
 
 ## ✅ Things I've Changed
-- 2026-08-05 — **`src/ui/tokens.css`** is the one `:root`; all four surfaces consume it.
+- 2026-08-05 — **One `:root`** for all four surfaces; the **studio repaints in the author's brand**.
 - 2026-08-05 — **`tools/shoot.mjs`** photographs phases or artifacts. Tagline says "multiple" now.
 - 2026-08-05 — **Word verified against Word itself, branded.** `feature-docx-writer` → verified done.
 - 2026-08-01 — **Export page rebuilt to Mike's mock-up**; dashboard leads, `subgrid` aligns columns.
@@ -48,10 +48,10 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 
 ## ➡️ Next Up
 _Nothing is blocking._
-1. **`feature-design-tokens`** — steps 1–2 of 4 done. Next: branding writes tokens on `:root`, an
-   **Adjust branding** action commits and audits, and the contrast gate grows to every pairing.
-2. **Cam's human pass** — every phase, keyboard-only, both languages. `node tools/shoot.mjs phases`
-   (add `--fr`) now renders all fourteen, so the pass starts from images, not from scratch.
+1. **`feature-design-tokens`** — steps 1–3 of 4 done. Next: the contrast audit grows to every
+   pairing the brand now touches, light and dark, each assertion mutation-tested.
+2. **Cam's human pass** — every phase, keyboard-only, both languages. `shoot.mjs phases` takes
+   `--fr` and `--brand`, so the pass starts from images rather than from scratch.
 3. `feature-public-polish` — stale README screenshot (`shoot.mjs` regenerates it); **a stranger
    completing the flow** is the definition of done.
 4. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.

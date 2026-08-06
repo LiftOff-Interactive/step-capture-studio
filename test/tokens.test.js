@@ -18,6 +18,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { setTokens, tokensCss, tokensReady } from '../src/lib/tokens.js'
+import { brandingTokensCss, brandTint, bestOn, contrastRatio } from '../src/lib/branding.js'
 import { emitWalkthrough } from '../src/lib/emit-walkthrough.js'
 import { emitQuickSteps } from '../src/lib/emit-quick-steps.js'
 import { emitCaseStudy } from '../src/lib/emit-case-study.js'
@@ -101,6 +102,66 @@ test('every emitted artifact inlines the real tokens', async () => {
     assert.ok(
       html.includes(tokensCss()),
       `${name} inlines something other than the tokens.css that ships`,
+    )
+  }
+})
+
+/**
+ * The colours a brand must never reach.
+ *
+ * An author whose brand fails AA still has to be able to read the message that
+ * says so, so the states that carry meaning — focus, warning, error — are fixed
+ * by construction rather than by anyone remembering not to brand them.
+ */
+const FUNCTIONAL = [
+  '--focus',
+  '--warn-surface',
+  '--warn-border',
+  '--warn-text',
+  '--error-surface',
+  '--error-border',
+  '--error-text',
+]
+
+test('branding can never recolour a functional token', () => {
+  const brands = ['#ad0b69', '#f2c1c1', '#ffd400', '#000000', '#ffffff', '#7fffd4', 'nonsense']
+  for (const highlight of brands) {
+    const css = brandingTokensCss({ branding: { highlight } })
+    for (const token of FUNCTIONAL) {
+      assert.ok(
+        !css.includes(`${token}:`),
+        `branding "${highlight}" writes ${token}; functional colours must stay fixed`,
+      )
+    }
+  }
+})
+
+test('the default branding leaves the shell alone', () => {
+  // "No branding" and "the default branding" are one code path. If the default
+  // emitted a --brand, every capture made before this existed would restyle on
+  // its next export, which is not a default's job.
+  const css = brandingTokensCss({})
+  for (const token of ['--brand', '--brand-tint', '--brand-ink', '--brand-hover', '--on-brand']) {
+    assert.ok(!css.includes(`${token}:`), `the default writes ${token}`)
+  }
+  // A chosen colour does move it — otherwise the above would pass vacuously.
+  const chosen = brandingTokensCss({ branding: { highlight: '#ad0b69' } })
+  assert.match(chosen, /--brand: #ad0b69/)
+  assert.match(chosen, /--brand-tint: #/)
+})
+
+test('every derived on-colour clears AA against what it sits on', () => {
+  for (const highlight of ['#ad0b69', '#155f82', '#ffd400', '#7fffd4', '#333333']) {
+    for (const scheme of ['light', 'dark']) {
+      const tint = brandTint(highlight, scheme)
+      assert.ok(
+        contrastRatio(tint, bestOn(tint)) >= 4.5,
+        `${highlight} ${scheme}: card ink on ${tint} is under AA`,
+      )
+    }
+    assert.ok(
+      contrastRatio(highlight, bestOn(highlight)) >= 3,
+      `${highlight}: even the best on-colour is under the 3:1 floor`,
     )
   }
 })

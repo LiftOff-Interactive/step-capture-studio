@@ -11,7 +11,10 @@ _Stage: stage-4-ship · Status: **in progress** — designed and started 2026-08
       seam — the browser loads the file at startup, `test/helpers/tokens.mjs` does it for tests via
       `--import`, and `tokensCss()` throws rather than emitting a colourless artifact. **All four
       branded artifacts re-render byte-identically**, so the consolidation is a proven no-op. 349/349.
-- [ ] 3. Branding writes tokens on `:root`; **Adjust branding** commits and audits.
+- [x] **3. The studio repaints in the author's brand, on commit.** `brandingTokensCss()` is shared
+      by the studio and every artifact, so the preview cannot drift from the export — it is the same
+      string. **Adjust branding** applies it; editing a control does not. A failing brand is refused
+      with the Export page's own wording, and the studio is left as it was.
 - [ ] 4. Expanded contrast audit + the new assertions, each mutation-tested.
 
 ## Goal
@@ -130,6 +133,36 @@ brand. Both now tokens; both no-ops at today's values.
 **Still open:** `branding.js` hardcodes the page surfaces in `SURFACES` — a fourth copy of `--bg`
 and `--surface`. It is excluded from the duplication assertion for now because the contrast audit
 needs those values; step 4 should take them from the tokens instead.
+
+### 2026-08-05 — Step 3. The studio paints itself; the dashboard is finally whole.
+
+**352/352.** Driven in Chromium against the demo capture, not just asserted.
+
+**Commit, not live — measured.** With the Branding panel open, setting the highlight to `#ad0b69`
+left `--brand` at `#155f82`; clicking **Adjust branding** moved it to `#ad0b69` and the page shell
+with it. That is the behaviour Mike asked for, and the reason for it is that a colour picker fires
+continuously while dragged.
+
+**Refusal works, in both languages.** `#f2c1c1` produced *"Not applied — this would fail WCAG AA, so
+the studio has been left as it was. Highlight colour: 1.59:1 against the page…"* and the French
+equivalent, and `--brand` did not move. The wording is the Export page's own strings, so one failure
+reads the same wherever the author meets it.
+
+**Functional colours confirmed untouched** while branded: `--focus` stayed `#0b5cab`,
+`--error-border` `#a3161d`.
+
+**The half-branded dashboard is fixed.** Re-exported branded, only the all-in-one's hash changed
+(`cdb42d7ee3` → `175d677656`); the walkthrough, quick steps and worked example are byte-identical,
+which is exactly the blast radius expected when only the dashboard consumes `--brand`.
+
+**Six mutations caught across steps 2–3:** a colour literal in a consumer; a token with no dark
+value; tokens not inlined; branding writing `--focus`; the default emitting a shell colour; the tint
+derivation pushed until card ink fails AA. Each was confirmed to have actually applied first — an
+earlier round recorded a "not caught" that turned out to be a mutation that never took.
+
+**One bug only a screenshot could find.** The branded studio came out magenta with two stubbornly
+blue range sliders: `accent-color` had been set on checkboxes and radios only. No assertion would
+have flagged it — the sliders were painted exactly as the stylesheet said.
 
 ## Open edges
 - **The dashboard's card tint is a design decision, not just a wiring one.** Deriving a readable

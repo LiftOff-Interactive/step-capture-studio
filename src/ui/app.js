@@ -66,6 +66,8 @@ import {
   SCALE_LIMITS,
   bestOn,
   brandingOf,
+  brandingReadiness,
+  brandingTokensCss,
   contrastRatio,
   defaultBranding,
   setBranding,
@@ -171,6 +173,8 @@ const els = {
   brandBackgroundClear: document.getElementById('brand-background-clear'),
   brandIcons: document.getElementById('brand-icons'),
   brandReset: document.getElementById('brand-reset'),
+  brandApply: document.getElementById('brand-apply'),
+  brandApplyResult: document.getElementById('brand-apply-result'),
   branding: document.getElementById('branding'),
   aioParts: [...document.querySelectorAll('[data-aio-part]')],
   aioWorkedExampleNote: document.getElementById('aio-part-workedExample-note'),
@@ -1200,6 +1204,11 @@ async function loadProjectText(html) {
   state.activeStep = 1
   renderAll()
 
+  // Paint on load, not on every edit: opening a project should show you whose
+  // it is at a glance, but typing in the colour picker should not repaint the
+  // studio under your cursor. Between the two, the Adjust branding button.
+  paintStudio(restored)
+
   updatePhaseGate()
   setPhase('capture')
 
@@ -1358,7 +1367,75 @@ els.brandReset.addEventListener('click', () => {
   // Undoable like anything else, so a mis-click does not cost an uploaded logo.
   commit({ ...state.capture, branding: defaultBranding() })
   renderAll({ announceReadiness: false })
+  paintStudio(state.capture)
+  els.brandApplyResult.textContent = ''
   announce('branding.wasReset')
+})
+
+/**
+ * Repaint the studio in the capture's own branding.
+ *
+ * Injected as a stylesheet rather than set as inline properties on :root,
+ * because the branding carries a dark-scheme block and an inline style cannot
+ * express a media query — it would force the light values onto a reader in dark
+ * mode. The string is the *same one the artifacts embed*, so the preview cannot
+ * drift from the export.
+ *
+ * Only tokens are applied, never component rules: the studio keeps its own
+ * layout, and functional colours (focus, warning, error) are absent from the
+ * override by construction, so a brand can never recolour them.
+ */
+function paintStudio(capture) {
+  let sheet = document.getElementById('brand-tokens')
+  if (!sheet) {
+    sheet = document.createElement('style')
+    sheet.id = 'brand-tokens'
+    // After tokens.css and styles.css, so the overrides win.
+    document.head.append(sheet)
+  }
+  sheet.textContent = capture ? brandingTokensCss(capture) : ''
+}
+
+/**
+ * Commit the branding to the studio — the explicit act, not a side effect of
+ * typing. Refuses when the result would fail AA, and says why rather than
+ * applying something unreadable and leaving the author to notice.
+ */
+els.brandApply.addEventListener('click', () => {
+  if (!state.capture) return
+  clearError()
+  const { ready, blockers } = brandingReadiness(state.capture)
+  if (!ready) {
+    // Deliberately does not repaint. The studio staying legible is the whole
+    // reason the functional colours are excluded from branding in the first
+    // place, and applying a failing palette would undercut that.
+    // The same strings the Export page uses for the same failure. One wording
+    // for one problem — and they are already translated and already say "the
+    // page" rather than leaking a token name like "bg" at the author.
+    //
+    // Deduped to the worst ratio per colour: the readiness check measures each
+    // surface separately, but "bg" and "surface" are both just the page to the
+    // person reading this, so listing them twice says the same thing twice with
+    // two different numbers.
+    const worst = new Map()
+    for (const b of blockers) {
+      const key = `${b.code}:${b.field}`
+      const seen = worst.get(key)
+      if (!seen || (b.ratio ?? Infinity) < (seen.ratio ?? Infinity)) worst.set(key, b)
+    }
+    const detail = [...worst.values()]
+      .map((b) =>
+        t(`blocker.BRANDING_${b.code}`, state.lang, {
+          field: t(`branding.${b.field}`, state.lang),
+          ratio: b.ratio ?? '?',
+        }),
+      )
+      .join(' ')
+    els.brandApplyResult.textContent = t('branding.applyBlocked', state.lang, { detail })
+    return
+  }
+  paintStudio(state.capture)
+  els.brandApplyResult.textContent = t('branding.applied', state.lang)
 })
 
 /*

@@ -317,6 +317,11 @@ const STRINGS = {
     'branding.iconFor': 'Icon for the {card} card',
     'branding.removeIcon': 'Remove the {card} icon',
     'branding.reset': 'Reset branding to the defaults',
+    'branding.apply': 'Adjust branding',
+    'branding.applied':
+      'Branding applied to the studio. What you see here is what your artifacts will look like.',
+    'branding.applyBlocked':
+      'Not applied — this would fail WCAG AA, so the studio has been left as it was. {detail}',
     'branding.wasReset': 'Branding reset to the defaults.',
     'branding.imageSet': '{what} set.',
     'branding.imageCleared': '{what} removed.',
@@ -652,6 +657,11 @@ const STRINGS = {
     'branding.iconFor': 'Icône de la carte {card}',
     'branding.removeIcon': 'Retirer l’icône de la carte {card}',
     'branding.reset': 'Rétablir les valeurs par défaut',
+    'branding.apply': 'Ajuster l’image de marque',
+    'branding.applied':
+      'Image de marque appliquée au studio. Ce que vous voyez ici correspond à vos documents.',
+    'branding.applyBlocked':
+      'Non appliquée — cela échouerait au niveau WCAG AA, le studio est resté inchangé. {detail}',
     'branding.wasReset': 'Image de marque rétablie aux valeurs par défaut.',
     'branding.imageSet': '{what} défini.',
     'branding.imageCleared': '{what} retiré.',

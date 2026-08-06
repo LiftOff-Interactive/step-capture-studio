@@ -54,6 +54,10 @@
   --error-border: #a3161d;
   --error-text: #6d1015;
 
+  /* Brandable. Not colours, so they need no dark-scheme counterpart. */
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: system-ui, -apple-system, "Segoe UI", sans-serif;
+
   --radius: 8px;
   --radius-card: 12px;
   --radius-panel: 28px;

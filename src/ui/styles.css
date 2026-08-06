@@ -14,7 +14,7 @@ body {
   padding: 0.75rem 0.75rem 4rem;
   background: var(--page-bg);
   color: var(--text);
-  font: 1rem/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 1rem/1.6 var(--font-body);
 }
 
 /* Content stays readable when text spacing is overridden (WCAG 1.4.12). */
@@ -26,9 +26,13 @@ dd {
 
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5,
+h6 {
   line-height: 1.25;
   margin: 0 0 0.5rem;
+  font-family: var(--font-heading);
 }
 
 h1 {
@@ -621,8 +625,22 @@ input[type="file"] {
 .choice input {
   width: 20px;
   height: 20px;
-  accent-color: var(--accent);
   flex: none;
+}
+
+/*
+ * Everything the browser paints with accent-color, in one place.
+ *
+ * This used to be set on checkboxes and radios only, so a branded studio came
+ * out magenta with two stubbornly blue range sliders. Found by looking at a
+ * screenshot — no assertion would have noticed, because the sliders were
+ * styled exactly as the stylesheet said.
+ */
+input[type="range"],
+input[type="checkbox"],
+input[type="radio"],
+progress {
+  accent-color: var(--accent);
 }
 
 .checkbox label,

@@ -614,9 +614,23 @@
         </fieldset>
 
         <div class="toolbar">
+          <!--
+            Applying is an explicit act, not a side effect of typing. A colour
+            picker fires continuously while it is being dragged, so repainting
+            on input would spend the drag in states nobody chose — some of them
+            unreadable. This is also the one obvious moment to run the contrast
+            audit and have somewhere to report it.
+          -->
+          <button type="button" id="brand-apply" class="button"
+                  data-i18n="branding.apply">Adjust branding</button>
           <button type="button" id="brand-reset" class="button button--quiet"
                   data-i18n="branding.reset">Reset branding to the defaults</button>
         </div>
+        <!--
+          Never replaced, only its text updated — a live region created at the
+          same moment its content changes is not announced.
+        -->
+        <p id="brand-apply-result" class="hint" role="status" aria-live="polite"></p>
       </section>
 
       <section id="readiness" class="panel" hidden aria-labelledby="readiness-heading" data-phase="export">
