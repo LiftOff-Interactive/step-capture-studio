@@ -368,8 +368,12 @@ test('a tall screenshot cannot push its own instruction off the screen', async (
   // and the sentence describing it, so inside the all-in-one panel a step
   // measured 644px in a 596px frame. Capping the image is what solves it now,
   // which makes max-height load-bearing rather than decorative.
+  //
+  // Half the frame, not 70% of it: at 70vh the picture filled the all-in-one
+  // panel and the instruction sat just below the fold, so the step arrived as a
+  // screenshot with no sentence until you scrolled.
   const html = emitWalkthrough(await authored(), { languages: ['en'] })
-  assert.match(html, /\.step img \{[^}]*max-height:\s*70vh/, 'the screenshot is capped')
+  assert.match(html, /\.step img \{[^}]*max-height:\s*50vh/, 'the screenshot is capped')
 
   const print = html.slice(html.indexOf('@media print'))
   assert.match(print, /\.step \{[^}]*display:\s*block/, 'print stacks deterministically')

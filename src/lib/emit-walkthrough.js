@@ -69,7 +69,7 @@ const WALKTHROUGH_CSS = `
 .step figure { margin: 0 0 .85rem; }
 .step img {
   display: block; width: 100%; height: auto;
-  max-width: min(60rem, 100%); max-height: 70vh;
+  max-width: min(60rem, 100%); max-height: 50vh;
   border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg);
 }
 
@@ -85,8 +85,14 @@ const WALKTHROUGH_CSS = `
  * other means the original note dismissed: at full width a tall screenshot used
  * to push its own sentence some 500px down, so inside the all-in-one panel a
  * step measured 644px in a 596px frame and the two were never on screen
- * together. The max-height of 70vh on the image is what keeps them together
- * now — it is doing load-bearing work, not tidying.
+ * together. The max-height on the image is what keeps them together now, so it
+ * is doing load-bearing work rather than tidying.
+ *
+ * 50vh, not 70vh. At 70 the picture filled the all-in-one panel and the
+ * sentence sat just below the fold — reachable, but you saw a screenshot with
+ * no instruction until you scrolled. Half the frame leaves room for the step to
+ * arrive as one thing. Inside an iframe the unit resolves against the frame,
+ * which is the box that was too small in the first place.
  *
  * No backticks in this comment — it lives inside a template literal.
  */
