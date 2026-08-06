@@ -1,0 +1,95 @@
+/*
+ * The design tokens. This file is the single definition of every colour, radius
+ * and measure in the project — the studio links it, and each exported artifact
+ * inlines it, so one setting reaches all four surfaces.
+ *
+ * Nothing but :root belongs here. Component rules live with their surface:
+ * styles.css for the studio, and the emit-*.js templates for what it exports.
+ *
+ * Before this file the palette existed three times, copied by hand, and the
+ * names had already drifted — --brand and --aio-brand were the same teal under
+ * two names, --text-muted and --muted the same grey. That is how a branded
+ * dashboard came out with unbranded cards while every test passed.
+ *
+ * Contrast targets, verified in-browser rather than eyeballed:
+ *   text vs background      >= 4.5:1  (WCAG 1.4.3)
+ *   UI borders, focus ring  >= 3:1    (WCAG 1.4.11)
+ *
+ * Brandable tokens are marked. Everything unmarked is functional and must stay
+ * fixed: an author whose brand fails AA still has to be able to read the
+ * message that says so.
+ */
+
+:root {
+  --bg: #ffffff;
+  --surface: #f4f6f8;
+  --text: #1a1d21;
+  --text-muted: #565b62;
+  --accent: #0b5cab; /* brandable */
+  --on-accent: #ffffff; /* derived from --accent, never set directly */
+  --border: #6b7280;
+  --border-subtle: #d7dce2;
+  --focus: #0b5cab;
+
+  /*
+   * Brand chrome — the teal shell the white cards sit on, from the July 2026
+   * dashboard mock-ups. --on-brand over --brand measures 7.0:1; --brand-ink
+   * over --brand-tint 11.3:1; --text over --chip-active 12.2:1.
+   */
+  --brand: #155f82; /* brandable */
+  --on-brand: #ffffff; /* derived from --brand */
+  --brand-tint: #dceaf7; /* brandable, derived from --brand */
+  --brand-ink: #12303f; /* derived from --brand-tint */
+  --brand-border: #10222b;
+  --page-bg: var(--brand);
+  --chip-active: #bfe0f0;
+
+  /* Functional. Never brandable — see the file comment. */
+  --warn-surface: #fff6e5;
+  --warn-border: #8a5a00;
+  --warn-text: #4a3000;
+
+  --error-surface: #fdecec;
+  --error-border: #a3161d;
+  --error-text: #6d1015;
+
+  --radius: 8px;
+  --radius-card: 12px;
+  --radius-panel: 28px;
+  --gap: 1rem;
+  --measure: 68ch;
+  --shell: 88rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a;
+    --surface: #1e2226;
+    --text: #eceef1;
+    --text-muted: #b3b9c0;
+    --accent: #7fb4ef;
+    --on-accent: #10131a;
+    --border: #8b939c;
+    --border-subtle: #363c43;
+    --focus: #7fb4ef;
+
+    /* The pills keep the light theme's teal — white-on-#155f82 is 7.0:1
+       regardless of what surrounds it — but the page shell darkens and the
+       tint/active tokens flip to dark surfaces with light ink. */
+    --brand: #155f82;
+    --on-brand: #ffffff;
+    --brand-tint: #10394d;
+    --brand-ink: #dceaf7;
+    --brand-border: #06131a;
+    --page-bg: #0b1f2a;
+    --chip-active: #10394d;
+
+    --warn-surface: #2b2211;
+    --warn-border: #d9a441;
+    --warn-text: #f2dcae;
+
+    --error-surface: #2c1517;
+    --error-border: #f08b90;
+    --error-text: #f6c9cb;
+  }
+}

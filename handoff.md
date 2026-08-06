@@ -28,13 +28,14 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7). 251 keys per language.
 
 ## ✅ Things I've Changed
+- 2026-08-05 — **`src/ui/tokens.css`** is now the one `:root`; `styles.css` consumes it.
 - 2026-08-05 — **`tools/shoot.mjs`** photographs phases or artifacts. Tagline says "multiple" now.
 - 2026-08-05 — **Word verified against Word itself, branded.** `feature-docx-writer` → verified done.
 - 2026-08-01 — **Export page rebuilt to Mike's mock-up**; dashboard leads, `subgrid` aligns columns.
 - 2026-08-01 — **Bundle selection + standard card icons**; icons overridable on Branding.
 - 2026-08-01 — **Branding phase** across every artifact, contrast-gated.
-- 2026-08-01 — **Walkthrough and worked example beside their screenshots**; source language,
-  optional worked example, bilingual explanations, wider editor.
+- 2026-08-01 — **Beside-the-screenshot layout**; source language, optional worked example, wider
+  editor.
 
 ## ❌ Watch Out
 - **A green suite can sit on top of an unusable UI.** Undo left the branding controls stale on
@@ -49,8 +50,8 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 
 ## ➡️ Next Up
 _Nothing is blocking._
-1. **Decide the all-in-one's card colours.** `--aio-brand`/`--aio-tint` are hardcoded teal, so a
-   branded dashboard is half-branded. Found by looking, 2026-08-05; every assertion passes.
+1. **`feature-design-tokens`** — one `:root` for all four surfaces; step 1 of 4 done. Subsumes the
+   half-branded dashboard (`--aio-brand` teal). Studio repaints on **Adjust branding**, not live.
 2. **Cam's human pass** — every phase, keyboard-only, both languages. `node tools/shoot.mjs phases`
    (add `--fr`) now renders all fourteen, so the pass starts from images, not from scratch.
 3. `feature-public-polish` — README screenshot is stale after the redesign; `tools/shoot.mjs` can
@@ -58,4 +59,4 @@ _Nothing is blocking._
 4. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.
 
 ## 🔗 Pointer
-→ `staging/stage-4-ship/` · Active feature: `staging/stage-4-ship/feature-branding.md`
+→ `staging/stage-4-ship/` · Active feature: `staging/stage-4-ship/feature-design-tokens.md`

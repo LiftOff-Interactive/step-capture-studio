@@ -6,8 +6,15 @@
     <title>Step Capture Studio</title>
     <meta
       name="description"
-      content="Turn one Snagit step capture into three bilingual, accessible training guides. Nothing is uploaded."
+      content="Turn one Snagit step capture into multiple bilingual, accessible training guides. Nothing is uploaded."
     />
+    <!--
+      tokens.css first: it is the single definition of every colour, radius and
+      measure, and styles.css only consumes them. Linked rather than inlined so
+      first paint is already correct — the exporters fetch this same file and
+      inline it into each artifact, so all four surfaces share one source.
+    -->
+    <link rel="stylesheet" href="src/ui/tokens.css" />
     <link rel="stylesheet" href="src/ui/styles.css" />
   </head>
   <body>
@@ -17,7 +24,7 @@
       <div class="site-header__text">
         <h1 data-i18n="app.name">Step Capture Studio</h1>
         <p class="tagline" data-i18n="app.tagline">
-          Turn one Snagit step capture into three training guides. Your file never leaves this
+          Turn one Snagit step capture into multiple training guides. Your file never leaves this
           browser.
         </p>
       </div>
