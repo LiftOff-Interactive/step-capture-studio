@@ -326,56 +326,50 @@ test('heading structure is sound in both modes', async () => {
   }
 })
 
-test('each step wraps its screenshots so image and instruction can sit side by side', async () => {
-  // Regression test. A screenshot at full column width pushed its own
-  // instruction ~500px below it: inside the all-in-one panel a step measured
-  // 644px in a 596px frame, so the picture and the sentence describing it were
-  // never on screen together. The grid needs exactly two children whatever
-  // number of images a step carries, hence the wrapper.
+test('a step stacks its screenshot above its instruction, with nothing in between', async () => {
+  // The layout Mike wants, pinned so it cannot drift back. The viewer is TWO
+  // columns — the step rail, then the picture and its sentence together on the
+  // right. For a while each step was itself split into picture beside sentence,
+  // making three columns; that read as two unrelated panels rather than one
+  // step, and narrowed both. Reverted 2026-08-05.
   const html = emitWalkthrough(await authored(), { languages: ['en', 'fr'] })
   const { document } = new JSDOM(html).window
 
   for (const step of document.querySelectorAll('.step')) {
-    const media = step.querySelector('.step__media')
-    assert.ok(media, `${step.id} has a media wrapper`)
-    assert.equal(
-      step.querySelectorAll('figure').length,
-      media.querySelectorAll('figure').length,
-      'every figure is inside it, none stranded as a direct child'
+    const kids = [...step.children].map((el) => el.tagName.toLowerCase())
+    assert.deepEqual(
+      kids,
+      ['h3', 'figure', 'div'],
+      `${step.id} should be heading, screenshot, instruction — flat and in that order`
     )
-    // The two grid children, in order.
-    const kids = [...step.children].map((el) => el.tagName.toLowerCase() + '.' + el.className)
-    assert.deepEqual(kids.slice(1), ['div.step__media', 'div.step__instruction'])
+    assert.ok(
+      step.querySelector(':scope > figure'),
+      `${step.id} keeps its figure as a direct child, not inside a layout wrapper`
+    )
   }
 })
 
-test('a step with no screenshot has no empty media column', async () => {
-  // The CSS gives the instruction the full width by keying off this element's
-  // absence, so emitting an empty wrapper would strand the text in half the
-  // page for no reason.
-  let capture = await authored()
-  capture = { ...capture, steps: capture.steps.map((s) => ({ ...s, images: [] })) }
-
-  const html = emitWalkthrough(capture, { languages: ['en'] })
-  const { document } = new JSDOM(html).window
-
-  assert.equal(document.querySelectorAll('.step__media').length, 0)
-  assert.match(html, /:not\(:has\(\.step__media\)\) \.step__instruction/, 'and the CSS covers it')
-})
-
-test('the side-by-side rule is a container query, and print stays stacked', async () => {
-  // A media query would be wrong here: how much room a step has depends on
-  // whether the 17rem rail is showing, and this document is embedded in an
-  // iframe as well as opened on its own. Measured proof of the difference — an
-  // 800px frame gives the steps 751px, a 1000px frame only 664px, because the
-  // rail appears in between.
-  //
-  // Print is pinned to stacked because the printed content box lands right on
-  // the container threshold, close enough to flip on a margin change.
+test('the viewer is two columns, and a step is not subdivided into more', async () => {
   const html = emitWalkthrough(await authored(), { languages: ['en'] })
 
-  assert.match(html, /container-type:\s*inline-size/, 'the step list is a query container')
-  assert.match(html, /@container steps \(min-width: 40rem\)/, 'and the split is asked of it')
+  // The rail plus one content column. That is the whole grid.
+  assert.match(html, /\.viewer \{[^}]*display:\s*grid/, 'the viewer is the grid')
+  assert.match(html, /grid-template-columns:\s*17rem minmax\(0, 1fr\)/, 'rail plus content')
+
+  // Nothing may re-split a step. A container query is how it happened before.
+  assert.doesNotMatch(html, /@container/, 'no container query subdividing a step')
+  assert.doesNotMatch(html, /\.step \{[^}]*display:\s*grid/, '.step is not itself a grid')
+  assert.doesNotMatch(html, /step__media/, 'the wrapper that fed that grid is gone')
+})
+
+test('a tall screenshot cannot push its own instruction off the screen', async () => {
+  // This is the defect the side-by-side split was introduced to fix, and it is
+  // still real: at full width a tall picture used to put ~500px between itself
+  // and the sentence describing it, so inside the all-in-one panel a step
+  // measured 644px in a 596px frame. Capping the image is what solves it now,
+  // which makes max-height load-bearing rather than decorative.
+  const html = emitWalkthrough(await authored(), { languages: ['en'] })
+  assert.match(html, /\.step img \{[^}]*max-height:\s*70vh/, 'the screenshot is capped')
 
   const print = html.slice(html.indexOf('@media print'))
   assert.match(print, /\.step \{[^}]*display:\s*block/, 'print stacks deterministically')

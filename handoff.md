@@ -26,12 +26,14 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 ## ✅ Things I've Changed
 - 2026-08-05 — **One `:root`** for all four surfaces; **studio repaints in the brand**; audit covers
   all eight pairings and reads its surfaces from the tokens. `feature-design-tokens` built.
+- 2026-08-05 — **Walkthrough is two columns again** — rail, then screenshot above its instruction.
+  The 2026-08-01 beside-the-screenshot split made three. Reverted here and in the all-in-one.
 - 2026-08-05 — **`tools/shoot.mjs`** photographs phases or artifacts. Tagline says "multiple" now.
 - 2026-08-05 — **Word verified against Word itself, branded.** `feature-docx-writer` → verified done.
 - 2026-08-01 — **Export page rebuilt to Mike's mock-up**; dashboard leads, `subgrid` aligns columns.
 - 2026-08-01 — **Bundle selection + standard card icons**; icons overridable on Branding.
 - 2026-08-01 — **Branding phase** across every artifact, contrast-gated.
-- 2026-08-01 — **Beside-the-screenshot layout**, source language, wider editor.
+- 2026-08-01 — Source language, wider editor.
 
 ## ❌ Watch Out
 - **A green suite can sit on top of an unusable UI.** Undo left the branding controls stale

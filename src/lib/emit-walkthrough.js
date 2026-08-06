@@ -67,43 +67,29 @@ const WALKTHROUGH_CSS = `
 .step:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 .step h3 { font-size: .95rem; color: var(--text-muted); margin-bottom: .35rem; }
 .step figure { margin: 0 0 .85rem; }
-.step__media > figure:last-child { margin-bottom: 0; }
 .step img {
-  display: block; width: auto; height: auto;
+  display: block; width: 100%; height: auto;
   max-width: min(60rem, 100%); max-height: 70vh;
   border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg);
 }
 
 /*
- * Screenshot beside its instruction, not above it.
+ * Screenshot ABOVE its instruction, and the viewer stays two columns: the step
+ * rail on the left, the picture and its sentence stacked together on the right.
  *
- * At full column width the picture pushed its own sentence 500px down: inside
- * the all-in-one panel a step measured 644px in a 596px frame, so the two were
- * never on screen together. Same defect the worked example had; here there is
- * width to spare, so the fix is to use it rather than only to shrink the image.
+ * It was briefly three — a container query split each step into picture beside
+ * sentence, which read as two unrelated panels rather than one step, and made
+ * both narrow. Reverted on Mike's call, 2026-08-05.
  *
- * A CONTAINER query, not a media query. How much room a step actually has
- * depends on whether the rail is showing — it takes 17rem from 60rem up — so
- * the viewport does not answer the question, and this document is embedded in
- * an iframe as well as opened on its own. Asking the step's own container is
- * the only reading that is right in all three places.
+ * The problem that split was solving is real and is still solved, just by the
+ * other means the original note dismissed: at full width a tall screenshot used
+ * to push its own sentence some 500px down, so inside the all-in-one panel a
+ * step measured 644px in a 596px frame and the two were never on screen
+ * together. The max-height of 70vh on the image is what keeps them together
+ * now — it is doing load-bearing work, not tidying.
  *
  * No backticks in this comment — it lives inside a template literal.
  */
-.steps { container-type: inline-size; container-name: steps; }
-
-@container steps (min-width: 40rem) {
-  .step {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    column-gap: 1.5rem;
-    align-items: start;
-  }
-  .step h3 { grid-column: 1 / -1; }
-  /* A step with no screenshot gets the full width for its instruction rather
-     than a half-width column beside nothing. */
-  .step:not(:has(.step__media)) .step__instruction { grid-column: 1 / -1; }
-}
 .step__instruction {
   padding: .85rem 1rem; background: var(--surface);
   border: 1px solid var(--border-subtle); border-left: 4px solid var(--accent);
@@ -268,12 +254,11 @@ export function emitWalkthrough(capture, { languages = capture.languages ?? ['en
         })
         .join('\n')
 
-      // One wrapper around every screenshot, so the step's grid has exactly two
-      // children to place side by side however many images a step carries.
-      // Omitted entirely when there are none — an empty column would leave the
-      // instruction stranded in half the width for no reason, and the CSS keys
-      // off this element's absence to give it the full width instead.
-      const media = figures ? `        <div class="step__media">\n${figures}\n        </div>\n` : ''
+      // Figures sit directly in the step. The wrapper that used to hold them
+      // existed only to give the two-column grid a single child to place, and
+      // that grid is gone — an element with no purpose is one the next person
+      // has to work out the purpose of.
+      const media = figures ? `${figures}\n` : ''
 
       const instruction = languages
         .map((code) => {
