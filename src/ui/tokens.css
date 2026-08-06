@@ -38,6 +38,7 @@
    */
   --brand: #155f82; /* brandable */
   --on-brand: #ffffff; /* derived from --brand */
+  --brand-hover: #1b6f97; /* derived from --brand — a lighter step of it */
   --brand-tint: #dceaf7; /* brandable, derived from --brand */
   --brand-ink: #12303f; /* derived from --brand-tint */
   --brand-border: #10222b;
@@ -78,6 +79,7 @@
        tint/active tokens flip to dark surfaces with light ink. */
     --brand: #155f82;
     --on-brand: #ffffff;
+    --brand-hover: #1b6f97;
     --brand-tint: #10394d;
     --brand-ink: #dceaf7;
     --brand-border: #06131a;

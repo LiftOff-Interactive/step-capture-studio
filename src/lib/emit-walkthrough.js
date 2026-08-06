@@ -45,7 +45,7 @@ const WALKTHROUGH_CSS = `
   html.js .rail { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
 }
 
-.rail h2 { font-size: 1rem; color: var(--muted); }
+.rail h2 { font-size: 1rem; color: var(--text-muted); }
 .rail ol { list-style: none; margin: 0; padding: 0; }
 .rail li + li { margin-top: .15rem; }
 .rail a {
@@ -60,12 +60,12 @@ const WALKTHROUGH_CSS = `
   background: var(--surface); border-left-color: var(--accent); font-weight: 700;
 }
 .rail a[aria-current="step"]::before { content: "▸ "; color: var(--accent); }
-.rail-index { color: var(--muted); font-variant-numeric: tabular-nums; }
+.rail-index { color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
 .steps { list-style: none; margin: 0; padding: 0; }
 .step { padding: 0 0 2rem; max-width: none; }
 .step:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
-.step h3 { font-size: .95rem; color: var(--muted); margin-bottom: .35rem; }
+.step h3 { font-size: .95rem; color: var(--text-muted); margin-bottom: .35rem; }
 .step figure { margin: 0 0 .85rem; }
 .step__media > figure:last-child { margin-bottom: 0; }
 .step img {
@@ -117,7 +117,7 @@ const WALKTHROUGH_CSS = `
   border: 1px solid var(--accent); border-radius: var(--radius);
 }
 .step-nav button[disabled] { opacity: .55; cursor: default; }
-.step-progress { margin: 0; color: var(--muted); font-variant-numeric: tabular-nums; }
+.step-progress { margin: 0; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
 /* Enhanced mode only: show one step at a time. */
 html.js .step[hidden] { display: none; }

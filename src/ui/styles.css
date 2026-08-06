@@ -150,7 +150,7 @@ h2 {
 }
 
 .phase-nav__btn:hover:not(:disabled):not([aria-current="true"]) {
-  background: #1b6f97;
+  background: var(--brand-hover);
 }
 
 /* The current phase is stated by aria-current; visually it flips to the pale

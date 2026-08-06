@@ -35,7 +35,7 @@ const CASE_STUDY_CSS = `
   border-radius: var(--radius); padding: 1.25rem; margin: 1.5rem 0 2rem; }
 .scenario dl { display: grid; gap: .35rem 1rem; margin: 0; }
 @media (min-width: 40rem) { .scenario dl { grid-template-columns: auto 1fr; } }
-.scenario dt { font-weight: 700; color: var(--muted); }
+.scenario dt { font-weight: 700; color: var(--text-muted); }
 .scenario dd { margin: 0; }
 
 .case-steps { list-style: none; margin: 0; padding: 0; }
@@ -66,7 +66,7 @@ const CASE_STUDY_CSS = `
   border-left: 4px solid var(--accent); border-radius: var(--radius); margin-bottom: 1rem; }
 .case-note { margin: 0 0 1rem; }
 .case-note h4 { font-size: .9rem; text-transform: uppercase; letter-spacing: .04em;
-  color: var(--muted); margin: 0 0 .25rem; }
+  color: var(--text-muted); margin: 0 0 .25rem; }
 
 /*
  * Print sizing.

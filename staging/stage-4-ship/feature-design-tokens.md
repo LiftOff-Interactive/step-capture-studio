@@ -5,8 +5,12 @@ _Stage: stage-4-ship · Status: **in progress** — designed and started 2026-08
 - [x] **1. `src/ui/tokens.css` extracted**, linked by `index.html` before `styles.css`, whose own
       `:root` block is deleted rather than duplicated. All 24 tokens resolve; all seven studio
       phases render at byte-identical heights to before. 345/345.
-- [ ] 2. Artifacts consume it — reconcile `--muted`→`--text-muted`, `--aio-*`→`--brand-*`, and have
-      the app fetch the file at startup and pass it to the emitters.
+- [x] **2. All four surfaces consume it.** `--muted`→`--text-muted`, `--aio-brand`/`--aio-tint`/
+      `--aio-outline`→`--brand`/`--brand-tint`/`--brand-border`; the three duplicate `:root` blocks
+      deleted from `emit-common.js`, `emit-all-in-one.js` and `emit-project.js`. `tokens.js` is the
+      seam — the browser loads the file at startup, `test/helpers/tokens.mjs` does it for tests via
+      `--import`, and `tokensCss()` throws rather than emitting a colourless artifact. **All four
+      branded artifacts re-render byte-identically**, so the consolidation is a proven no-op. 349/349.
 - [ ] 3. Branding writes tokens on `:root`; **Adjust branding** commits and audits.
 - [ ] 4. Expanded contrast audit + the new assertions, each mutation-tested.
 
@@ -63,6 +67,14 @@ while its cards stayed `--aio-brand` teal, because nothing connects the two. Eve
   studio that repaints on every event spends the drag in states nobody chose — some of them
   unreadable. Committing also gives the contrast audit one obvious moment to run and somewhere to
   report.
+- **The author's colour is never altered — the gate blocks instead.** Mike's call. `bestOn()` already
+  flips the text on a brand colour to black or white by measuring both, and a scan of 636,056
+  colours shows that flip **never drops below 3:1**, so headings, borders and focus rings are safe
+  by construction for any colour whatsoever. It falls under 4.5:1 for 4.6% of the space — saturated
+  mid-tone violets, magentas and teals — worst case `#ab3fff` at 4.297:1. A 1–4% nudge would close
+  every one of those, and we deliberately do not do it. Quietly shifting someone's brand colour to
+  make our own check pass is the tool overruling the author about their own identity; being told
+  plainly is better. This means the gate only ever fires on normal-size text.
 - **A failing brand warns, and does not repaint.** The audit lists every pairing it measured with its
   ratio. Export stays blocked exactly as it is today; the studio stays on defaults rather than
   adopting a palette that fails. The author sees the failure reported, not applied.
@@ -89,7 +101,35 @@ while its cards stayed `--aio-brand` teal, because nothing connects the two. Eve
 4. Rendered demo of the studio in both languages, before and after applying a brand.
 
 ## Verification Log
-_Empty. Nothing here is done._
+
+### 2026-08-05 — Steps 1–2. Consolidation proven to be a no-op; two latent bugs found.
+
+**349/349** (345 before; `test/tokens.test.js` adds four).
+
+**The consolidation changes nothing, and that is measured rather than asserted.** All four branded
+artifacts — same brand as the Word check, `#ad0b69` / Cascadia Mono / Trebuchet / 18px / 1.5 — were
+re-exported and re-photographed after the change and came back **byte-identical**:
+`cdb42d7ee3`, `90dc88ef58`, `0be8be2b31`, `f57eaf5db3`, unchanged from before. Every studio phase
+also re-rendered at identical heights. The names were drifted aliases holding the same hexes, so
+reconciling them moves nothing.
+
+**Three mutations, all now caught:** a colour literal reintroduced into a consumer file; a token
+given no dark-scheme value; `renderDocument` stopping inlining the tokens.
+
+**One of those assertions was worthless when written, and mutation testing is the only reason it is
+not still worthless.** The dark-scheme check split the file on the string `:root` — which appears in
+the file's own header comment — so it compared prose against the light block and passed no matter
+what was deleted. Rewritten to match `:root { … }` blocks, it failed immediately on a real omission:
+`--brand-hover` had been added with no dark value.
+
+**Two latent bugs found by looking for stray hexes**, both invisible until branding reaches them:
+`.phase-nav__btn:hover` was a hardcoded `#1b6f97` that would have stayed teal while its button went
+magenta, and the dashboard's icon glyphs were a hardcoded `#ffffff` that would vanish on a light
+brand. Both now tokens; both no-ops at today's values.
+
+**Still open:** `branding.js` hardcodes the page surfaces in `SURFACES` — a fourth copy of `--bg`
+and `--surface`. It is excluded from the duplication assertion for now because the contrast audit
+needs those values; step 4 should take them from the tokens instead.
 
 ## Open edges
 - **The dashboard's card tint is a design decision, not just a wiring one.** Deriving a readable

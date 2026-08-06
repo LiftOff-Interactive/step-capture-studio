@@ -43,6 +43,7 @@ import { emitDocx } from '../lib/emit-docx.js'
 import { emitProject } from '../lib/emit-project.js'
 import { emitAllInOne } from '../lib/emit-all-in-one.js'
 import { parseProject, ProjectError } from '../lib/parse-project.js'
+import { setTokens, TOKENS_URL } from '../lib/tokens.js'
 import { saveAutosave, loadAutosave, clearAutosave, AutosaveError } from '../lib/autosave.js'
 import { artifactName, captureTitle, imageType } from '../lib/emit-common.js'
 import {
@@ -1816,6 +1817,28 @@ window.addEventListener('beforeunload', (event) => {
 if (typeof DecompressionStream === 'undefined') {
   show(els.unsupported)
   els.fileInput.disabled = true
+}
+
+/*
+ * Load the design tokens before the app does anything that emits.
+ *
+ * Awaited at module scope on purpose. Every listener above is already attached
+ * by the time execution reaches here, so this adds no window in which a button
+ * does nothing — but it does guarantee that nothing which serialises the
+ * project runs first. Autosave is the reason: it calls emitProject on a timer,
+ * not just when the user asks for a download.
+ *
+ * The <link> in head has already fetched this file, so this is a cache hit and
+ * costs nothing measurable. If it somehow fails, the studio is visibly
+ * unstyled anyway — so rather than kill the page, let it run and let the
+ * emitters throw their own explicit error if an export is attempted.
+ */
+try {
+  const response = await fetch(TOKENS_URL)
+  if (!response.ok) throw new Error(`tokens ${response.status}`)
+  setTokens(await response.text())
+} catch (error) {
+  console.error('design tokens failed to load; exports will not work', error)
 }
 
 state.view = storedView()

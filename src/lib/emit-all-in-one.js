@@ -52,10 +52,10 @@ const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingm
  * others on the page background — with a large brand-teal tile as the icon.
  */
 const AIO_CSS = `
-:root { --aio-tint: #dceaf7; --aio-brand: #155f82; --aio-outline: #10222b; }
-@media (prefers-color-scheme: dark) {
-  :root { --aio-tint: #10394d; --aio-outline: #06131a; }
-}
+/* Cards and tiles use --brand / --brand-tint / --brand-border from tokens.css.
+   They were --aio-brand / --aio-tint / --aio-outline here, holding the very
+   same hexes under different names, which is exactly why a branded dashboard
+   came out with unbranded cards. */
 .aio-menu { margin-top: 1.5rem; }
 .aio-grid {
   display: grid; gap: 1.5rem; margin: 0; padding: 0; list-style: none;
@@ -67,7 +67,7 @@ const AIO_CSS = `
   border-radius: 28px;
 }
 /* Backgrounds alternate by position, not by card kind. */
-.aio-grid > li:nth-child(odd) .aio-card { background: var(--aio-tint); }
+.aio-grid > li:nth-child(odd) .aio-card { background: var(--brand-tint); }
 .aio-card > *, .aio-card p { max-width: none; }
 .aio-card__head {
   display: flex; flex-direction: column; align-items: center; gap: .85rem;
@@ -77,9 +77,9 @@ const AIO_CSS = `
 .aio-card__open:focus-visible .aio-card__title { text-decoration: underline; }
 .aio-card__icon {
   width: 132px; height: 112px; border-radius: 22px;
-  background: var(--aio-brand); border: 2px solid var(--aio-outline);
+  background: var(--brand); border: 2px solid var(--brand-border);
   display: flex; align-items: center; justify-content: center;
-  color: #ffffff;
+  color: var(--on-brand);
 }
 .aio-card__icon svg { width: 56px; height: 56px; }
 /* An uploaded icon keeps the tile's footprint but not its fill — the artwork

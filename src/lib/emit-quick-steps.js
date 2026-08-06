@@ -32,11 +32,11 @@ const QUICK_CSS = `
 }
 .quick-list > li::before {
   content: counter(step) ".";
-  font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted);
+  font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text-muted);
   text-align: right;
 }
 .quick-step__text { font-size: 1rem; }
-.quick-empty { color: var(--muted); font-style: italic; }
+.quick-empty { color: var(--text-muted); font-style: italic; }
 
 /* One page is the whole point of this artifact. */
 @media print {

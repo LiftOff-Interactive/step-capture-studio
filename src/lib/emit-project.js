@@ -30,21 +30,13 @@ import {
 import { NARRATIVE_FIELDS, SCENARIO_FIELDS } from './case-study.js'
 import { brandingOf, ICON_SLOTS } from './branding.js'
 import { AIO_PARTS, allInOneParts } from './all-in-one.js'
+import { tokensCss } from './tokens.js'
 
 /** Bumped only when the shape changes incompatibly; the parser checks it. */
 export const PROJECT_FORMAT_VERSION = '1'
 
+/* Components only — the `:root` is tokens.css, inlined ahead of this. */
 const PROJECT_CSS = `
-:root {
-  --bg: #ffffff; --surface: #f4f6f8; --text: #1a1d21; --muted: #565b62;
-  --accent: #0b5cab; --border-subtle: #d7dce2; --radius: 8px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14171a; --surface: #1e2226; --text: #eceef1; --muted: #b3b9c0;
-    --accent: #7fb4ef; --border-subtle: #363c43;
-  }
-}
 *, *::before, *::after { box-sizing: border-box; }
 body {
   margin: 0; padding: 0 1rem 3rem; background: var(--bg); color: var(--text);
@@ -72,11 +64,11 @@ figure { margin: 0 0 1rem; }
 figcaption { margin-top: .5rem; }
 .label {
   font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
-  color: var(--muted); margin: 1rem 0 .25rem;
+  color: var(--text-muted); margin: 1rem 0 .25rem;
 }
 [data-lang-block] { margin: .15rem 0; }
-[data-confirmed="false"], [data-drafted="true"] { border-left: 3px solid var(--muted); padding-left: .5rem; }
-.flag { font-size: .8rem; color: var(--muted); }
+[data-confirmed="false"], [data-drafted="true"] { border-left: 3px solid var(--text-muted); padding-left: .5rem; }
+.flag { font-size: .8rem; color: var(--text-muted); }
 @media print { body { padding: 0; } }
 `.trim()
 
@@ -239,6 +231,7 @@ ${root}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(artifactName(title, 'Project'))}</title>
 <style>
+${tokensCss()}
 ${PROJECT_CSS}
 </style>
 </head>

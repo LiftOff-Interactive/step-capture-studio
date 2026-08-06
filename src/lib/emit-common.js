@@ -14,6 +14,7 @@
  */
 
 import { t } from './i18n.js'
+import { tokensCss } from './tokens.js'
 
 const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
 
@@ -147,19 +148,13 @@ export function langBlock(code, html, { tag = 'div', className = '' } = {}) {
   return `<${tag} class="${classes}" lang="${localeTag(code)}" data-lang-block="${code}">${html}</${tag}>`
 }
 
-/** Base stylesheet shared by every artifact. Light and dark, print-aware. */
+/**
+ * Base stylesheet shared by every artifact. Print-aware, components only:
+ * every colour, radius and measure comes from tokens.css, which renderDocument
+ * inlines ahead of this. Never redeclare one here — that is how the studio and
+ * the artifacts drifted into three palettes under four names.
+ */
 export const BASE_CSS = `
-:root {
-  --bg: #ffffff; --surface: #f4f6f8; --text: #1a1d21; --muted: #565b62;
-  --accent: #0b5cab; --on-accent: #ffffff; --border: #6b7280; --border-subtle: #d7dce2;
-  --radius: 8px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14171a; --surface: #1e2226; --text: #eceef1; --muted: #b3b9c0;
-    --accent: #7fb4ef; --on-accent: #10131a; --border: #8b939c; --border-subtle: #363c43;
-  }
-}
 *, *::before, *::after { box-sizing: border-box; }
 body {
   margin: 0; padding: 0 1rem 3rem; background: var(--bg); color: var(--text);
@@ -182,7 +177,7 @@ p, li { max-width: 68ch; }
   justify-content: space-between; padding: 1.5rem 0 1rem;
   border-bottom: 1px solid var(--border-subtle);
 }
-.doc-meta { color: var(--muted); margin: 0; font-size: .9rem; }
+.doc-meta { color: var(--text-muted); margin: 0; font-size: .9rem; }
 
 .lang-toggle {
   min-height: 44px; padding: .5rem 1rem; font: inherit; cursor: pointer;
@@ -305,6 +300,7 @@ export function renderDocument({ title, docTitle, languages, body, css = '', scr
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(docTitle || title)}</title>
 <style>
+${tokensCss()}
 ${BASE_CSS}
 ${branding}
 ${css}

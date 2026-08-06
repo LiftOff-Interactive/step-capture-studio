@@ -6,28 +6,28 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 
 ## 📍 Current State
 - **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT. Repo moved to
-  the `LiftOff-Interactive` org 2026-08-01; the old `mbubyn.github.io` address is gone. **345/345.**
+  the `LiftOff-Interactive` org 2026-08-01; the old `mbubyn.github.io` address is gone. **349/349.**
 - **Seven phases:** Start · Capture details · Worked example · Edit steps · Translate · Branding ·
   Export. Everything below shipped 2026-08-01 and is deployed.
-- **Branding phase** — fonts/sizes, header gradient, one highlight colour, logo, background, per-card
-  icons; reaches all four HTML artifacts and Word. Contrast is measured and a failure **blocks
-  export** like unconfirmed alt text. The default is a deliberate no-op.
+- **Branding phase** — fonts/sizes, gradient, highlight, logo, background, card icons; reaches all
+  four artifacts and Word. A contrast failure **blocks export**. The default is a deliberate no-op.
 - **Export page is a comparison table** — the all-in-one leads, then a row per output (description |
   bundle checkbox | downloads), aligned with `subgrid`. Unticking never blocks a standalone download.
 - **Source language is the author's**, **worked example optional**, explanations per language.
 - **Stages 1–3 complete.** Artifacts self-contained, bilingual, JS-off readable, axe clean, printable.
 - **Word verified, branded (2026-08-05).** Current format, no convert prompt, Accessibility Checker
   clean; fonts, colour and sizes all arrived. Closes `feature-docx-writer`; no `help.md` blockers.
-- Everything else sits at `awaiting verification` — human-only checks, not unfinished work.
-  `docx-reader`, `snagit-parser`, `pages-deploy` and now `docx-writer` are `verified done`.
+- Everything else is `awaiting verification` — human checks, not unfinished work. `docx-reader`,
+  `snagit-parser`, `pages-deploy`, `docx-writer` are `verified done`.
 
 ## 📂 Files I'm Working On
-- `src/lib/branding.js` (+ test) — fonts, colours, imagery; derives and measures rather than asks.
-- `src/lib/all-in-one.js` (+ test) — which artifacts the dashboard bundles.
+- `src/ui/tokens.css` + `src/lib/tokens.js` — the one palette, and the seam that inlines it.
+- `src/lib/branding.js` (+ test) — derives and measures rather than asks. Still holds its own copy
+  of the page surfaces in `SURFACES`; step 4 should take those from the tokens.
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7). 251 keys per language.
 
 ## ✅ Things I've Changed
-- 2026-08-05 — **`src/ui/tokens.css`** is now the one `:root`; `styles.css` consumes it.
+- 2026-08-05 — **`src/ui/tokens.css`** is the one `:root`; all four surfaces consume it.
 - 2026-08-05 — **`tools/shoot.mjs`** photographs phases or artifacts. Tagline says "multiple" now.
 - 2026-08-05 — **Word verified against Word itself, branded.** `feature-docx-writer` → verified done.
 - 2026-08-01 — **Export page rebuilt to Mike's mock-up**; dashboard leads, `subgrid` aligns columns.
@@ -36,20 +36,22 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 - 2026-08-01 — **Beside-the-screenshot layout**, source language, wider editor.
 
 ## ❌ Watch Out
-- **A green suite can sit on top of an unusable UI.** Undo left the branding controls stale on
-  2026-08-01 — third time this seam has shipped a bug. → `failed-approaches.md`, "disabled state".
+- **A green suite can sit on top of an unusable UI.** Undo left the branding controls stale
+  2026-08-01, third time for that seam. → `failed-approaches.md`, "disabled state".
 - **Valid markup is not accepted markup, and measured is not seen.** → `failed-approaches.md`,
   "`<dc:language>`" and "Reviewing a screenshot's subject".
 - **Word shows the resolved font family, not our option label.** *monospace* → "Cascadia Mono" is
   the mapping working, not a fault; `w:rFonts` cannot hold a stack. Misread as a failure once.
-- **Assert generated images differ.** `shoot.mjs` twice "succeeded" producing identical files.
+- **A passing assertion may be testing nothing.** `shoot.mjs` twice "succeeded" on identical
+  images; the dark-token check split on `:root`, a string in its own comment, so it compared prose
+  and passed whatever you deleted. Mutation-test every new assertion — it found both.
 - **Never restore a mutation with `git checkout --`, never chain `npm test` with `;` before a
   commit.** Both bit on 2026-08-01. → `failed-approaches.md`, 2026-08-01 entry.
 
 ## ➡️ Next Up
 _Nothing is blocking._
-1. **`feature-design-tokens`** — one `:root` for all four surfaces; step 1 of 4 done. Subsumes the
-   half-branded dashboard (`--aio-brand` teal). Studio repaints on **Adjust branding**, not live.
+1. **`feature-design-tokens`** — steps 1–2 of 4 done. Next: branding writes tokens on `:root`, an
+   **Adjust branding** action commits and audits, and the contrast gate grows to every pairing.
 2. **Cam's human pass** — every phase, keyboard-only, both languages. `node tools/shoot.mjs phases`
    (add `--fr`) now renders all fourteen, so the pass starts from images, not from scratch.
 3. `feature-public-polish` — README screenshot is stale after the redesign; `tools/shoot.mjs` can
