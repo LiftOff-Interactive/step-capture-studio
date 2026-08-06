@@ -14,8 +14,7 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
   export** like unconfirmed alt text. The default is a deliberate no-op.
 - **Export page is a comparison table** — the all-in-one leads, then a row per output (description |
   bundle checkbox | downloads), aligned with `subgrid`. Unticking never blocks a standalone download.
-- **Source language is the author's**, the **worked example optional**, explanations per language —
-  each fixed a silent French-capture failure.
+- **Source language is the author's**, **worked example optional**, explanations per language.
 - **Stages 1–3 complete.** Artifacts self-contained, bilingual, JS-off readable, axe clean, printable.
 - **Word verified, branded (2026-08-05).** Current format, no convert prompt, Accessibility Checker
   clean; fonts, colour and sizes all arrived. Closes `feature-docx-writer`; no `help.md` blockers.
@@ -34,8 +33,7 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 - 2026-08-01 — **Export page rebuilt to Mike's mock-up**; dashboard leads, `subgrid` aligns columns.
 - 2026-08-01 — **Bundle selection + standard card icons**; icons overridable on Branding.
 - 2026-08-01 — **Branding phase** across every artifact, contrast-gated.
-- 2026-08-01 — **Beside-the-screenshot layout**; source language, optional worked example, wider
-  editor.
+- 2026-08-01 — **Beside-the-screenshot layout**, source language, wider editor.
 
 ## ❌ Watch Out
 - **A green suite can sit on top of an unusable UI.** Undo left the branding controls stale on
