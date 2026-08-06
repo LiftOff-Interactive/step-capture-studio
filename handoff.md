@@ -5,10 +5,8 @@ _Last updated: 2026-08-05 · Current stage: stage-4-ship_
 Finish Stage 4: public polish and a shippable demo, so a stranger can use the live site unaided.
 
 ## 📍 Current State
-- **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT. Repo moved to
-  the `LiftOff-Interactive` org 2026-08-01; the old `mbubyn.github.io` address is gone. **349/349.**
-- **Seven phases:** Start · Capture details · Worked example · Edit steps · Translate · Branding ·
-  Export. Everything below shipped 2026-08-01 and is deployed.
+- **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT. **349/349.**
+- **Seven phases:** Start · Capture · Worked example · Edit · Translate · Branding · Export.
 - **Branding phase** — fonts/sizes, gradient, highlight, logo, background, card icons; reaches all
   four artifacts and Word. A contrast failure **blocks export**. The default is a deliberate no-op.
 - **Export page is a comparison table** — the all-in-one leads, then a row per output (description |
@@ -54,8 +52,8 @@ _Nothing is blocking._
    **Adjust branding** action commits and audits, and the contrast gate grows to every pairing.
 2. **Cam's human pass** — every phase, keyboard-only, both languages. `node tools/shoot.mjs phases`
    (add `--fr`) now renders all fourteen, so the pass starts from images, not from scratch.
-3. `feature-public-polish` — README screenshot is stale after the redesign; `tools/shoot.mjs` can
-   regenerate it. **A stranger completing the flow** is the definition of done.
+3. `feature-public-polish` — stale README screenshot (`shoot.mjs` regenerates it); **a stranger
+   completing the flow** is the definition of done.
 4. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.
 
 ## 🔗 Pointer
