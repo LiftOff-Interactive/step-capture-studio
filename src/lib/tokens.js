@@ -45,5 +45,22 @@ export function tokensCss() {
 /** Whether tokens are available, for callers that want to check before asking. */
 export const tokensReady = () => loaded !== null
 
+/**
+ * One token's value, per colour scheme.
+ *
+ * Exists so the contrast maths can measure against the surfaces that actually
+ * ship rather than against a copy of them. `branding.js` used to carry its own
+ * list of page backgrounds with the comment "from BASE_CSS" — true when written,
+ * and exactly the kind of hand-kept copy that goes stale silently.
+ *
+ * Falls back to the light value when dark does not override, which mirrors how
+ * the cascade behaves.
+ */
+export function tokenValue(name, scheme = 'light') {
+  const blocks = [...tokensCss().matchAll(/:root\s*\{([^}]*)\}/g)].map((m) => m[1])
+  const find = (block) => block?.match(new RegExp(`${name}\\s*:\\s*([^;]+);`))?.[1]?.trim()
+  return (scheme === 'dark' ? find(blocks[1]) ?? find(blocks[0]) : find(blocks[0])) ?? null
+}
+
 /** Where the stylesheet lives, relative to index.html. One spelling of the path. */
 export const TOKENS_URL = 'src/ui/tokens.css'

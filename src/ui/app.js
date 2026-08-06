@@ -14,7 +14,7 @@
 
 import { parseSnagitDocx } from '../lib/parse-snagit.js'
 import { DocxError } from '../lib/docx.js'
-import { t, LANGUAGES, LOCALES } from '../lib/i18n.js'
+import { t, LANGUAGES, LOCALES, formatRatio } from '../lib/i18n.js'
 import {
   setStepText,
   setTitle,
@@ -784,7 +784,7 @@ function syncBranding() {
   // where the author can actually do something about it.
   els.brandHighlight.value = b.highlight
   const ratio = contrastRatio(b.highlight, '#ffffff')
-  const rounded = ratio === null ? '?' : (Math.round(ratio * 100) / 100).toFixed(2)
+  const rounded = formatRatio(ratio === null ? null : Math.round(ratio * 100) / 100, state.lang)
   els.brandHighlightValue.textContent = t(
     ratio !== null && ratio >= 4.5 ? 'branding.contrastOk' : 'branding.contrastFail',
     state.lang,
@@ -1427,7 +1427,7 @@ els.brandApply.addEventListener('click', () => {
       .map((b) =>
         t(`blocker.BRANDING_${b.code}`, state.lang, {
           field: t(`branding.${b.field}`, state.lang),
-          ratio: b.ratio ?? '?',
+          ratio: formatRatio(b.ratio, state.lang),
         }),
       )
       .join(' ')

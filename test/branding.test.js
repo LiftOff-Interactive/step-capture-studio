@@ -28,6 +28,8 @@ import {
   bestOn,
 } from '../src/lib/branding.js'
 import { exportReadiness, seedAltText, confirmAltText, setStepText, setAltText } from '../src/lib/authoring.js'
+import { brandingAudit } from '../src/lib/branding.js'
+import { tokenValue } from '../src/lib/tokens.js'
 import { parseSnagitDocx } from '../src/lib/parse-snagit.js'
 import { emitProject } from '../src/lib/emit-project.js'
 import { parseProject } from '../src/lib/parse-project.js'
@@ -274,4 +276,80 @@ test('a hand-edited colour that is not hex is dropped, not carried into the gate
     'data-highlight="cornflowerblue"'
   )
   assert.equal(parse(html).branding.highlight, defaultBranding().highlight)
+})
+
+// ------------------------------------------------------- the contrast audit ---
+
+/*
+ * The audit grew when the brand stopped being just a link colour. It now paints
+ * the shell, the buttons, their hover state and the dashboard cards, so each of
+ * those is a text-on-surface pairing that can fail — and the derived on-colours
+ * are NOT safe by construction: bestOn guarantees 3:1 for any colour in sRGB,
+ * never 4.5:1.
+ */
+
+const brandOf = (highlight) => ({ branding: { highlight } })
+
+test('the audit measures every surface the brand paints, in both schemes', () => {
+  const pairs = brandingAudit(brandOf('#ad0b69'))
+  const ids = new Set(pairs.map((p) => p.id))
+  for (const id of ['highlightOnbg', 'highlightOnsurface', 'labelOnButton', 'textOnHeader', 'textOnHover', 'textOnCard']) {
+    assert.ok(ids.has(id), `the audit never measures ${id}`)
+  }
+  // Anything whose colour differs between schemes has to be measured in both.
+  // Asserting this only for the cards let a mutation delete the dark-scheme
+  // button measurement and still pass — the readers who need dark mode are
+  // exactly the ones least able to absorb a contrast failure.
+  const schemesFor = (id) =>
+    pairs
+      .filter((p) => p.id === id)
+      .map((p) => p.scheme)
+      .sort()
+  for (const id of ['textOnCard', 'labelOnButton']) {
+    assert.deepEqual(schemesFor(id), ['dark', 'light'], `${id} is not measured in both schemes`)
+  }
+  for (const pair of pairs) {
+    assert.ok(typeof pair.ratio === 'number' && pair.ratio > 0, `${pair.id} has no ratio`)
+    assert.equal(pair.required, 4.5)
+  }
+})
+
+test('a brand no on-colour can rescue is blocked, and the button label is named', () => {
+  // #ab3fff is the worst case in sRGB: bestOn reaches only 4.30:1 against it,
+  // so the button label genuinely fails however the text is flipped. Mike's
+  // call is that the colour is never altered to suit us — the gate blocks.
+  const { ready, blockers } = brandingReadiness(brandOf('#ab3fff'))
+  assert.equal(ready, false)
+  const fields = blockers.map((b) => b.field)
+  assert.ok(fields.includes('labelOnButton'), `button label not reported: ${fields.join(', ')}`)
+  const pair = blockers.find((b) => b.field === 'labelOnButton')
+  assert.equal(pair.code, 'PAIR_CONTRAST')
+  assert.ok(pair.ratio < 4.5 && pair.ratio > 4, `expected a near miss, got ${pair.ratio}`)
+})
+
+test('a brand that only fails on the page still passes on its own buttons', () => {
+  // Yellow is unreadable as link text on white but perfectly readable with dark
+  // text on top of it. One verdict for both would be wrong in one direction.
+  const pairs = brandingAudit(brandOf('#ffd400'))
+  const by = (id) => pairs.find((p) => p.id === id)
+  assert.equal(by('highlightOnbg').passes, false)
+  assert.equal(by('labelOnButton').passes, true)
+  assert.equal(by('textOnCard').passes, true)
+})
+
+test('the default branding adds no shell pairings to audit', () => {
+  const ids = new Set(brandingAudit({}).map((p) => p.id))
+  for (const id of ['textOnHeader', 'textOnHover', 'textOnCard']) {
+    assert.ok(!ids.has(id), `the default is auditing ${id}, so it is painting it`)
+  }
+  assert.ok(brandingReadiness({}).ready)
+})
+
+test('the audit measures the surfaces that ship, not a copy of them', () => {
+  // branding.js used to carry its own list of page backgrounds annotated "from
+  // BASE_CSS". It now reads tokens.css, so this asserts the wiring rather than
+  // the values: the light page must be whatever the token says it is.
+  const pairs = brandingAudit(brandOf('#ad0b69'))
+  assert.equal(pairs.find((p) => p.id === 'highlightOnbg').bg, tokenValue('--bg'))
+  assert.equal(pairs.find((p) => p.id === 'highlightOnsurface').bg, tokenValue('--surface'))
 })

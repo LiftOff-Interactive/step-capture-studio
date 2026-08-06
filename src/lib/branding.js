@@ -22,6 +22,7 @@
  */
 
 import { toDataUri } from './emit-common.js'
+import { tokenValue } from './tokens.js'
 
 /**
  * Font stacks, not fonts.
@@ -163,10 +164,16 @@ export function bestOn(background) {
   return onWhite >= onBlack ? '#ffffff' : '#111418'
 }
 
-/** Page backgrounds the artifacts use, light and dark, from BASE_CSS. */
-const SURFACES = [
-  { name: 'bg', light: '#ffffff', dark: '#14171a' },
-  { name: 'surface', light: '#f4f6f8', dark: '#1e2226' },
+/**
+ * The page backgrounds, read from the tokens that actually ship.
+ *
+ * This was a hardcoded list annotated "from BASE_CSS" — accurate when written,
+ * and a fourth copy of the palette waiting to go stale. Reading it means the
+ * contrast maths can never be measuring a surface the artifacts stopped using.
+ */
+const surfaces = () => [
+  { name: 'bg', light: tokenValue('--bg'), dark: tokenValue('--bg', 'dark') },
+  { name: 'surface', light: tokenValue('--surface'), dark: tokenValue('--surface', 'dark') },
 ]
 
 const AA_TEXT = 4.5
@@ -197,13 +204,71 @@ function mix(from, to, amount) {
 export function darkHighlight(highlight) {
   if (!isHexColour(highlight)) return '#ffffff'
   const passes = (candidate) =>
-    SURFACES.every((surface) => contrastRatio(candidate, surface.dark) >= AA_TEXT)
+    surfaces().every((surface) => contrastRatio(candidate, surface.dark) >= AA_TEXT)
   if (passes(highlight)) return highlight
   for (let i = 1; i <= 20; i += 1) {
     const candidate = mix(highlight, '#ffffff', i / 20)
     if (passes(candidate)) return candidate
   }
   return '#ffffff'
+}
+
+/**
+ * Every colour pairing the brand is responsible for, measured.
+ *
+ * This grew when the brand stopped being just a link colour. It now paints the
+ * page shell, the buttons, their hover state and the dashboard's cards, and
+ * each of those puts text on a surface that did not exist before — so each is
+ * a pairing that can fail, in either colour scheme.
+ *
+ * The derived on-colours are measured rather than assumed. `bestOn` returns the
+ * better of black and white, which is guaranteed to clear 3:1 for any colour in
+ * sRGB but **not** 4.5:1 — about 4.6% of the space, mostly saturated mid-tone
+ * violets and teals, cannot reach AA against either. Those are real failures
+ * and the author is told, rather than us nudging their colour to suit us.
+ *
+ * The dark-scheme accent is the one thing deliberately not measured against the
+ * page: `darkHighlight` blends until it passes, so checking it would only
+ * report on this file's own arithmetic.
+ *
+ * @returns {Array<{id, fg, bg, ratio, required, passes, scheme}>}
+ */
+export function brandingAudit(capture) {
+  const b = brandingOf(capture)
+  if (!isHexColour(b.highlight)) return []
+
+  const pairs = []
+  const measure = (id, fg, bg, scheme, required = AA_TEXT) => {
+    const ratio = contrastRatio(fg, bg)
+    pairs.push({
+      id,
+      fg,
+      bg,
+      scheme,
+      required,
+      ratio: ratio === null ? null : Math.round(ratio * 100) / 100,
+      passes: ratio !== null && ratio >= required,
+    })
+  }
+
+  for (const surface of surfaces()) {
+    measure(`highlightOn${surface.name}`, b.highlight, surface.light, 'light')
+  }
+  measure('labelOnButton', bestOn(b.highlight), b.highlight, 'light')
+  const darkAccent = darkHighlight(b.highlight)
+  measure('labelOnButton', bestOn(darkAccent), darkAccent, 'dark')
+
+  // The shell family only exists once the author has chosen a colour; at the
+  // default it stays the shipped teal, which was measured when it shipped.
+  if (b.highlight !== defaultBranding().highlight) {
+    measure('textOnHeader', bestOn(b.highlight), b.highlight, 'light')
+    measure('textOnHover', bestOn(b.highlight), brandHover(b.highlight), 'light')
+    for (const scheme of ['light', 'dark']) {
+      const tint = brandTint(b.highlight, scheme)
+      measure('textOnCard', bestOn(tint), tint, scheme)
+    }
+  }
+  return pairs
 }
 
 /**
@@ -245,16 +310,19 @@ export function brandingReadiness(capture) {
   // here would only ever report on this function's own arithmetic. What is
   // genuinely under test is whether the author's actual colour works on white —
   // and if it does not, that is a real finding about their brand, not about us.
-  for (const surface of SURFACES) {
-    const ratio = contrastRatio(branding.highlight, surface.light)
-    if (ratio < AA_TEXT) {
-      blockers.push({
-        code: 'HIGHLIGHT_CONTRAST',
-        field: 'highlight',
-        ratio: Math.round(ratio * 100) / 100,
-        against: surface.name,
-      })
-    }
+  for (const pair of brandingAudit(capture)) {
+    if (pair.passes) continue
+    // The highlight-on-page failures keep their original code and wording: that
+    // is the message authors already know from the Export page. Everything the
+    // brand newly touches reports through one generic pairing blocker rather
+    // than inventing a code per surface.
+    const highlightOnPage = pair.id.startsWith('highlightOn')
+    blockers.push({
+      code: highlightOnPage ? 'HIGHLIGHT_CONTRAST' : 'PAIR_CONTRAST',
+      field: highlightOnPage ? 'highlight' : pair.id,
+      ratio: pair.ratio,
+      against: highlightOnPage ? pair.id.replace('highlightOn', '') : pair.scheme,
+    })
   }
 
   if (hasGradient) {
@@ -306,7 +374,7 @@ export function brandHover(brand) {
  */
 export function brandTint(brand, scheme = 'light') {
   if (!isHexColour(brand)) return brand
-  const page = scheme === 'dark' ? '#14171a' : '#ffffff'
+  const page = tokenValue('--bg', scheme)
   return mix(brand, page, scheme === 'dark' ? 0.78 : 0.86)
 }
 

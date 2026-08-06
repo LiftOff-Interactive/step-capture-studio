@@ -341,6 +341,13 @@ const STRINGS = {
     'blocker.BRANDING_GRADIENT_CONTRAST':
       'Header gradient ({field}): {ratio}:1 against the header text. WCAG AA needs 4.5:1.',
     'blocker.BRANDING_COLOUR_INVALID': 'Branding colour {field} is not set to a valid value.',
+    'blocker.BRANDING_PAIR_CONTRAST': '{field}: {ratio}:1. WCAG AA needs 4.5:1.',
+    // Names for the pairings the audit measures. Written as what the reader
+    // sees on screen, not as the token names underneath.
+    'branding.labelOnButton': 'Button text on a button',
+    'branding.textOnHeader': 'Header text on your brand colour',
+    'branding.textOnHover': 'Button text while hovered',
+    'branding.textOnCard': 'Card text on a dashboard card',
 
     'privacy.heading': 'Nothing is uploaded',
     'privacy.body':
@@ -681,6 +688,11 @@ const STRINGS = {
     'blocker.BRANDING_GRADIENT_CONTRAST':
       'Dégradé de l’en-tête ({field}) : {ratio}:1 sur le texte. La norme WCAG AA exige 4,5:1.',
     'blocker.BRANDING_COLOUR_INVALID': 'La couleur {field} n’est pas valide.',
+    'blocker.BRANDING_PAIR_CONTRAST': '{field} : {ratio}:1. La norme WCAG AA exige 4,5:1.',
+    'branding.labelOnButton': 'Texte d’un bouton sur le bouton',
+    'branding.textOnHeader': 'Texte d’en-tête sur votre couleur',
+    'branding.textOnHover': 'Texte d’un bouton au survol',
+    'branding.textOnCard': 'Texte d’une carte du tableau de bord',
 
     'export.includeInAllInOne': 'Inclure dans le tableau de bord',
     'export.workedExampleOff':
@@ -723,6 +735,22 @@ export function t(key, lang, vars) {
   return value.replace(/\{(\w+)\}/g, (match, name) =>
     Object.hasOwn(vars, name) ? String(vars[name]) : match
   )
+}
+
+/**
+ * A contrast ratio, written the way the reader's language writes numbers.
+ *
+ * FR-CA uses a comma for the decimal mark, so an unformatted ratio produced
+ * sentences reading "3.97:1. La norme WCAG AA exige 4,5:1." — two decimal marks
+ * in one breath, one of them wrong. Always two places: 4.5 is the threshold and
+ * "4,5" reads as a measurement where "4,50" reads as a specification.
+ */
+export function formatRatio(value, lang) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '?'
+  return value.toLocaleString(LOCALES[lang] ?? LOCALES[LANGUAGES[0]], {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 /** Every key defined for a language — used by tests to prove parity. */

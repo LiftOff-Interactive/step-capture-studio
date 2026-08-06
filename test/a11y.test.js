@@ -61,7 +61,13 @@ const STUB_IMAGE =
 
 async function makeDom() {
   const html = await readFile(resolve(projectRoot, 'index.html'), 'utf8')
-  const css = await readFile(resolve(projectRoot, 'src/ui/styles.css'), 'utf8')
+  // Both sheets, in the order index.html links them. styles.css consumes the
+  // tokens and no longer declares any, so loading it alone would hand axe a
+  // document where every colour resolves to nothing — not the page that ships.
+  const css = [
+    await readFile(resolve(projectRoot, 'src/ui/tokens.css'), 'utf8'),
+    await readFile(resolve(projectRoot, 'src/ui/styles.css'), 'utf8'),
+  ].join('\n')
 
   const dom = new JSDOM(html, {
     url: 'http://localhost:8080/',

@@ -1,5 +1,5 @@
 # Feature: design tokens
-_Stage: stage-4-ship · Status: **in progress** — designed and started 2026-08-05_
+_Stage: stage-4-ship · Status: **awaiting verification** — all four steps built 2026-08-05_
 
 ## Progress
 - [x] **1. `src/ui/tokens.css` extracted**, linked by `index.html` before `styles.css`, whose own
@@ -15,7 +15,8 @@ _Stage: stage-4-ship · Status: **in progress** — designed and started 2026-08
       by the studio and every artifact, so the preview cannot drift from the export — it is the same
       string. **Adjust branding** applies it; editing a control does not. A failing brand is refused
       with the Export page's own wording, and the studio is left as it was.
-- [ ] 4. Expanded contrast audit + the new assertions, each mutation-tested.
+- [x] **4. The audit covers every pairing the brand touches**, in both schemes, and
+      `branding.js` reads the page surfaces from the tokens instead of its own copy.
 
 ## Goal
 One set of design tokens shared by all four surfaces — the studio, the project file, the all-in-one
@@ -48,14 +49,20 @@ while its cards stayed `--aio-brand` teal, because nothing connects the two. Eve
   the page is demonstrably online, since it just loaded — and holds it. Fetching at *export* time
   would put a network request between the author and their download and break the promise that you
   can disconnect and keep working.
-- **Emitters take the tokens as an argument.** Not a module global. The dependency is then visible
-  in every call site and the Node tests supply the real file, which means the tests prove that what
-  ships is what was measured.
+- ~~**Emitters take the tokens as an argument.** Not a module global.~~ **Revised in build.** Only
+  two functions actually assemble a `<style>` — `renderDocument` and `emitProject` — so threading a
+  parameter through five emitters and 107 call sites would have added noise without adding a
+  guarantee. `tokens.js` holds the text behind an accessor that **throws** when nothing was loaded,
+  which buys the thing the argument was for: a missing load fails loudly instead of producing a
+  colourless artifact. The tests still supply the real file, so what ships is what was measured.
 - **Artifacts carry the whole token block, including variables they do not use.** A handful of unused
   custom properties is a few hundred bytes against artifacts that inline base64 screenshots. Two
   divergent subsets is how the current mess started.
-- **Branding is applied by setting custom properties on `:root`,** not by injecting a stylesheet.
-  One mechanism for the studio and the artifacts, and it cannot fight the cascade.
+- ~~**Branding is applied by setting custom properties on `:root`.**~~ **Wrong, and caught in build.**
+  Inline properties on the root element cannot express a media query, so a branded studio would have
+  forced its light values onto a reader in dark mode. Branding is injected as a `<style>` instead —
+  and the string is the one the artifacts embed, which turned out to be the stronger guarantee
+  anyway: the preview cannot drift from the export because there is only one of it.
 - **The default stays `#155f82`.** Mike's call. Default output must remain byte-identical to what
   ships today, so "no branding" and "the default branding" stay one code path — the same invariant
   `feature-branding` already mutation-tests, now extended to the dashboard's cards.
@@ -83,17 +90,21 @@ while its cards stayed `--aio-brand` teal, because nothing connects the two. Eve
   adopting a palette that fails. The author sees the failure reported, not applied.
 
 ## Success Criteria
-- [ ] One `:root` definition in the repo. No hex that appears in `tokens.css` is written again in
+- [x] One `:root` definition in the repo. No hex that appears in `tokens.css` is written again in
       `styles.css`, `emit-common.js`, `emit-all-in-one.js` or `emit-project.js` — asserted by test.
-- [ ] Default branding still produces byte-identical output for all four exported files.
-- [ ] A brand colour reaches the studio, the project file, the all-in-one **including its cards and
+- [x] Default branding still produces byte-identical output for all four exported files.
+- [x] A brand colour reaches the studio, the project file, the all-in-one **including its cards and
       icon tiles**, and the three training artifacts, from one setting.
-- [ ] The studio repaints on **Adjust branding**, not on input.
-- [ ] The contrast audit covers every pairing the brand now touches, light **and** dark scheme, and
+- [x] The studio repaints on **Adjust branding**, not on input.
+- [x] The contrast audit covers every pairing the brand now touches, light **and** dark scheme, and
       names each ratio. Text 4.5:1, UI borders and focus 3:1.
-- [ ] A failing brand blocks export, warns with the full report, and leaves the studio on defaults.
-- [ ] Functional colours are provably unbrandable — asserted, not just intended.
-- [ ] Studio keyboard-operable and axe clean, `violations` and `incomplete`, in both languages.
+- [x] A failing brand blocks export, warns with the full report, and leaves the studio on defaults.
+- [x] Functional colours are provably unbrandable — asserted, not just intended.
+- [x] Studio axe clean, `violations` and `incomplete`, in both languages, against the real
+      `index.html` with both stylesheets.
+- [ ] **Studio keyboard-only pass with the new control.** — *human.* `<button>` is operable by
+      construction and axe is clean, but neither of those is a person tabbing through it. Rides with
+      Cam's pass.
 
 ## How We'll Verify
 1. `npm test` — the token-duplication assertion, byte-identical default output, the expanded audit
@@ -163,6 +174,41 @@ earlier round recorded a "not caught" that turned out to be a mutation that neve
 **One bug only a screenshot could find.** The branded studio came out magenta with two stubbornly
 blue range sliders: `accent-color` had been set on checkboxes and radios only. No assertion would
 have flagged it — the sliders were painted exactly as the stylesheet said.
+
+### 2026-08-05 — Step 4. The audit grew to the whole brand; the last palette copy is gone.
+
+**357/357.**
+
+**`branding.js` no longer keeps its own surfaces.** The list annotated "from BASE_CSS" now reads
+`tokenValue('--bg')` and `--surface`, so the contrast maths can never be measuring a page the
+artifacts stopped using. That was the fourth copy; there are none left.
+
+**Eight pairings measured, up from two.** Highlight on each page surface, the button label on the
+button, header text on the brand, the label at hover, and card text on the card wash — the last two
+in both colour schemes, because those colours differ per scheme. The derived on-colours are measured
+rather than assumed: `bestOn` guarantees 3:1 for any colour in sRGB but never 4.5:1.
+
+**That distinction is not theoretical.** `#ab3fff` now fails on four pairings at once — 3.97:1 on the
+page, **4.30:1 for the button label**, 4.30:1 for header text, 3.55:1 at hover — and is refused. Under
+the old audit only the page was measured. Conversely `#ffd400` fails on the page but *passes* on its
+own buttons and cards, because dark text on yellow is perfectly readable: one verdict for both would
+have been wrong in one direction.
+
+**Four mutations caught:** dropping the button-label measurement, letting readiness ignore the new
+pairings, auditing only the light scheme, and reverting a surface to a hardcoded hex.
+
+**One of those escaped first time round.** Deleting the dark-scheme button measurement passed,
+because the "both schemes" assertion only covered the cards. Now it covers every pairing whose
+colour differs per scheme — the readers who need dark mode are the least able to absorb a contrast
+failure.
+
+**A bilingual defect surfaced by having four ratios instead of one.** French read
+*"3.97:1 … La norme WCAG AA exige 4,5:1"* — two decimal marks in one sentence, one of them wrong.
+Ratios now format through `formatRatio()` against the reader's locale, so FR-CA gets `3,97:1`. This
+was always broken; one ratio per message hid it.
+
+**The a11y fixture was quietly measuring the wrong page.** It inlined `styles.css` alone, which since
+step 1 declares no colours at all. It now loads both sheets in the order `index.html` links them.
 
 ## Open edges
 - **The dashboard's card tint is a design decision, not just a wiring one.** Deriving a readable

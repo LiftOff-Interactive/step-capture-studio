@@ -18,7 +18,7 @@
  *   - Duplicate steps are flagged in text, not by colour alone.
  */
 
-import { t, LOCALES } from '../lib/i18n.js'
+import { t, LOCALES, formatRatio } from '../lib/i18n.js'
 import { duplicatePairs, stepVerification } from '../lib/authoring.js'
 import { NARRATIVE_FIELDS, includesWorkedExample } from '../lib/case-study.js'
 
@@ -437,8 +437,10 @@ export function buildBlockerList(document, readiness, lang) {
       // Branding blockers are about a colour rather than a step, and the
       // measured ratio is the whole point: "fails contrast" sends an author
       // hunting, "3.1:1 where 4.5 is needed" tells them how far off they are.
-      ratio: blocker.ratio,
-      field: blocker.field,
+      ratio: formatRatio(blocker.ratio, lang),
+      // Pairing blockers name a surface ("Button text on a button"); the older
+      // ones name a colour. Both resolve through the same branding.* prefix.
+      field: blocker.field ? t(`branding.${blocker.field}`, lang) : blocker.field,
     })
     list.append(li)
   }

@@ -5,7 +5,7 @@ _Last updated: 2026-08-05 · Current stage: stage-4-ship_
 Finish Stage 4: public polish and a shippable demo, so a stranger can use the live site unaided.
 
 ## 📍 Current State
-- **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT. **352/352.**
+- **LIVE at https://liftoff-interactive.github.io/step-capture-studio/** — public, MIT. **357/357.**
 - **Seven phases:** Start · Capture · Worked example · Edit · Translate · Branding · Export.
 - **Branding phase** — fonts/sizes, gradient, highlight, logo, background, card icons; reaches all
   four artifacts and Word. A contrast failure **blocks export**. The default is a deliberate no-op.
@@ -20,12 +20,12 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 
 ## 📂 Files I'm Working On
 - `src/ui/tokens.css` + `src/lib/tokens.js` — the one palette, and the seam that inlines it.
-- `src/lib/branding.js` (+ test) — derives and measures rather than asks. Still holds its own copy
-  of the page surfaces in `SURFACES`; step 4 should take those from the tokens.
+- `src/lib/branding.js` (+ test) — derives and measures rather than asks; surfaces come from tokens.
 - `src/lib/i18n.js` — **French is an unreviewed machine draft** (`help.md` 7). 251 keys per language.
 
 ## ✅ Things I've Changed
-- 2026-08-05 — **One `:root`** for all four surfaces; the **studio repaints in the author's brand**.
+- 2026-08-05 — **One `:root`** for all four surfaces; **studio repaints in the brand**; audit covers
+  all eight pairings and reads its surfaces from the tokens. `feature-design-tokens` built.
 - 2026-08-05 — **`tools/shoot.mjs`** photographs phases or artifacts. Tagline says "multiple" now.
 - 2026-08-05 — **Word verified against Word itself, branded.** `feature-docx-writer` → verified done.
 - 2026-08-01 — **Export page rebuilt to Mike's mock-up**; dashboard leads, `subgrid` aligns columns.
@@ -48,13 +48,11 @@ Finish Stage 4: public polish and a shippable demo, so a stranger can use the li
 
 ## ➡️ Next Up
 _Nothing is blocking._
-1. **`feature-design-tokens`** — steps 1–3 of 4 done. Next: the contrast audit grows to every
-   pairing the brand now touches, light and dark, each assertion mutation-tested.
-2. **Cam's human pass** — every phase, keyboard-only, both languages. `shoot.mjs phases` takes
-   `--fr` and `--brand`, so the pass starts from images rather than from scratch.
-3. `feature-public-polish` — stale README screenshot (`shoot.mjs` regenerates it); **a stranger
+1. **Cam's human pass** — every phase, keyboard-only, both languages, now including **Adjust
+   branding**. `shoot.mjs phases` takes `--fr` and `--brand`; it is the last thing gating two features.
+2. `feature-public-polish` — stale README screenshot (`shoot.mjs` regenerates it); **a stranger
    completing the flow** is the definition of done.
-4. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.
+3. Plural forms ("1 items") — needs `Intl.PluralRules`, not string patching.
 
 ## 🔗 Pointer
 → `staging/stage-4-ship/` · Active feature: `staging/stage-4-ship/feature-design-tokens.md`
