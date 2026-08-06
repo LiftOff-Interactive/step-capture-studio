@@ -23,7 +23,7 @@ const STRINGS = {
   en: {
     'app.name': 'Step Capture Studio',
     'app.tagline':
-      'Turn one Snagit step capture into three training guides. Your file never leaves this browser.',
+      'Turn one Snagit step capture into multiple training guides. Your file never leaves this browser.',
     'skip.toMain': 'Skip to main content',
 
     'lang.switchTo': 'Français',
@@ -345,7 +345,7 @@ const STRINGS = {
   fr: {
     'app.name': 'Studio de captures d’étapes',
     'app.tagline':
-      'Transformez une capture d’étapes Snagit en trois guides de formation. Votre fichier ne quitte jamais ce navigateur.',
+      'Transformez une capture d’étapes Snagit en plusieurs guides de formation. Votre fichier ne quitte jamais ce navigateur.',
     'skip.toMain': 'Passer au contenu principal',
 
     'lang.switchTo': 'English',

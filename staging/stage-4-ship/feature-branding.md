@@ -130,6 +130,31 @@ any screenshot of it can never enter the repo — the pre-commit hook checks fil
 embedded imagery and would stop it. This entry is deliberately specific because it is the only
 record there will be.
 
+### 2026-08-05 — The four HTML artifacts photographed, branded. One real gap found.
+
+Exported through `tools/shoot.mjs artifacts` with the **same branding Mike put through Word** —
+`#ad0b69`, body `mono`, heading `humanist`, base 18px, scale 1.5 — so the HTML and the `.docx` are
+one story rather than two. The app's own live readout said *"#ad0b69 — 6.93:1 on white. Passes AA"*,
+which matches the ratio computed independently from the hex.
+
+All four exported, and all four are genuinely branded: Cascadia Mono body, Trebuchet headings,
+magenta accent on links, step markers, and the walkthrough's Next/Previous controls; screenshots
+laid out beside the prose.
+
+**The gap: the all-in-one's card chrome is outside the branding system.** The dashboard carries
+`--accent: #ad0b69` (and its derived dark-scheme `#ce6da5`) correctly, but its cards and icon tiles
+are painted from a separate hardcoded palette — `--aio-brand: #155f82`, `--aio-tint: #dceaf7` /
+`#10394d` — that branding never writes to. With a magenta brand the dashboard's single most
+prominent colour is still the default teal, so the page reads as half-branded. This is the
+documented "only the highlight is checked" edge, but the tiles are a far bigger surface than the
+borders that edge was written about.
+
+*Only measurement would never have caught this.* Every assertion passes: the accent does reach the
+artifact, it is the right hex, and it clears AA. It looks wrong anyway.
+
+**The criterion stays open.** "A real author brands a capture end to end and looks at the result" is
+Mike's to close, and there is now a finding to decide on first.
+
 ## Open edges
 - **Gradient and background have no Word equivalent** and are dropped there. Word has no page
   gradient worth the OOXML, and a photograph behind body text is the opposite of accessible in a
@@ -140,5 +165,9 @@ record there will be.
 - **Only the highlight is contrast-checked against page surfaces.** Body text, borders and the
   scrim are all still BASE_CSS's, which were measured in a browser when they shipped. If branding
   ever reaches those, the check has to grow with it.
+- **The all-in-one's cards and icon tiles are not branded at all** — `--aio-brand` and `--aio-tint`
+  are hardcoded teal. Seen 2026-08-05; the dashboard's dominant colour ignores the author's brand.
+  Deciding this is Mike's: derive them from the highlight, or state that the dashboard chrome is
+  deliberately neutral. Either way the contrast check has to cover them if they start moving.
 - **No live preview.** The author sets values and exports to see them. A preview pane would be
   better and is a much larger piece of work.

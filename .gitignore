@@ -42,3 +42,9 @@ $RECYCLE.BIN/
 /coverage/
 /out/
 *.local
+
+# tools/shoot.mjs output. The .png rule above already covers the screenshots, but
+# this folder also holds the exported artifacts it downloads, and those inline every
+# screenshot as base64 — run against a real capture, they are internal imagery in a
+# .html. Ignore the whole directory rather than rely on the extension rules.
+/tools/shots/
